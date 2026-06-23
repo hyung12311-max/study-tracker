@@ -10,7 +10,7 @@ create table if not exists public.study_plans (
   day_label text not null,
   content text not null,
   goal text not null,
-  status text not null default 'planned' check (status in ('planned', 'done', 'late')),
+  status text not null default '예정' check (status in ('planned', 'done', 'late', '예정', '완료', '지연')),
   created_at timestamptz not null default now()
 );
 

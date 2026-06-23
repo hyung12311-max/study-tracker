@@ -2,12 +2,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_CONFIG } from "./config.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v9";
+const BUILD_VERSION = "v10";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const statusLabels = {
   planned: "예정",
   done: "완료",
   late: "지연",
+  "예정": "예정",
+  "완료": "완료",
+  "지연": "지연",
 };
 const praises = [
   "GOOD!! 너무 잘했어!",
@@ -33,7 +36,10 @@ function createSupabaseRepository(config) {
 
   async function request(label, promise) {
     const { data, error, count } = await promise;
-    if (error) throw new Error(`${label}: ${error.message}`);
+    if (error) {
+      const detail = error.details ? ` (${error.details})` : "";
+      throw new Error(`${label}: ${error.message}${detail}`);
+    }
     return { data, count };
   }
 
@@ -156,13 +162,13 @@ function createSupabaseRepository(config) {
       "완료 상태 저장 실패",
       client
         .from("study_plans")
-        .update({ status })
+        .update(sanitizePayload({ status }))
         .eq("id", id)
         .select("*")
         .single()
     );
 
-    if (status === "done") {
+    if (isDoneStatus(status)) {
       await request(
         "스티커 저장 실패",
         client
@@ -180,7 +186,7 @@ function createSupabaseRepository(config) {
   }
 
   async function syncStickerForPlan(planId, status) {
-    if (status === "done") {
+    if (isDoneStatus(status)) {
       await request(
         "스티커 저장 실패",
         client
@@ -217,7 +223,7 @@ function createSupabaseRepository(config) {
     if (!planIds.length) return;
     await request(
       "지연 상태 저장 실패",
-      client.from("study_plans").update({ status: "late" }).in("id", planIds)
+      client.from("study_plans").update({ status: "지연" }).in("id", planIds)
     );
   }
 
@@ -251,6 +257,7 @@ let state = { reward: { ...DEFAULT_REWARD }, stickerCount: 0, plans: [] };
 let isParentMode = false;
 let todayFilter = "today";
 let isRemoteRefreshPending = false;
+let installPrompt = null;
 
 function addDays(date, amount) {
   const next = new Date(date);
@@ -260,6 +267,24 @@ function addDays(date, amount) {
 
 function comparePlans(a, b) {
   return a.studyDate.localeCompare(b.studyDate) || a.subject.localeCompare(b.subject, "ko");
+}
+
+function isDoneStatus(status) {
+  return status === "done" || status === "완료";
+}
+
+function isPlannedStatus(status) {
+  return status === "planned" || status === "예정";
+}
+
+function isLateStatus(status) {
+  return status === "late" || status === "지연";
+}
+
+function statusClass(status) {
+  if (isDoneStatus(status)) return "done";
+  if (isLateStatus(status)) return "late";
+  return "planned";
 }
 
 function toDateInput(date) {
@@ -289,7 +314,7 @@ async function saveAndRender(message, operation) {
 }
 
 function completedCount() {
-  return state.stickerCount || state.plans.filter((plan) => plan.status === "done").length;
+  return state.stickerCount || state.plans.filter((plan) => isDoneStatus(plan.status)).length;
 }
 
 function render() {
@@ -316,13 +341,63 @@ function renderDataSource() {
   if (source) source.textContent = `Data source: Supabase / Build: ${BUILD_VERSION}`;
 }
 
+function isStandaloneDisplay() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+function updateInstallUI() {
+  const panel = $("#installPanel");
+  const button = $("#installAppButton");
+  const help = $("#installHelp");
+  if (!panel || !button || !help) return;
+
+  if (isStandaloneDisplay()) {
+    panel.hidden = true;
+    return;
+  }
+
+  if (installPrompt) {
+    panel.hidden = false;
+    button.hidden = false;
+    help.textContent = "설치하면 휴대폰 홈 화면에서 바로 열 수 있어요.";
+    return;
+  }
+
+  if (isIosDevice()) {
+    panel.hidden = false;
+    button.hidden = true;
+    help.textContent = "iPhone/Safari에서는 공유 버튼 → 홈 화면에 추가를 눌러주세요.";
+    return;
+  }
+
+  panel.hidden = true;
+  console.log("[pwa-install] beforeinstallprompt not available yet. Check HTTPS, manifest icons, and service worker.");
+}
+
+async function promptInstallApp() {
+  if (!installPrompt) {
+    console.log("[pwa-install] install prompt is not ready.");
+    updateInstallUI();
+    return;
+  }
+  installPrompt.prompt();
+  const choice = await installPrompt.userChoice;
+  console.log("[pwa-install] user choice:", choice.outcome);
+  installPrompt = null;
+  updateInstallUI();
+}
+
 async function markOverduePlans() {
   const today = toDateInput(new Date());
   const changedIds = [];
   state.plans = state.plans.map((plan) => {
-    if (plan.status === "planned" && plan.studyDate < today) {
+    if (isPlannedStatus(plan.status) && plan.studyDate < today) {
       changedIds.push(plan.id);
-      return { ...plan, status: "late" };
+      return { ...plan, status: "지연" };
     }
     return plan;
   });
@@ -352,10 +427,10 @@ function renderToday() {
 
   const todayPlans = state.plans.filter((plan) => plan.studyDate === today).sort(comparePlans);
   const weekPlans = state.plans
-    .filter((plan) => plan.studyDate >= today && plan.studyDate <= weekEnd && plan.status !== "late")
+    .filter((plan) => plan.studyDate >= today && plan.studyDate <= weekEnd && !isLateStatus(plan.status))
     .sort(comparePlans);
   const upcomingPlans = state.plans
-    .filter((plan) => plan.studyDate >= today && plan.status === "planned")
+    .filter((plan) => plan.studyDate >= today && isPlannedStatus(plan.status))
     .sort(comparePlans);
   const nearestPlan = upcomingPlans[0];
 
@@ -376,16 +451,14 @@ function renderToday() {
   }
 
   $("#todayList").innerHTML = `${notice ? `<div class="today-notice">${notice}</div>` : ""}${plans.map(createStudyCard).join("")}`;
-  $$(".complete-btn").forEach((button) => {
-    button.addEventListener("click", () => completePlan(button.dataset.id));
-  });
 }
 
 function createStudyCard(plan) {
-  const done = plan.status === "done";
+  const done = isDoneStatus(plan.status);
+  const normalizedStatus = statusClass(plan.status);
   return `
-    <article class="study-card ${plan.status}">
-      <span class="card-status">${done ? "⭐" : "📘"} ${statusLabels[plan.status]}</span>
+    <article class="study-card ${normalizedStatus}">
+      <span class="card-status">${done ? "⭐" : "📘"} ${statusLabels[plan.status] || statusLabels[normalizedStatus]}</span>
       <h3>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)}</h3>
       <p>${escapeHtml(plan.unit)} / ${escapeHtml(plan.lessonNo)}</p>
       <div class="card-meta">
@@ -393,8 +466,8 @@ function createStudyCard(plan) {
         <span>목표: ${escapeHtml(plan.target)}</span>
         <span>${escapeHtml(plan.dayNo)}</span>
       </div>
-      <button class="complete-btn" data-id="${plan.id}" ${done ? "disabled" : ""}>
-        ${done ? "완료했어요! ⭐" : "완료했어요!"}
+      <button type="button" class="complete-btn" data-complete-id="${plan.id}" ${done ? "disabled" : ""}>
+        ${done ? "참 잘했어요!" : "완료했어요!"}
       </button>
     </article>
   `;
@@ -402,16 +475,17 @@ function createStudyCard(plan) {
 
 async function completePlan(id) {
   const plan = state.plans.find((item) => item.id === id);
-  if (!plan || plan.status === "done") return;
+  console.log("[complete-click]", id, plan);
+  if (!plan || isDoneStatus(plan.status)) return;
   const praise = praises[Math.floor(Math.random() * praises.length)];
   launchCelebration();
-  await saveAndRender(praise, () => repository.updatePlanStatus(id, "done"));
+  await saveAndRender(praise, () => repository.updatePlanStatus(plan.id, "완료"));
 }
 
 function renderProgress() {
   const sorted = [...state.plans].sort(comparePlans);
   $("#progressTable").innerHTML = sorted.map((plan) => `
-    <tr class="status-${plan.status}">
+    <tr class="status-${statusClass(plan.status)}">
       <td>${escapeHtml(plan.subject)}</td>
       <td>${escapeHtml(plan.book)}</td>
       <td>${escapeHtml(plan.unit)}</td>
@@ -419,7 +493,7 @@ function renderProgress() {
       <td>${escapeHtml(plan.dayNo)}</td>
       <td>${escapeHtml(formatDate(plan.studyDate))}</td>
       <td>${escapeHtml(plan.target)}</td>
-      <td><span class="status-badge status-${plan.status}">${statusLabels[plan.status]}</span></td>
+      <td><span class="status-badge status-${statusClass(plan.status)}">${statusLabels[plan.status] || statusLabels[statusClass(plan.status)]}</span></td>
     </tr>
   `).join("");
 }
@@ -464,8 +538,8 @@ async function claimReward() {
 
 function renderParent() {
   const total = state.plans.length;
-  const done = state.plans.filter((plan) => plan.status === "done").length;
-  const late = state.plans.filter((plan) => plan.status === "late").length;
+  const done = state.plans.filter((plan) => isDoneStatus(plan.status)).length;
+  const late = state.plans.filter((plan) => isLateStatus(plan.status)).length;
   $("#totalPlans").textContent = total;
   $("#donePlans").textContent = done;
   $("#latePlans").textContent = late;
@@ -478,7 +552,7 @@ function renderParent() {
     .map((plan) => `
       <article class="plan-item">
         <div>
-          <h4>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)} <span class="status-badge status-${plan.status}">${statusLabels[plan.status]}</span></h4>
+          <h4>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)} <span class="status-badge status-${statusClass(plan.status)}">${statusLabels[plan.status] || statusLabels[statusClass(plan.status)]}</span></h4>
           <p>${escapeHtml(formatDate(plan.studyDate))} · ${escapeHtml(plan.unit)} · ${escapeHtml(plan.target)}</p>
         </div>
         <div class="plan-actions">
@@ -498,7 +572,7 @@ function calculateWeeklyRate() {
   const end = toDateInput(today);
   const weekly = state.plans.filter((plan) => plan.studyDate >= start && plan.studyDate <= end);
   if (!weekly.length) return 0;
-  return Math.round((weekly.filter((plan) => plan.status === "done").length / weekly.length) * 100);
+  return Math.round((weekly.filter((plan) => isDoneStatus(plan.status)).length / weekly.length) * 100);
 }
 
 function editPlan(id) {
@@ -514,7 +588,7 @@ function editPlan(id) {
   $("#dayNo").value = plan.dayNo;
   $("#content").value = plan.content;
   $("#target").value = plan.target;
-  $("#status").value = plan.status;
+  $("#status").value = statusClass(plan.status);
   showToast("수정할 내용을 바꾸고 저장하세요.");
 }
 
@@ -543,7 +617,7 @@ async function handlePlanSubmit(event) {
     dayNo: $("#dayNo").value.trim(),
     content: $("#content").value.trim(),
     target: $("#target").value.trim(),
-    status: $("#status").value,
+    status: statusLabels[$("#status").value] || $("#status").value,
   };
 
   await saveAndRender("학습계획을 저장했어요.", () => repository.upsertPlan(formPlan));
@@ -575,7 +649,8 @@ function setConnectionStatus(message) {
 }
 
 function handleRepositoryError(error) {
-  const message = error?.message || "Supabase 연결 중 오류가 발생했습니다.";
+  const details = error?.details ? ` (${error.details})` : "";
+  const message = `${error?.message || "Supabase 연결 중 오류가 발생했습니다."}${details}`;
   setConnectionStatus(message);
   showToast(message);
 }
@@ -660,6 +735,19 @@ function handlePasswordSubmit(event) {
 }
 
 function bindEvents() {
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    console.log("[pwa-install] beforeinstallprompt captured.");
+    updateInstallUI();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    $("#installPanel").hidden = true;
+    console.log("[pwa-install] app installed.");
+  });
+
   $$(".tab").forEach((tab) => {
     tab.addEventListener("click", () => {
       switchView(tab.dataset.view);
@@ -675,6 +763,12 @@ function bindEvents() {
 
   $("#parentAccessButton").addEventListener("click", openPasswordDialog);
   $("#returnChildButton").addEventListener("click", exitParentMode);
+  $("#installAppButton").addEventListener("click", promptInstallApp);
+  $("#todayList").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-complete-id]");
+    if (!button) return;
+    completePlan(button.dataset.completeId);
+  });
   $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
   $("#closePasswordButton").addEventListener("click", closePasswordDialog);
   $("#planForm").addEventListener("submit", handlePlanSubmit);
@@ -702,6 +796,7 @@ async function reloadFromRemote() {
 async function init() {
   clearBrowserStorage();
   bindEvents();
+  updateInstallUI();
   resetForm();
   $("#todayList").innerHTML = `<div class="empty"><h3>학습계획을 불러오는 중이에요</h3><p>Supabase에서 데이터를 가져오고 있어요.</p></div>`;
   try {
@@ -716,7 +811,9 @@ async function init() {
   }
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch((error) => {
+      console.log("[service-worker] registration failed:", error);
+    });
   }
 }
 

@@ -2,13 +2,26 @@
   "name": "하겸이 학습 스티커",
   "short_name": "학습스티커",
   "description": "아이 학습 진도와 스티커 보상을 관리하는 PWA",
-  "start_url": "./index.html",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#fff6d8",
-  "theme_color": "#ffcf4d",
+  "theme_color": "#ff8a00",
   "icons": [
     {
-      "src": "img/icon.svg",
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

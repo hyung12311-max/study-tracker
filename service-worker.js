@@ -1,12 +1,14 @@
-const CACHE_NAME = "hagyeom-study-sticker-v9";
+const CACHE_NAME = "hagyeom-study-sticker-v10";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./css/styles.css",
-  "./js/app.js",
-  "./js/config.js",
-  "./manifest.webmanifest",
-  "./img/icon.svg",
+  "/",
+  "/index.html",
+  "/css/styles.css",
+  "/js/app.js",
+  "/js/config.js",
+  "/manifest.webmanifest",
+  "/img/icon.svg",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -17,7 +19,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
