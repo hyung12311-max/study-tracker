@@ -573,6 +573,23 @@ select {
   transform: translate(-50%, 0);
 }
 
+.data-source {
+  position: fixed;
+  left: 50%;
+  bottom: 6px;
+  z-index: 10;
+  width: min(420px, calc(100% - 24px));
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(43, 42, 53, 0.1);
+  transform: translateX(-50%);
+}
+
 .celebration {
   pointer-events: none;
   position: fixed;

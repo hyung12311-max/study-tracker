@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_CONFIG } from "./config.js";
 
 const PARENT_PASSWORD = "1234";
+const BUILD_VERSION = "v9";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const statusLabels = {
   planned: "예정",
@@ -76,11 +77,7 @@ function createSupabaseRepository(config) {
     });
   }
 
-  async function ensureInitialData() {
-    const { count } = await request(
-      "학습계획 확인 실패",
-      client.from("study_plans").select("id", { count: "exact", head: true })
-    );
+  async function ensureRewardSettings() {
     const { data: settings } = await request(
       "보상 설정 확인 실패",
       client.from("reward_settings").select("id").limit(1).maybeSingle()
@@ -89,19 +86,11 @@ function createSupabaseRepository(config) {
     if (!settings) {
       await saveReward(DEFAULT_REWARD);
     }
-
-    if (count === 0) {
-      const seeded = createSeedData();
-      await request(
-        "초기 학습계획 저장 실패",
-        client.from("study_plans").insert(seeded.plans.map(rowFromPlan))
-      );
-    }
   }
 
   async function load() {
     assertConfigured();
-    await ensureInitialData();
+    await ensureRewardSettings();
 
     const [{ data: plans }, { data: reward }, { data: stickers }] = await Promise.all([
       request(
@@ -117,6 +106,9 @@ function createSupabaseRepository(config) {
         client.from("sticker_history").select("sticker_count")
       ),
     ]);
+
+    console.log("Supabase study_plans count:", plans.length);
+    console.log("Supabase study_plans rows:", plans);
 
     return {
       reward: reward ? { id: reward.id, goal: reward.target_stickers, name: reward.reward_name } : { ...DEFAULT_REWARD },
@@ -260,61 +252,6 @@ let isParentMode = false;
 let todayFilter = "today";
 let isRemoteRefreshPending = false;
 
-function createSeedData() {
-  const today = toDateInput(new Date());
-  const tomorrow = toDateInput(addDays(new Date(), 1));
-  const yesterday = toDateInput(addDays(new Date(), -1));
-  return {
-    reward: { ...DEFAULT_REWARD },
-    plans: [
-      {
-        subject: "수학",
-        book: "최상위 수학",
-        unit: "분수의 덧셈",
-        lessonNo: "1차시",
-        studyDate: today,
-        dayNo: "1일차",
-        content: "개념 읽고 확인문제 풀기",
-        target: "12-15쪽",
-        status: "planned",
-      },
-      {
-        subject: "국어",
-        book: "독해력 자신감",
-        unit: "중심 문장 찾기",
-        lessonNo: "2차시",
-        studyDate: today,
-        dayNo: "1일차",
-        content: "지문 2개 읽고 문제 풀기",
-        target: "8문제",
-        status: "planned",
-      },
-      {
-        subject: "영어",
-        book: "초등 영단어",
-        unit: "Daily Words",
-        lessonNo: "3차시",
-        studyDate: yesterday,
-        dayNo: "전날",
-        content: "단어 쓰기와 소리 내어 읽기",
-        target: "20개",
-        status: "late",
-      },
-      {
-        subject: "과학",
-        book: "우등생 과학",
-        unit: "식물의 한살이",
-        lessonNo: "4차시",
-        studyDate: tomorrow,
-        dayNo: "2일차",
-        content: "개념 정리와 실험 관찰",
-        target: "22-25쪽",
-        status: "planned",
-      },
-    ],
-  };
-}
-
 function addDays(date, amount) {
   const next = new Date(date);
   next.setDate(next.getDate() + amount);
@@ -356,12 +293,27 @@ function completedCount() {
 }
 
 function render() {
+  renderDataSource();
   renderHeader();
   renderRoleControls();
   renderToday();
   renderProgress();
   renderRewards();
   renderParent();
+}
+
+function clearBrowserStorage() {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch (error) {
+    console.warn("Browser storage clear skipped:", error);
+  }
+}
+
+function renderDataSource() {
+  const source = $("#dataSource");
+  if (source) source.textContent = `Data source: Supabase / Build: ${BUILD_VERSION}`;
 }
 
 async function markOverduePlans() {
@@ -748,6 +700,7 @@ async function reloadFromRemote() {
 }
 
 async function init() {
+  clearBrowserStorage();
   bindEvents();
   resetForm();
   $("#todayList").innerHTML = `<div class="empty"><h3>학습계획을 불러오는 중이에요</h3><p>Supabase에서 데이터를 가져오고 있어요.</p></div>`;
