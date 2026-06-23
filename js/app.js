@@ -284,11 +284,11 @@ function createSupabaseRepository(config) {
 
 const repository = createSupabaseRepository(SUPABASE_CONFIG);
 let state = { reward: { ...DEFAULT_REWARD }, stickerCount: 0, plans: [] };
+state.formMode = "create";
 let isParentMode = false;
 let todayFilter = "today";
 let isRemoteRefreshPending = false;
 let installPrompt = null;
-let isCopyMode = false;
 
 function addDays(date, amount) {
   const next = new Date(date);
@@ -614,14 +614,13 @@ function renderParent() {
           <p>${escapeHtml(formatDate(plan.studyDate))} · ${escapeHtml(plan.unit)} · ${escapeHtml(plan.target)}</p>
         </div>
         <div class="plan-actions">
-          <button data-copy="${plan.id}">복사</button>
+          <button type="button" class="copy-btn" data-action="copy" data-id="${plan.id}">복사</button>
           <button data-edit="${plan.id}">수정</button>
           <button data-delete="${plan.id}">삭제</button>
         </div>
       </article>
     `).join("");
 
-  $$("[data-copy]").forEach((button) => button.addEventListener("click", () => copyPlan(button.dataset.copy)));
   $$("[data-edit]").forEach((button) => button.addEventListener("click", () => editPlan(button.dataset.edit)));
   $$("[data-delete]").forEach((button) => button.addEventListener("click", () => deletePlan(button.dataset.delete)));
 }
@@ -639,7 +638,7 @@ function editPlan(id) {
   if (!isParentMode) return;
   const plan = state.plans.find((item) => item.id === id);
   if (!plan) return;
-  isCopyMode = false;
+  state.formMode = "edit";
   $("#planId").value = plan.id;
   $("#subject").value = plan.subject;
   $("#book").value = plan.book;
@@ -654,11 +653,16 @@ function editPlan(id) {
   showToast("수정할 내용을 바꾸고 저장하세요.");
 }
 
-function copyPlan(id) {
+async function handleCopyPlan(id) {
   if (!isParentMode) return;
-  const plan = state.plans.find((item) => item.id === id);
-  if (!plan) return;
-  isCopyMode = true;
+  console.log("[copy-click]", id);
+  console.log("[copy-plans]", state.plans.map((plan) => plan.id));
+  const plan = state.plans.find((item) => Number(item.id) === Number(id));
+  if (!plan) {
+    handleRepositoryError(new Error("복사할 학습계획을 찾지 못했습니다."));
+    return;
+  }
+  state.formMode = "copy";
   $("#planId").value = "";
   $("#subject").value = plan.subject;
   $("#book").value = plan.book;
@@ -670,6 +674,8 @@ function copyPlan(id) {
   $("#target").value = plan.target;
   $("#status").value = "planned";
   updatePlanSubmitButton();
+  switchView("parent");
+  $("#planForm").scrollIntoView({ behavior: "smooth", block: "start" });
   showToast("복사할 내용을 수정하고 저장하세요.");
 }
 
@@ -683,20 +689,20 @@ function resetForm() {
   $("#planId").value = "";
   $("#studyDate").value = toDateInput(new Date());
   $("#status").value = "planned";
-  isCopyMode = false;
+  state.formMode = "create";
   updatePlanSubmitButton();
 }
 
 function updatePlanSubmitButton() {
   const button = $("#planSubmitButton");
-  if (button) button.textContent = isCopyMode ? "복사해서 저장" : "저장";
+  if (button) button.textContent = state.formMode === "copy" ? "복사해서 저장" : "저장";
 }
 
 async function handlePlanSubmit(event) {
   event.preventDefault();
   if (!isParentMode) return;
   const formPlan = {
-    id: isCopyMode ? undefined : $("#planId").value || undefined,
+    id: state.formMode === "copy" ? undefined : $("#planId").value || undefined,
     subject: $("#subject").value.trim(),
     book: $("#book").value.trim(),
     unit: $("#unit").value.trim(),
@@ -708,7 +714,7 @@ async function handlePlanSubmit(event) {
     status: statusLabels[$("#status").value] || $("#status").value,
   };
 
-  const message = isCopyMode ? "복사한 학습계획이 저장되었습니다." : "학습계획을 저장했어요.";
+  const message = state.formMode === "copy" ? "복사한 학습계획이 저장되었습니다." : "학습계획을 저장했어요.";
   await saveAndRender(message, () => repository.upsertPlan(formPlan));
   resetForm();
 }
@@ -851,6 +857,14 @@ function bindEvents() {
   });
 
   document.addEventListener("click", async (event) => {
+    const copyButton = event.target.closest('[data-action="copy"]');
+    if (copyButton) {
+      event.stopPropagation();
+      const id = Number(copyButton.dataset.id);
+      await handleCopyPlan(id);
+      return;
+    }
+
     const button = event.target.closest('[data-action="complete"]');
     if (!button) return;
     event.stopPropagation();
