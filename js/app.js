@@ -288,6 +288,7 @@ let isParentMode = false;
 let todayFilter = "today";
 let isRemoteRefreshPending = false;
 let installPrompt = null;
+let isCopyMode = false;
 
 function addDays(date, amount) {
   const next = new Date(date);
@@ -613,12 +614,14 @@ function renderParent() {
           <p>${escapeHtml(formatDate(plan.studyDate))} · ${escapeHtml(plan.unit)} · ${escapeHtml(plan.target)}</p>
         </div>
         <div class="plan-actions">
+          <button data-copy="${plan.id}">복사</button>
           <button data-edit="${plan.id}">수정</button>
           <button data-delete="${plan.id}">삭제</button>
         </div>
       </article>
     `).join("");
 
+  $$("[data-copy]").forEach((button) => button.addEventListener("click", () => copyPlan(button.dataset.copy)));
   $$("[data-edit]").forEach((button) => button.addEventListener("click", () => editPlan(button.dataset.edit)));
   $$("[data-delete]").forEach((button) => button.addEventListener("click", () => deletePlan(button.dataset.delete)));
 }
@@ -636,6 +639,7 @@ function editPlan(id) {
   if (!isParentMode) return;
   const plan = state.plans.find((item) => item.id === id);
   if (!plan) return;
+  isCopyMode = false;
   $("#planId").value = plan.id;
   $("#subject").value = plan.subject;
   $("#book").value = plan.book;
@@ -646,7 +650,27 @@ function editPlan(id) {
   $("#content").value = plan.content;
   $("#target").value = plan.target;
   $("#status").value = statusClass(plan.status);
+  updatePlanSubmitButton();
   showToast("수정할 내용을 바꾸고 저장하세요.");
+}
+
+function copyPlan(id) {
+  if (!isParentMode) return;
+  const plan = state.plans.find((item) => item.id === id);
+  if (!plan) return;
+  isCopyMode = true;
+  $("#planId").value = "";
+  $("#subject").value = plan.subject;
+  $("#book").value = plan.book;
+  $("#unit").value = plan.unit;
+  $("#lessonNo").value = plan.lessonNo;
+  $("#studyDate").value = plan.studyDate;
+  $("#dayNo").value = plan.dayNo;
+  $("#content").value = plan.content;
+  $("#target").value = plan.target;
+  $("#status").value = "planned";
+  updatePlanSubmitButton();
+  showToast("복사할 내용을 수정하고 저장하세요.");
 }
 
 async function deletePlan(id) {
@@ -659,13 +683,20 @@ function resetForm() {
   $("#planId").value = "";
   $("#studyDate").value = toDateInput(new Date());
   $("#status").value = "planned";
+  isCopyMode = false;
+  updatePlanSubmitButton();
+}
+
+function updatePlanSubmitButton() {
+  const button = $("#planSubmitButton");
+  if (button) button.textContent = isCopyMode ? "복사해서 저장" : "저장";
 }
 
 async function handlePlanSubmit(event) {
   event.preventDefault();
   if (!isParentMode) return;
   const formPlan = {
-    id: $("#planId").value || undefined,
+    id: isCopyMode ? undefined : $("#planId").value || undefined,
     subject: $("#subject").value.trim(),
     book: $("#book").value.trim(),
     unit: $("#unit").value.trim(),
@@ -677,7 +708,8 @@ async function handlePlanSubmit(event) {
     status: statusLabels[$("#status").value] || $("#status").value,
   };
 
-  await saveAndRender("학습계획을 저장했어요.", () => repository.upsertPlan(formPlan));
+  const message = isCopyMode ? "복사한 학습계획이 저장되었습니다." : "학습계획을 저장했어요.";
+  await saveAndRender(message, () => repository.upsertPlan(formPlan));
   resetForm();
 }
 
