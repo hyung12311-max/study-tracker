@@ -236,6 +236,7 @@ h2 {
   height: 132px;
   border-radius: 50%;
   background: rgba(120, 199, 255, 0.2);
+  pointer-events: none;
 }
 
 .study-card.done::after {
@@ -282,6 +283,8 @@ h2 {
 }
 
 .complete-btn {
+  position: relative;
+  z-index: 1;
   width: 100%;
   min-height: 58px;
   border-radius: 18px;
@@ -295,6 +298,20 @@ h2 {
 .complete-btn:disabled {
   cursor: default;
   background: var(--mint);
+}
+
+.complete-done {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 58px;
+  border-radius: 18px;
+  color: var(--ink);
+  background: var(--mint);
+  font-size: 1.15rem;
+  font-weight: 1000;
 }
 
 .empty {

@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_CONFIG } from "./config.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v10";
+const BUILD_VERSION = "v11";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const statusLabels = {
   planned: "예정",
@@ -156,6 +156,36 @@ function createSupabaseRepository(config) {
     await request("학습계획 삭제 실패", client.from("study_plans").delete().eq("id", id));
   }
 
+  async function completePlan(id) {
+    assertConfigured();
+    const { data, error } = await client
+      .from("study_plans")
+      .update(sanitizePayload({ status: "완료" }))
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      const detail = error.details ? ` (${error.details})` : "";
+      throw new Error(`완료 상태 저장 실패: ${error.message}${detail}`);
+    }
+    console.log("[complete-update-success]", data);
+
+    const stickerPayload = sanitizePayload({
+      study_plan_id: /^\d+$/.test(String(id)) ? Number(id) : id,
+      sticker_count: 1,
+    });
+    const { error: stickerError } = await client.from("sticker_history").insert(stickerPayload);
+
+    if (stickerError) {
+      const detail = stickerError.details ? ` (${stickerError.details})` : "";
+      throw new Error(`스티커 저장 실패: ${stickerError.message}${detail}`);
+    }
+    console.log("[complete-sticker-success]", stickerPayload);
+
+    return planFromRow(data);
+  }
+
   async function updatePlanStatus(id, status) {
     assertConfigured();
     const { data } = await request(
@@ -245,7 +275,7 @@ function createSupabaseRepository(config) {
     save,
     upsertPlan,
     deletePlan,
-    updatePlanStatus,
+    completePlan,
     saveReward,
     markLate,
     subscribe,
@@ -325,6 +355,10 @@ function render() {
   renderProgress();
   renderRewards();
   renderParent();
+}
+
+function renderApp() {
+  render();
 }
 
 function clearBrowserStorage() {
@@ -457,7 +491,7 @@ function createStudyCard(plan) {
   const done = isDoneStatus(plan.status);
   const normalizedStatus = statusClass(plan.status);
   return `
-    <article class="study-card ${normalizedStatus}">
+    <article class="study-card ${normalizedStatus} ${done ? "completed" : ""}">
       <span class="card-status">${done ? "⭐" : "📘"} ${statusLabels[plan.status] || statusLabels[normalizedStatus]}</span>
       <h3>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)}</h3>
       <p>${escapeHtml(plan.unit)} / ${escapeHtml(plan.lessonNo)}</p>
@@ -466,20 +500,47 @@ function createStudyCard(plan) {
         <span>목표: ${escapeHtml(plan.target)}</span>
         <span>${escapeHtml(plan.dayNo)}</span>
       </div>
-      <button type="button" class="complete-btn" data-complete-id="${plan.id}" ${done ? "disabled" : ""}>
-        ${done ? "참 잘했어요!" : "완료했어요!"}
-      </button>
+      ${done
+        ? `<div class="complete-done">참 잘했어요!</div>`
+        : `<button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}">완료했어요!</button>`}
     </article>
   `;
 }
 
-async function completePlan(id) {
+async function handleCompletePlan(id, button) {
+  if (!id) {
+    handleRepositoryError(new Error("완료할 학습 ID가 없습니다."));
+    return;
+  }
   const plan = state.plans.find((item) => item.id === id);
-  console.log("[complete-click]", id, plan);
-  if (!plan || isDoneStatus(plan.status)) return;
-  const praise = praises[Math.floor(Math.random() * praises.length)];
-  launchCelebration();
-  await saveAndRender(praise, () => repository.updatePlanStatus(plan.id, "완료"));
+  console.log("[complete-start]", id, plan);
+  if (!plan) {
+    handleRepositoryError(new Error("완료할 학습을 현재 화면 데이터에서 찾지 못했습니다."));
+    return;
+  }
+  if (isDoneStatus(plan.status)) return;
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "저장 중...";
+  }
+
+  try {
+    await repository.completePlan(id);
+    state = await repository.load();
+    await markOverduePlans();
+    renderApp();
+    setConnectionStatus("");
+    console.log("[complete-refresh-success]", id);
+    launchCelebration();
+    showToast("GOOD!! 너무 잘했어!");
+  } catch (error) {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "완료했어요!";
+    }
+    handleRepositoryError(error);
+  }
 }
 
 function renderProgress() {
@@ -761,14 +822,18 @@ function bindEvents() {
     });
   });
 
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest('[data-action="complete"]');
+    if (!button) return;
+    event.stopPropagation();
+    const id = button.dataset.id;
+    console.log("[complete-click-detected]", id);
+    await handleCompletePlan(id, button);
+  });
+
   $("#parentAccessButton").addEventListener("click", openPasswordDialog);
   $("#returnChildButton").addEventListener("click", exitParentMode);
   $("#installAppButton").addEventListener("click", promptInstallApp);
-  $("#todayList").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-complete-id]");
-    if (!button) return;
-    completePlan(button.dataset.completeId);
-  });
   $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
   $("#closePasswordButton").addEventListener("click", closePasswordDialog);
   $("#planForm").addEventListener("submit", handlePlanSubmit);
