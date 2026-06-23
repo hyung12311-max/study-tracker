@@ -36,6 +36,16 @@ function createSupabaseRepository(config) {
     return { data, count };
   }
 
+  function sanitizePayload(payload, options = {}) {
+    const { keepId = false } = options;
+    return Object.fromEntries(
+      Object.entries(payload).filter(([key, value]) => {
+        if (key === "id" && !keepId) return false;
+        return value !== undefined && value !== null && value !== "";
+      })
+    );
+  }
+
   function planFromRow(row) {
     return {
       id: row.id,
@@ -52,7 +62,7 @@ function createSupabaseRepository(config) {
   }
 
   function rowFromPlan(plan) {
-    return {
+    return sanitizePayload({
       id: plan.id || undefined,
       subject: plan.subject,
       workbook: plan.book,
@@ -63,7 +73,7 @@ function createSupabaseRepository(config) {
       content: plan.content,
       goal: plan.target,
       status: plan.status,
-    };
+    });
   }
 
   async function ensureInitialData() {
@@ -119,15 +129,25 @@ function createSupabaseRepository(config) {
     assertConfigured();
     await Promise.all([
       saveReward(data.reward),
-      request("학습계획 저장 실패", client.from("study_plans").upsert(data.plans.map(rowFromPlan))),
+      Promise.all(data.plans.map((plan) => upsertPlan(plan))),
     ]);
   }
 
   async function upsertPlan(plan) {
     assertConfigured();
+    const payload = rowFromPlan(plan);
+    if (plan.id) {
+      const { data } = await request(
+        "학습계획 수정 실패",
+        client.from("study_plans").update(payload).eq("id", plan.id).select("*").single()
+      );
+      await syncStickerForPlan(data.id, data.status);
+      return planFromRow(data);
+    }
+
     const { data } = await request(
       "학습계획 저장 실패",
-      client.from("study_plans").upsert(rowFromPlan(plan)).select("*").single()
+      client.from("study_plans").insert(payload).select("*").single()
     );
     await syncStickerForPlan(data.id, data.status);
     return planFromRow(data);
@@ -153,7 +173,9 @@ function createSupabaseRepository(config) {
     if (status === "done") {
       await request(
         "스티커 저장 실패",
-        client.from("sticker_history").upsert({ study_plan_id: id, sticker_count: 1 }, { onConflict: "study_plan_id" })
+        client
+          .from("sticker_history")
+          .upsert(sanitizePayload({ study_plan_id: id, sticker_count: 1 }), { onConflict: "study_plan_id" })
       );
     } else {
       await request(
@@ -169,7 +191,9 @@ function createSupabaseRepository(config) {
     if (status === "done") {
       await request(
         "스티커 저장 실패",
-        client.from("sticker_history").upsert({ study_plan_id: planId, sticker_count: 1 }, { onConflict: "study_plan_id" })
+        client
+          .from("sticker_history")
+          .upsert(sanitizePayload({ study_plan_id: planId, sticker_count: 1 }), { onConflict: "study_plan_id" })
       );
       return;
     }
@@ -181,10 +205,10 @@ function createSupabaseRepository(config) {
 
   async function saveReward(reward) {
     assertConfigured();
-    const payload = {
+    const payload = sanitizePayload({
       target_stickers: Number(reward.goal),
       reward_name: reward.name,
-    };
+    });
     const { data: current } = await request(
       "보상 설정 확인 실패",
       client.from("reward_settings").select("id").limit(1).maybeSingle()
