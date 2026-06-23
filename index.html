@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffcf4d" />
+    <title>하겸이 학습 스티커</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Study Sticker</p>
+          <h1>하겸이 학습 스티커</h1>
+        </div>
+        <div class="top-actions">
+          <div class="reward-pill" aria-live="polite">
+            <span>⭐</span>
+            <strong id="stickerCount">0</strong>
+            <small>스티커</small>
+          </div>
+          <button class="parent-access" id="parentAccessButton">부모관리</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="화면 선택">
+        <button class="tab active" data-view="today">오늘</button>
+        <button class="tab" data-view="progress">진도표</button>
+        <button class="tab" data-view="rewards">보상</button>
+        <button class="tab parent-tab" data-view="parent" data-parent-only hidden>부모관리</button>
+      </nav>
+
+      <main>
+        <section id="today" class="view active" aria-labelledby="todayTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow" id="todayDate"></p>
+              <h2 id="todayTitle">오늘 해야 할 학습</h2>
+            </div>
+          </div>
+          <div id="todayList" class="today-list"></div>
+        </section>
+
+        <section id="progress" class="view" aria-labelledby="progressTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Progress Board</p>
+              <h2 id="progressTitle">엑셀처럼 보는 진도표</h2>
+            </div>
+          </div>
+          <div class="legend">
+            <span><i class="dot planned"></i>예정</span>
+            <span><i class="dot done"></i>완료</span>
+            <span><i class="dot late"></i>지연</span>
+          </div>
+          <div class="table-wrap">
+            <table class="progress-table">
+              <thead>
+                <tr>
+                  <th>과목</th>
+                  <th>문제집</th>
+                  <th>단원</th>
+                  <th>차시</th>
+                  <th>일차</th>
+                  <th>학습일자</th>
+                  <th>목표</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody id="progressTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="rewards" class="view" aria-labelledby="rewardTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Reward Shop</p>
+              <h2 id="rewardTitle">스티커 보상</h2>
+            </div>
+          </div>
+          <div id="rewardPanel" class="reward-panel"></div>
+        </section>
+
+        <section id="parent" class="view" aria-labelledby="parentTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Parent Desk</p>
+              <h2 id="parentTitle">부모 관리</h2>
+            </div>
+            <button class="return-child" id="returnChildButton">아이 화면으로 돌아가기</button>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="metric">
+              <span>전체 계획</span>
+              <strong id="totalPlans">0</strong>
+            </article>
+            <article class="metric">
+              <span>완료</span>
+              <strong id="donePlans">0</strong>
+            </article>
+            <article class="metric">
+              <span>지연</span>
+              <strong id="latePlans">0</strong>
+            </article>
+            <article class="metric">
+              <span>주간 완료율</span>
+              <strong id="weeklyRate">0%</strong>
+            </article>
+          </div>
+
+          <form id="planForm" class="planner-form">
+            <input type="hidden" id="planId" />
+            <label>과목<input id="subject" required placeholder="수학" /></label>
+            <label>문제집명<input id="book" required placeholder="최상위 수학" /></label>
+            <label>단원명<input id="unit" required placeholder="분수의 덧셈" /></label>
+            <label>차시<input id="lessonNo" required placeholder="3차시" /></label>
+            <label>학습일자<input id="studyDate" type="date" required /></label>
+            <label>일차<input id="dayNo" required placeholder="12일차" /></label>
+            <label class="wide">학습내용<input id="content" required placeholder="개념 익히기와 확인문제" /></label>
+            <label>목표<input id="target" required placeholder="42-45쪽" /></label>
+            <label>상태
+              <select id="status">
+                <option value="planned">예정</option>
+                <option value="done">완료</option>
+                <option value="late">지연</option>
+              </select>
+            </label>
+            <div class="form-actions">
+              <button type="submit" class="primary">저장</button>
+              <button type="button" id="resetFormButton">새 계획</button>
+            </div>
+          </form>
+
+          <form id="rewardForm" class="reward-form">
+            <h3>보상 기준</h3>
+            <label>목표 스티커<input id="rewardGoal" type="number" min="1" required /></label>
+            <label>보상 이름<input id="rewardName" required /></label>
+            <button type="submit" class="primary">보상 저장</button>
+          </form>
+
+          <div id="planList" class="plan-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="celebration" class="celebration" aria-hidden="true"></div>
+
+    <dialog id="passwordDialog" class="password-dialog" aria-labelledby="passwordTitle">
+      <form id="passwordForm" method="dialog">
+        <button class="dialog-close" id="closePasswordButton" type="button" aria-label="닫기">×</button>
+        <p class="eyebrow">Parent Mode</p>
+        <h2 id="passwordTitle">부모 비밀번호</h2>
+        <label>비밀번호<input id="parentPasswordInput" type="password" inputmode="numeric" autocomplete="current-password" required /></label>
+        <p class="password-error" id="passwordError" aria-live="polite"></p>
+        <button type="submit" class="primary">부모 모드로 들어가기</button>
+      </form>
+    </dialog>
+
+    <script src="js/app.js" type="module"></script>
+  </body>
+</html>
