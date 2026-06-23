@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_CONFIG } from "./config.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v12";
+const BUILD_VERSION = "v14";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const statusLabels = {
   planned: "예정",
@@ -153,7 +153,12 @@ function createSupabaseRepository(config) {
 
   async function deletePlan(id) {
     assertConfigured();
-    await request("학습계획 삭제 실패", client.from("study_plans").delete().eq("id", id));
+    const planId = /^\d+$/.test(String(id)) ? Number(id) : id;
+    await request(
+      "연결된 스티커 기록 삭제 실패",
+      client.from("sticker_history").delete().eq("study_plan_id", planId)
+    );
+    await request("학습계획 삭제 실패", client.from("study_plans").delete().eq("id", planId));
   }
 
   async function completePlan(id) {
@@ -335,6 +340,7 @@ async function saveAndRender(message, operation) {
   try {
     if (operation) await operation();
     state = await repository.load();
+    ensureFormMode();
     await markOverduePlans();
     render();
     setConnectionStatus("");
@@ -342,6 +348,10 @@ async function saveAndRender(message, operation) {
   } catch (error) {
     handleRepositoryError(error);
   }
+}
+
+function ensureFormMode() {
+  if (!state.formMode) state.formMode = "create";
 }
 
 function completedCount() {
@@ -615,14 +625,11 @@ function renderParent() {
         </div>
         <div class="plan-actions">
           <button type="button" class="copy-btn" data-action="copy" data-id="${plan.id}">복사</button>
-          <button data-edit="${plan.id}">수정</button>
-          <button data-delete="${plan.id}">삭제</button>
+          <button type="button" class="edit-btn" data-action="edit" data-id="${plan.id}">수정</button>
+          <button type="button" class="delete-btn" data-action="delete" data-id="${plan.id}">삭제</button>
         </div>
       </article>
     `).join("");
-
-  $$("[data-edit]").forEach((button) => button.addEventListener("click", () => editPlan(button.dataset.edit)));
-  $$("[data-delete]").forEach((button) => button.addEventListener("click", () => deletePlan(button.dataset.delete)));
 }
 
 function calculateWeeklyRate() {
@@ -634,10 +641,13 @@ function calculateWeeklyRate() {
   return Math.round((weekly.filter((plan) => isDoneStatus(plan.status)).length / weekly.length) * 100);
 }
 
-function editPlan(id) {
+async function handleEditPlan(id) {
   if (!isParentMode) return;
-  const plan = state.plans.find((item) => item.id === id);
-  if (!plan) return;
+  const plan = state.plans.find((item) => Number(item.id) === Number(id));
+  if (!plan) {
+    handleRepositoryError(new Error("수정할 학습계획을 찾지 못했습니다."));
+    return;
+  }
   state.formMode = "edit";
   $("#planId").value = plan.id;
   $("#subject").value = plan.subject;
@@ -650,6 +660,8 @@ function editPlan(id) {
   $("#target").value = plan.target;
   $("#status").value = statusClass(plan.status);
   updatePlanSubmitButton();
+  switchView("parent");
+  $("#planForm").scrollIntoView({ behavior: "smooth", block: "start" });
   showToast("수정할 내용을 바꾸고 저장하세요.");
 }
 
@@ -679,9 +691,11 @@ async function handleCopyPlan(id) {
   showToast("복사할 내용을 수정하고 저장하세요.");
 }
 
-async function deletePlan(id) {
+async function handleDeletePlan(id) {
   if (!isParentMode) return;
-  await saveAndRender("학습계획을 삭제했어요.", () => repository.deletePlan(id));
+  const ok = window.confirm("이 학습계획과 연결된 스티커 기록도 함께 삭제됩니다. 삭제할까요?");
+  if (!ok) return;
+  await saveAndRender("학습계획이 삭제되었습니다.", () => repository.deletePlan(id));
 }
 
 function resetForm() {
@@ -695,7 +709,16 @@ function resetForm() {
 
 function updatePlanSubmitButton() {
   const button = $("#planSubmitButton");
-  if (button) button.textContent = state.formMode === "copy" ? "복사해서 저장" : "저장";
+  if (!button) return;
+  if (state.formMode === "copy") {
+    button.textContent = "복사해서 저장";
+    return;
+  }
+  if (state.formMode === "edit") {
+    button.textContent = "수정 저장";
+    return;
+  }
+  button.textContent = "저장";
 }
 
 async function handlePlanSubmit(event) {
@@ -865,6 +888,22 @@ function bindEvents() {
       return;
     }
 
+    const editButton = event.target.closest('[data-action="edit"]');
+    if (editButton) {
+      event.stopPropagation();
+      const id = Number(editButton.dataset.id);
+      await handleEditPlan(id);
+      return;
+    }
+
+    const deleteButton = event.target.closest('[data-action="delete"]');
+    if (deleteButton) {
+      event.stopPropagation();
+      const id = Number(deleteButton.dataset.id);
+      await handleDeletePlan(id);
+      return;
+    }
+
     const button = event.target.closest('[data-action="complete"]');
     if (!button) return;
     event.stopPropagation();
@@ -897,6 +936,7 @@ async function reloadFromRemote() {
   window.setTimeout(async () => {
     try {
       state = await repository.load();
+      ensureFormMode();
       await markOverduePlans();
       render();
       setConnectionStatus("");
@@ -916,6 +956,7 @@ async function init() {
   $("#todayList").innerHTML = `<div class="empty"><h3>학습계획을 불러오는 중이에요</h3><p>Supabase에서 데이터를 가져오고 있어요.</p></div>`;
   try {
     state = await repository.load();
+    ensureFormMode();
     await markOverduePlans();
     render();
     setConnectionStatus("");
