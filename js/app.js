@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_CONFIG } from "./config.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v11";
+const BUILD_VERSION = "v12";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const statusLabels = {
   planned: "예정",
@@ -490,6 +490,8 @@ function renderToday() {
 function createStudyCard(plan) {
   const done = isDoneStatus(plan.status);
   const normalizedStatus = statusClass(plan.status);
+  const completeButtonHtml = `<button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}">완료했어요!</button>`;
+  if (!done) console.log("[complete-button-html]", completeButtonHtml);
   return `
     <article class="study-card ${normalizedStatus} ${done ? "completed" : ""}">
       <span class="card-status">${done ? "⭐" : "📘"} ${statusLabels[plan.status] || statusLabels[normalizedStatus]}</span>
@@ -502,23 +504,17 @@ function createStudyCard(plan) {
       </div>
       ${done
         ? `<div class="complete-done">참 잘했어요!</div>`
-        : `<button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}">완료했어요!</button>`}
+        : completeButtonHtml}
     </article>
   `;
 }
 
 async function handleCompletePlan(id, button) {
-  if (!id) {
+  if (!id || Number.isNaN(id)) {
     handleRepositoryError(new Error("완료할 학습 ID가 없습니다."));
     return;
   }
-  const plan = state.plans.find((item) => item.id === id);
-  console.log("[complete-start]", id, plan);
-  if (!plan) {
-    handleRepositoryError(new Error("완료할 학습을 현재 화면 데이터에서 찾지 못했습니다."));
-    return;
-  }
-  if (isDoneStatus(plan.status)) return;
+  console.log("[complete-start]", id);
 
   if (button) {
     button.disabled = true;
@@ -826,7 +822,15 @@ function bindEvents() {
     const button = event.target.closest('[data-action="complete"]');
     if (!button) return;
     event.stopPropagation();
-    const id = button.dataset.id;
+    const currentPlans = state.plans || [];
+    const rawId = button.dataset.id;
+    const id = Number(rawId);
+    console.log("[complete-click]");
+    console.log("button id:", rawId);
+    console.log("button.dataset.id:", button.dataset.id);
+    console.log("typeof button.dataset.id:", typeof button.dataset.id);
+    console.log("currentPlans:", currentPlans);
+    console.log("[plans]", currentPlans.map((plan) => plan.id));
     console.log("[complete-click-detected]", id);
     await handleCompletePlan(id, button);
   });
