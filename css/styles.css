@@ -151,6 +151,16 @@ h2 {
   background: var(--sun);
 }
 
+.connection-status {
+  margin: -4px 0 16px;
+  padding: 13px 15px;
+  border-radius: 16px;
+  background: #fff0f0;
+  color: #b92424;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(255, 124, 124, 0.25);
+}
+
 .view {
   display: none;
 }
@@ -167,10 +177,43 @@ h2 {
   margin: 10px 0 18px;
 }
 
+.today-filters {
+  display: flex;
+  gap: 8px;
+  margin: -4px 0 16px;
+  overflow-x: auto;
+}
+
+.today-filter {
+  min-height: 40px;
+  border-radius: 999px;
+  padding: 0 16px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
+.today-filter.active {
+  color: var(--ink);
+  background: var(--sun);
+}
+
 .today-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
+}
+
+.today-notice {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink);
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9);
 }
 
 .study-card {

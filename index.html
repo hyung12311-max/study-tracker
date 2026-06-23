@@ -32,6 +32,8 @@
         <button class="tab parent-tab" data-view="parent" data-parent-only hidden>부모관리</button>
       </nav>
 
+      <div id="connectionStatus" class="connection-status" hidden></div>
+
       <main>
         <section id="today" class="view active" aria-labelledby="todayTitle">
           <div class="section-head">
@@ -39,6 +41,11 @@
               <p class="eyebrow" id="todayDate"></p>
               <h2 id="todayTitle">오늘 해야 할 학습</h2>
             </div>
+          </div>
+          <div class="today-filters" aria-label="오늘 화면 학습 필터">
+            <button class="today-filter active" data-today-filter="today">오늘</button>
+            <button class="today-filter" data-today-filter="week">이번 주</button>
+            <button class="today-filter" data-today-filter="upcoming">전체 예정</button>
           </div>
           <div id="todayList" class="today-list"></div>
         </section>

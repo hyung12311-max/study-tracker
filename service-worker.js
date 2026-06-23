@@ -1,9 +1,10 @@
-const CACHE_NAME = "hagyeom-study-sticker-v3";
+const CACHE_NAME = "hagyeom-study-sticker-v7";
 const ASSETS = [
   "./",
   "./index.html",
   "./css/styles.css",
   "./js/app.js",
+  "./js/config.js",
   "./manifest.webmanifest",
   "./img/icon.svg",
 ];

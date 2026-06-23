@@ -1,5 +1,8 @@
-const STORAGE_KEY = "hagyeom-study-tracker-v1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SUPABASE_CONFIG } from "./config.js";
+
 const PARENT_PASSWORD = "1234";
+const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const statusLabels = {
   planned: "예정",
   done: "완료",
@@ -16,34 +19,231 @@ const praises = [
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-const localStore = {
-  load() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
-    const seeded = createSeedData();
-    this.save(seeded);
-    return seeded;
-  },
-  save(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  },
-};
+function createSupabaseRepository(config) {
+  const apiKey = config.publishableKey || config.anonKey || "";
+  const configured = Boolean(config.url && apiKey);
+  const client = configured ? createClient(config.url, apiKey) : null;
 
-// Supabase 연동 시 이 객체와 같은 메서드(load/save)를 가진 어댑터로 교체하면 됩니다.
-const repository = localStore;
-let state = repository.load();
+  function assertConfigured() {
+    if (!configured) {
+      throw new Error("Supabase Project URL과 Publishable Key를 js/config.js에 입력해주세요.");
+    }
+  }
+
+  async function request(label, promise) {
+    const { data, error, count } = await promise;
+    if (error) throw new Error(`${label}: ${error.message}`);
+    return { data, count };
+  }
+
+  function planFromRow(row) {
+    return {
+      id: row.id,
+      subject: row.subject,
+      book: row.workbook,
+      unit: row.chapter,
+      lessonNo: row.lesson,
+      studyDate: row.study_date,
+      dayNo: row.day_label,
+      content: row.content,
+      target: row.goal,
+      status: row.status,
+    };
+  }
+
+  function rowFromPlan(plan) {
+    return {
+      id: plan.id || undefined,
+      subject: plan.subject,
+      workbook: plan.book,
+      chapter: plan.unit,
+      lesson: plan.lessonNo,
+      study_date: plan.studyDate,
+      day_label: plan.dayNo,
+      content: plan.content,
+      goal: plan.target,
+      status: plan.status,
+    };
+  }
+
+  async function ensureInitialData() {
+    const { count } = await request(
+      "학습계획 확인 실패",
+      client.from("study_plans").select("id", { count: "exact", head: true })
+    );
+    const { data: settings } = await request(
+      "보상 설정 확인 실패",
+      client.from("reward_settings").select("id").limit(1).maybeSingle()
+    );
+
+    if (!settings) {
+      await saveReward(DEFAULT_REWARD);
+    }
+
+    if (count === 0) {
+      const seeded = createSeedData();
+      await request(
+        "초기 학습계획 저장 실패",
+        client.from("study_plans").insert(seeded.plans.map(rowFromPlan))
+      );
+    }
+  }
+
+  async function load() {
+    assertConfigured();
+    await ensureInitialData();
+
+    const [{ data: plans }, { data: reward }, { data: stickers }] = await Promise.all([
+      request(
+        "학습계획 불러오기 실패",
+        client.from("study_plans").select("*").order("study_date", { ascending: true })
+      ),
+      request(
+        "보상 설정 불러오기 실패",
+        client.from("reward_settings").select("*").limit(1).maybeSingle()
+      ),
+      request(
+        "스티커 이력 불러오기 실패",
+        client.from("sticker_history").select("sticker_count")
+      ),
+    ]);
+
+    return {
+      reward: reward ? { id: reward.id, goal: reward.target_stickers, name: reward.reward_name } : { ...DEFAULT_REWARD },
+      stickerCount: stickers.reduce((sum, sticker) => sum + Number(sticker.sticker_count || 0), 0),
+      plans: plans.map(planFromRow),
+    };
+  }
+
+  async function save(data) {
+    assertConfigured();
+    await Promise.all([
+      saveReward(data.reward),
+      request("학습계획 저장 실패", client.from("study_plans").upsert(data.plans.map(rowFromPlan))),
+    ]);
+  }
+
+  async function upsertPlan(plan) {
+    assertConfigured();
+    const { data } = await request(
+      "학습계획 저장 실패",
+      client.from("study_plans").upsert(rowFromPlan(plan)).select("*").single()
+    );
+    await syncStickerForPlan(data.id, data.status);
+    return planFromRow(data);
+  }
+
+  async function deletePlan(id) {
+    assertConfigured();
+    await request("학습계획 삭제 실패", client.from("study_plans").delete().eq("id", id));
+  }
+
+  async function updatePlanStatus(id, status) {
+    assertConfigured();
+    const { data } = await request(
+      "완료 상태 저장 실패",
+      client
+        .from("study_plans")
+        .update({ status })
+        .eq("id", id)
+        .select("*")
+        .single()
+    );
+
+    if (status === "done") {
+      await request(
+        "스티커 저장 실패",
+        client.from("sticker_history").upsert({ study_plan_id: id, sticker_count: 1 }, { onConflict: "study_plan_id" })
+      );
+    } else {
+      await request(
+        "스티커 상태 정리 실패",
+        client.from("sticker_history").delete().eq("study_plan_id", id)
+      );
+    }
+
+    return planFromRow(data);
+  }
+
+  async function syncStickerForPlan(planId, status) {
+    if (status === "done") {
+      await request(
+        "스티커 저장 실패",
+        client.from("sticker_history").upsert({ study_plan_id: planId, sticker_count: 1 }, { onConflict: "study_plan_id" })
+      );
+      return;
+    }
+    await request(
+      "스티커 상태 정리 실패",
+      client.from("sticker_history").delete().eq("study_plan_id", planId)
+    );
+  }
+
+  async function saveReward(reward) {
+    assertConfigured();
+    const payload = {
+      target_stickers: Number(reward.goal),
+      reward_name: reward.name,
+    };
+    const { data: current } = await request(
+      "보상 설정 확인 실패",
+      client.from("reward_settings").select("id").limit(1).maybeSingle()
+    );
+    if (current?.id) {
+      await request("보상 설정 저장 실패", client.from("reward_settings").update(payload).eq("id", current.id));
+      return;
+    }
+    await request("보상 설정 저장 실패", client.from("reward_settings").insert(payload));
+  }
+
+  async function markLate(planIds) {
+    assertConfigured();
+    if (!planIds.length) return;
+    await request(
+      "지연 상태 저장 실패",
+      client.from("study_plans").update({ status: "late" }).in("id", planIds)
+    );
+  }
+
+  function subscribe(onChange, onError) {
+    assertConfigured();
+    const channel = client
+      .channel("study-tracker-single-user")
+      .on("postgres_changes", { event: "*", schema: "public", table: "study_plans" }, onChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "reward_settings" }, onChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sticker_history" }, onChange)
+      .subscribe((status, error) => {
+        if (error && onError) onError(error);
+      });
+    return () => client.removeChannel(channel);
+  }
+
+  return {
+    load,
+    save,
+    upsertPlan,
+    deletePlan,
+    updatePlanStatus,
+    saveReward,
+    markLate,
+    subscribe,
+  };
+}
+
+const repository = createSupabaseRepository(SUPABASE_CONFIG);
+let state = { reward: { ...DEFAULT_REWARD }, stickerCount: 0, plans: [] };
 let isParentMode = false;
+let todayFilter = "today";
+let isRemoteRefreshPending = false;
 
 function createSeedData() {
   const today = toDateInput(new Date());
   const tomorrow = toDateInput(addDays(new Date(), 1));
   const yesterday = toDateInput(addDays(new Date(), -1));
   return {
-    reward: { goal: 10, name: "5,000원 용돈" },
-    claimedRewards: 0,
+    reward: { ...DEFAULT_REWARD },
     plans: [
       {
-        id: crypto.randomUUID(),
         subject: "수학",
         book: "최상위 수학",
         unit: "분수의 덧셈",
@@ -55,7 +255,6 @@ function createSeedData() {
         status: "planned",
       },
       {
-        id: crypto.randomUUID(),
         subject: "국어",
         book: "독해력 자신감",
         unit: "중심 문장 찾기",
@@ -67,7 +266,6 @@ function createSeedData() {
         status: "planned",
       },
       {
-        id: crypto.randomUUID(),
         subject: "영어",
         book: "초등 영단어",
         unit: "Daily Words",
@@ -79,7 +277,6 @@ function createSeedData() {
         status: "late",
       },
       {
-        id: crypto.randomUUID(),
         subject: "과학",
         book: "우등생 과학",
         unit: "식물의 한살이",
@@ -100,6 +297,10 @@ function addDays(date, amount) {
   return next;
 }
 
+function comparePlans(a, b) {
+  return a.studyDate.localeCompare(b.studyDate) || a.subject.localeCompare(b.subject, "ko");
+}
+
 function toDateInput(date) {
   const offset = date.getTimezoneOffset();
   return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
@@ -113,18 +314,24 @@ function formatDate(dateString) {
   }).format(new Date(`${dateString}T00:00:00`));
 }
 
-function saveAndRender(message) {
-  repository.save(state);
-  render();
-  if (message) showToast(message);
+async function saveAndRender(message, operation) {
+  try {
+    if (operation) await operation();
+    state = await repository.load();
+    await markOverduePlans();
+    render();
+    setConnectionStatus("");
+    if (message) showToast(message);
+  } catch (error) {
+    handleRepositoryError(error);
+  }
 }
 
 function completedCount() {
-  return state.plans.filter((plan) => plan.status === "done").length;
+  return state.stickerCount || state.plans.filter((plan) => plan.status === "done").length;
 }
 
 function render() {
-  markOverduePlans();
   renderHeader();
   renderRoleControls();
   renderToday();
@@ -133,17 +340,19 @@ function render() {
   renderParent();
 }
 
-function markOverduePlans() {
+async function markOverduePlans() {
   const today = toDateInput(new Date());
-  let changed = false;
+  const changedIds = [];
   state.plans = state.plans.map((plan) => {
     if (plan.status === "planned" && plan.studyDate < today) {
-      changed = true;
+      changedIds.push(plan.id);
       return { ...plan, status: "late" };
     }
     return plan;
   });
-  if (changed) repository.save(state);
+  if (changedIds.length) {
+    await repository.markLate(changedIds);
+  }
 }
 
 function renderHeader() {
@@ -159,17 +368,38 @@ function renderRoleControls() {
 
 function renderToday() {
   const today = toDateInput(new Date());
+  const weekEnd = toDateInput(addDays(new Date(), 6));
   $("#todayDate").textContent = formatDate(today);
-  const todayPlans = state.plans
-    .filter((plan) => plan.studyDate === today)
-    .sort((a, b) => a.subject.localeCompare(b.subject, "ko"));
+  $$(".today-filter").forEach((button) => {
+    button.classList.toggle("active", button.dataset.todayFilter === todayFilter);
+  });
 
-  if (!todayPlans.length) {
-    $("#todayList").innerHTML = `<div class="empty"><h3>오늘 계획이 아직 없어요</h3><p>${isParentMode ? "부모관리 탭에서 오늘 학습을 등록하세요." : "오늘은 쉬어가는 날이에요. 스티커 에너지를 충전해요!"}</p></div>`;
+  const todayPlans = state.plans.filter((plan) => plan.studyDate === today).sort(comparePlans);
+  const weekPlans = state.plans
+    .filter((plan) => plan.studyDate >= today && plan.studyDate <= weekEnd && plan.status !== "late")
+    .sort(comparePlans);
+  const upcomingPlans = state.plans
+    .filter((plan) => plan.studyDate >= today && plan.status === "planned")
+    .sort(comparePlans);
+  const nearestPlan = upcomingPlans[0];
+
+  let plans = todayPlans;
+  let notice = "";
+
+  if (todayFilter === "week") plans = weekPlans;
+  if (todayFilter === "upcoming") plans = upcomingPlans;
+
+  if (todayFilter === "today" && !todayPlans.length && nearestPlan) {
+    plans = [nearestPlan];
+    notice = "오늘 예정된 학습이 없어요. 이번 주 학습을 확인해볼까요?";
+  }
+
+  if (!plans.length) {
+    $("#todayList").innerHTML = `<div class="empty"><h3>표시할 예정 학습이 없어요</h3><p>${isParentMode ? "부모관리 탭에서 학습을 등록하세요." : "오늘은 쉬어가는 날이에요. 스티커 에너지를 충전해요!"}</p></div>`;
     return;
   }
 
-  $("#todayList").innerHTML = todayPlans.map(createStudyCard).join("");
+  $("#todayList").innerHTML = `${notice ? `<div class="today-notice">${notice}</div>` : ""}${plans.map(createStudyCard).join("")}`;
   $$(".complete-btn").forEach((button) => {
     button.addEventListener("click", () => completePlan(button.dataset.id));
   });
@@ -194,19 +424,16 @@ function createStudyCard(plan) {
   `;
 }
 
-function completePlan(id) {
+async function completePlan(id) {
   const plan = state.plans.find((item) => item.id === id);
   if (!plan || plan.status === "done") return;
-  plan.status = "done";
   const praise = praises[Math.floor(Math.random() * praises.length)];
   launchCelebration();
-  saveAndRender(praise);
+  await saveAndRender(praise, () => repository.updatePlanStatus(id, "done"));
 }
 
 function renderProgress() {
-  const sorted = [...state.plans].sort((a, b) => {
-    return a.studyDate.localeCompare(b.studyDate) || a.subject.localeCompare(b.subject, "ko");
-  });
+  const sorted = [...state.plans].sort(comparePlans);
   $("#progressTable").innerHTML = sorted.map((plan) => `
     <tr class="status-${plan.status}">
       <td>${escapeHtml(plan.subject)}</td>
@@ -224,14 +451,12 @@ function renderProgress() {
 function renderRewards() {
   const count = completedCount();
   const reward = state.reward;
-  const cycleCount = count - state.claimedRewards * reward.goal;
-  const progress = Math.min(cycleCount, reward.goal);
-  const canClaim = count >= reward.goal * (state.claimedRewards + 1);
-  const nextGoal = reward.goal * (state.claimedRewards + 1);
+  const progress = Math.min(Math.max(count, 0), reward.goal);
+  const canClaim = count >= reward.goal;
   $("#rewardPanel").innerHTML = `
     <article class="reward-card">
       <p class="eyebrow">Sticker Mission</p>
-      <h3>${nextGoal}개 모으면 ${escapeHtml(reward.name)}</h3>
+      <h3>${reward.goal}개 모으면 ${escapeHtml(reward.name)}</h3>
       <p>현재 ${count}개 완료했어요. 완료 1개마다 스티커 1개가 쌓입니다.</p>
       <progress value="${progress}" max="${reward.goal}"></progress>
       <p>${progress} / ${reward.goal}</p>
@@ -249,22 +474,21 @@ function renderRewards() {
 
 function createStickers(count, goal) {
   return Array.from({ length: goal }, (_, index) => {
-    const earned = index < count % goal || (count > 0 && count % goal === 0 && count >= goal);
+    const earned = index < count;
     return `<span class="sticker ${earned ? "" : "locked"}">${earned ? "⭐" : "☆"}</span>`;
   }).join("");
 }
 
-function claimReward() {
-  const nextGoal = state.reward.goal * (state.claimedRewards + 1);
-  if (completedCount() < nextGoal) return;
-  state.claimedRewards += 1;
+async function claimReward() {
+  if (completedCount() < state.reward.goal) return;
+  const rewardName = state.reward.name;
   launchCelebration();
-  saveAndRender(`PERFECT! ${state.reward.name} 보상 달성!`);
+  showToast(`PERFECT! ${rewardName} 보상 달성!`);
 }
 
 function renderParent() {
   const total = state.plans.length;
-  const done = completedCount();
+  const done = state.plans.filter((plan) => plan.status === "done").length;
   const late = state.plans.filter((plan) => plan.status === "late").length;
   $("#totalPlans").textContent = total;
   $("#donePlans").textContent = done;
@@ -318,10 +542,9 @@ function editPlan(id) {
   showToast("수정할 내용을 바꾸고 저장하세요.");
 }
 
-function deletePlan(id) {
+async function deletePlan(id) {
   if (!isParentMode) return;
-  state.plans = state.plans.filter((plan) => plan.id !== id);
-  saveAndRender("학습계획을 삭제했어요.");
+  await saveAndRender("학습계획을 삭제했어요.", () => repository.deletePlan(id));
 }
 
 function resetForm() {
@@ -331,11 +554,11 @@ function resetForm() {
   $("#status").value = "planned";
 }
 
-function handlePlanSubmit(event) {
+async function handlePlanSubmit(event) {
   event.preventDefault();
   if (!isParentMode) return;
   const formPlan = {
-    id: $("#planId").value || crypto.randomUUID(),
+    id: $("#planId").value || undefined,
     subject: $("#subject").value.trim(),
     book: $("#book").value.trim(),
     unit: $("#unit").value.trim(),
@@ -347,21 +570,18 @@ function handlePlanSubmit(event) {
     status: $("#status").value,
   };
 
-  const index = state.plans.findIndex((plan) => plan.id === formPlan.id);
-  if (index >= 0) state.plans[index] = formPlan;
-  else state.plans.push(formPlan);
+  await saveAndRender("학습계획을 저장했어요.", () => repository.upsertPlan(formPlan));
   resetForm();
-  saveAndRender("학습계획을 저장했어요.");
 }
 
-function handleRewardSubmit(event) {
+async function handleRewardSubmit(event) {
   event.preventDefault();
   if (!isParentMode) return;
-  state.reward = {
+  const reward = {
     goal: Number($("#rewardGoal").value),
     name: $("#rewardName").value.trim(),
   };
-  saveAndRender("보상 기준을 저장했어요.");
+  await saveAndRender("보상 기준을 저장했어요.", () => repository.saveReward(reward));
 }
 
 function showToast(message) {
@@ -370,6 +590,18 @@ function showToast(message) {
   toast.classList.add("show");
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => toast.classList.remove("show"), 2400);
+}
+
+function setConnectionStatus(message) {
+  const status = $("#connectionStatus");
+  status.hidden = !message;
+  status.textContent = message;
+}
+
+function handleRepositoryError(error) {
+  const message = error?.message || "Supabase 연결 중 오류가 발생했습니다.";
+  setConnectionStatus(message);
+  showToast(message);
 }
 
 function launchCelebration() {
@@ -458,6 +690,13 @@ function bindEvents() {
     });
   });
 
+  $$(".today-filter").forEach((button) => {
+    button.addEventListener("click", () => {
+      todayFilter = button.dataset.todayFilter;
+      renderToday();
+    });
+  });
+
   $("#parentAccessButton").addEventListener("click", openPasswordDialog);
   $("#returnChildButton").addEventListener("click", exitParentMode);
   $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
@@ -467,10 +706,41 @@ function bindEvents() {
   $("#resetFormButton").addEventListener("click", resetForm);
 }
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js").catch(() => {});
+async function reloadFromRemote() {
+  if (isRemoteRefreshPending) return;
+  isRemoteRefreshPending = true;
+  window.setTimeout(async () => {
+    try {
+      state = await repository.load();
+      await markOverduePlans();
+      render();
+      setConnectionStatus("");
+    } catch (error) {
+      handleRepositoryError(error);
+    } finally {
+      isRemoteRefreshPending = false;
+    }
+  }, 250);
 }
 
-bindEvents();
-resetForm();
-render();
+async function init() {
+  bindEvents();
+  resetForm();
+  $("#todayList").innerHTML = `<div class="empty"><h3>학습계획을 불러오는 중이에요</h3><p>Supabase에서 데이터를 가져오고 있어요.</p></div>`;
+  try {
+    state = await repository.load();
+    await markOverduePlans();
+    render();
+    setConnectionStatus("");
+    repository.subscribe(reloadFromRemote, handleRepositoryError);
+  } catch (error) {
+    render();
+    handleRepositoryError(error);
+  }
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  }
+}
+
+init();
