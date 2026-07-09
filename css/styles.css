@@ -263,6 +263,19 @@ h2 {
   background: #ffe7e7;
 }
 
+.study-card.academy {
+  border-color: rgba(20, 143, 117, 0.26);
+  background: #fbfffc;
+}
+
+.study-card.academy::after {
+  background: rgba(116, 217, 164, 0.28);
+}
+
+.academy-status {
+  background: #ddf8eb;
+}
+
 .study-card h3 {
   margin: 16px 0 8px;
   font-size: 1.45rem;
@@ -452,6 +465,69 @@ h2 {
   background: #edf0f4;
   filter: grayscale(1);
   opacity: 0.55;
+}
+
+.reward-milestones {
+  display: grid;
+  gap: 12px;
+}
+
+.milestone-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.milestone-card strong {
+  font-size: 1.05rem;
+}
+
+.milestone-card em {
+  font-style: normal;
+  font-weight: 900;
+}
+
+.milestone-card.achieved {
+  border-color: #91e3b4;
+  background: #edfff4;
+}
+
+.milestone-card.active {
+  border-color: #ffbd4a;
+  background: #fff4cf;
+}
+
+.milestone-card.planned {
+  background: #f7f8fb;
+}
+
+.reward-milestone-admin,
+.academy-admin-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.reward-admin-row,
+.academy-admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  font-weight: 800;
+}
+
+.empty-note {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .dashboard-grid {

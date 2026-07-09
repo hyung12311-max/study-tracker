@@ -30,7 +30,7 @@
       </header>
 
       <nav class="tabs" aria-label="화면 선택">
-        <button class="tab active" data-view="today">오늘</button>
+        <button class="tab active" data-view="today">학습</button>
         <button class="tab" data-view="progress">진도표</button>
         <button class="tab" data-view="rewards">보상</button>
         <button class="tab parent-tab" data-view="parent" data-parent-only hidden>부모관리</button>
@@ -43,13 +43,13 @@
           <div class="section-head">
             <div>
               <p class="eyebrow" id="todayDate"></p>
-              <h2 id="todayTitle">오늘 해야 할 학습</h2>
+              <h2 id="todayTitle">학습할 일정</h2>
             </div>
           </div>
-          <div class="today-filters" aria-label="오늘 화면 학습 필터">
-            <button class="today-filter active" data-today-filter="today">오늘</button>
-            <button class="today-filter" data-today-filter="week">이번 주</button>
-            <button class="today-filter" data-today-filter="upcoming">전체 예정</button>
+          <div class="today-filters" aria-label="학습 화면 필터">
+            <button class="today-filter active" data-learning-filter="due">오늘+지연</button>
+            <button class="today-filter" data-learning-filter="week">이번 주</button>
+            <button class="today-filter" data-learning-filter="upcoming">전체 예정</button>
           </div>
           <div id="todayList" class="today-list"></div>
         </section>
@@ -146,12 +146,45 @@
             </div>
           </form>
 
-          <form id="rewardForm" class="reward-form">
-            <h3>보상 기준</h3>
-            <label>목표 스티커<input id="rewardGoal" type="number" min="1" required /></label>
-            <label>보상 이름<input id="rewardName" required /></label>
-            <button type="submit" class="primary">보상 저장</button>
+          <form id="academyForm" class="reward-form">
+            <h3>&#54617;&#50896; &#51068;&#51221;</h3>
+            <input type="hidden" id="academyScheduleId" />
+            <label>&#54617;&#50896;&#47749;<input id="academyName" required placeholder="&#53468;&#44428;&#46020;" /></label>
+            <label>&#50836;&#51068;
+              <select id="academyDayOfWeek" required>
+                <option value="0">&#51068;&#50836;&#51068;</option>
+                <option value="1">&#50900;&#50836;&#51068;</option>
+                <option value="2">&#54868;&#50836;&#51068;</option>
+                <option value="3">&#49688;&#50836;&#51068;</option>
+                <option value="4">&#47785;&#50836;&#51068;</option>
+                <option value="5">&#44552;&#50836;&#51068;</option>
+                <option value="6">&#53664;&#50836;&#51068;</option>
+              </select>
+            </label>
+            <label>&#49884;&#44036;<input id="academyTime" type="time" required /></label>
+            <label>&#48324; &#51648;&#44553; &#44060;&#49688;<input id="academyStars" type="number" min="1" value="1" required /></label>
+            <label class="wide">&#47700;&#47784;<input id="academyMemo" placeholder="&#51456;&#48708;&#47932;&#51060;&#45208; &#50508;&#47548;" /></label>
+            <div class="form-actions">
+              <button type="submit" class="primary" id="academySubmitButton">&#54617;&#50896; &#51068;&#51221; &#52628;&#44032;</button>
+              <button type="button" id="resetAcademyFormButton">&#49352; &#54617;&#50896; &#51068;&#51221;</button>
+            </div>
+            <div id="academyScheduleList" class="academy-admin-list"></div>
           </form>
+
+          <form id="rewardForm" class="reward-form">
+            <h3>보상 마일스톤</h3>
+            <input type="hidden" id="rewardMilestoneId" />
+            <label>필요 별<input id="rewardGoal" type="number" min="1" required /></label>
+            <label>보상 이름<input id="rewardName" required /></label>
+            <button type="submit" class="primary" id="rewardSubmitButton">보상 추가</button>
+            <div id="rewardMilestoneList" class="reward-milestone-admin"></div>
+          </form>
+
+          <section class="reward-form" id="parentNotificationPanel">
+            <h3>부모 알림</h3>
+            <p id="parentNotificationStatus">알림 상태를 확인하고 있어요.</p>
+            <button type="button" class="primary" id="enableParentNotificationButton">알림 수신 설정</button>
+          </section>
 
           <div id="planList" class="plan-list"></div>
         </section>
@@ -164,7 +197,7 @@
       <button type="button" class="install-button" id="installAppButton">앱 설치하기</button>
       <p id="installHelp">iPhone/Safari에서는 공유 버튼 → 홈 화면에 추가를 눌러주세요.</p>
     </div>
-    <footer class="data-source" id="dataSource">Data source: Supabase / Build: v14</footer>
+    <footer class="data-source" id="dataSource">Data source: Supabase / Build: v22</footer>
 
     <dialog id="passwordDialog" class="password-dialog" aria-labelledby="passwordTitle">
       <form id="passwordForm" method="dialog">
