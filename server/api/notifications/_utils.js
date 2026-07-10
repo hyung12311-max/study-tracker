@@ -26,6 +26,25 @@ function subscriptionPayload(row) {
   };
 }
 
+function subscriptionLogInfo(row) {
+  let host = "";
+  let tail = "";
+  try {
+    const url = new URL(row.endpoint);
+    host = url.hostname;
+    tail = row.endpoint.slice(-16);
+  } catch {
+    tail = String(row.endpoint || "").slice(-16);
+  }
+  return {
+    member_key: row.member_key || null,
+    endpoint_host: host,
+    endpoint_tail: tail,
+    has_p256dh: Boolean(row.p256dh),
+    has_auth: Boolean(row.auth),
+  };
+}
+
 async function upsertSubscription({ request, claims, subscription, body }) {
   const { endpoint, p256dh, auth } = push.validateSubscriptionPayload(subscription);
   const rows = await family.supabaseFetch("family_push_subscriptions?on_conflict=endpoint", {
@@ -66,16 +85,33 @@ async function activeSubscriptions({ familyId, memberKeys, excludeMemberKey, eve
     `family_notification_preferences?select=member_key,${column}&family_id=eq.${familyId}`
   ).catch(() => []);
   const preferences = new Map((preferenceRows || []).map((row) => [row.member_key, row[column]]));
-  return (rows || []).filter((row) => preferences.get(row.member_key) !== false);
+  const filtered = (rows || []).filter((row) => preferences.get(row.member_key) !== false);
+  console.log("[notifications/activeSubscriptions]", {
+    familyId,
+    event,
+    requestedMemberKeys: memberKeys || null,
+    excludeMemberKey: excludeMemberKey || null,
+    fetchedCount: rows?.length || 0,
+    enabledCount: filtered.length,
+  });
+  return filtered;
 }
 
 async function sendPayload(payload, rows) {
+  console.log("[notifications/sendPayload] start", {
+    title: payload?.title || null,
+    tag: payload?.tag || null,
+    subscriptionCount: rows?.length || 0,
+  });
   push.configureWebPush();
   let success = 0;
   let failure = 0;
   await Promise.all((rows || []).map(async (row) => {
+    const info = subscriptionLogInfo(row);
     try {
+      console.log("[notifications/sendPayload] before sendNotification", info);
       await push.webPush.sendNotification(subscriptionPayload(row), JSON.stringify(payload));
+      console.log("[notifications/sendPayload] after sendNotification", info);
       success += 1;
       await family.supabaseFetch(`family_push_subscriptions?endpoint=eq.${encodeURIComponent(row.endpoint)}`, {
         method: "PATCH",
@@ -83,9 +119,16 @@ async function sendPayload(payload, rows) {
       }).catch(() => {});
     } catch (error) {
       failure += 1;
+      console.error("[notifications/sendPayload] sendNotification failed", {
+        ...info,
+        statusCode: error.statusCode || null,
+        message: error.message,
+        body: error.body || null,
+      });
       if ([404, 410].includes(error.statusCode)) await markInactive(row.endpoint);
     }
   }));
+  console.log("[notifications/sendPayload] done", { success, failure, subscriptionCount: rows?.length || 0 });
   return { success, failure, subscriptionCount: rows?.length || 0 };
 }
 

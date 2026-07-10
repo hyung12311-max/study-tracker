@@ -4,6 +4,11 @@ module.exports = async function handler(request, response) {
   if (request.method !== "POST") return u.allow(response, ["POST"]);
   try {
     const claims = u.authenticate(request);
+    console.log("[notifications/test] request", {
+      familyId: claims.family,
+      memberKey: claims.key,
+      nodeEnv: process.env.NODE_ENV || null,
+    });
     const result = await u.sendToFamily({
       familyId: claims.family,
       memberKeys: [claims.key],
@@ -17,11 +22,15 @@ module.exports = async function handler(request, response) {
         tag: `test-${claims.key}-${Date.now()}`,
       },
     });
+    console.log("[notifications/test] result", result);
     return u.json(response, 200, { ok: true, ...result });
   } catch (error) {
+    console.error("[notifications/test]", error);
+
     return u.json(response, error.statusCode || 500, {
       ok: false,
-      error: error.statusCode ? error.message : "테스트 알림을 보내지 못했습니다.",
+      error: error.message,
+      stack: process.env.NODE_ENV !== "production" ? error.stack : undefined,
     });
   }
 };

@@ -42,8 +42,17 @@ function requireEnv(names) {
 }
 
 function configureWebPush() {
+  console.log("[webpush/configure] env", {
+    VAPID_PUBLIC_KEY: Boolean(env("VAPID_PUBLIC_KEY")),
+    VAPID_PRIVATE_KEY: Boolean(env("VAPID_PRIVATE_KEY")),
+    VAPID_SUBJECT: Boolean(env("VAPID_SUBJECT")),
+    VAPID_PUBLIC_KEY_LENGTH: env("VAPID_PUBLIC_KEY").length,
+    VAPID_SUBJECT_VALUE: env("VAPID_SUBJECT") || null,
+  });
   requireEnv(["VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT"]);
+  console.log("[webpush/configure] before setVapidDetails");
   webPush.setVapidDetails(env("VAPID_SUBJECT"), env("VAPID_PUBLIC_KEY"), env("VAPID_PRIVATE_KEY"));
+  console.log("[webpush/configure] after setVapidDetails");
 }
 
 async function supabaseFetch(path, options = {}) {
