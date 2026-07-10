@@ -2,11 +2,16 @@ alter table public.study_plans
   add column if not exists parent_notified_at timestamptz,
   add column if not exists parent_notification_delivered boolean not null default false;
 
+alter table public.academy_completion_history
+  add column if not exists parent_notified_at timestamptz,
+  add column if not exists parent_notification_delivered boolean not null default false;
+
 create table if not exists public.family_push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references public.families(id) on delete cascade,
   member_id uuid not null references public.family_members(id) on delete cascade,
   member_key text not null,
+  role text not null default 'parent',
   endpoint text unique not null,
   p256dh text not null,
   auth text not null,
@@ -17,6 +22,16 @@ create table if not exists public.family_push_subscriptions (
   updated_at timestamptz not null default now(),
   last_used_at timestamptz
 );
+
+alter table public.family_push_subscriptions
+  add column if not exists role text not null default 'parent';
+
+update public.family_push_subscriptions fps
+set role = fm.role
+from public.family_members fm
+where fps.member_id = fm.id
+  and fps.family_id = fm.family_id
+  and fps.role is distinct from fm.role;
 
 create index if not exists family_push_subscriptions_member_idx
 on public.family_push_subscriptions(family_id, member_key, is_active);

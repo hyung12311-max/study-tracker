@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ff8a00" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="학습스티커" />
+    <meta name="apple-mobile-web-app-title" content="?숈뒿?ㅽ떚而? />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>하겸이 학습 스티커</title>
+    <title>?섍껴???숈뒿 ?ㅽ떚而?/title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="stylesheet" href="css/styles.css" />
@@ -17,24 +17,24 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Study Sticker</p>
-          <h1>하겸이 학습 스티커</h1>
+          <h1>?섍껴???숈뒿 ?ㅽ떚而?/h1>
         </div>
         <div class="top-actions">
           <div class="reward-pill" aria-live="polite">
-            <span>⭐</span>
+            <span>狩?/span>
             <strong id="stickerCount">0</strong>
-            <small>스티커</small>
+            <small>?ㅽ떚而?/small>
           </div>
-          <button class="parent-access" id="parentAccessButton">부모관리</button>
+          <button class="parent-access" id="parentAccessButton">遺紐④?由?/button>
         </div>
       </header>
 
-      <nav class="tabs" aria-label="화면 선택">
-        <button class="tab active" data-view="today">학습</button>
-        <button class="tab" data-view="progress">스티커</button>
-        <button class="tab" data-view="rewards">보상상점</button>
-        <button class="tab family-tab-button" data-view="family-chat"><span aria-hidden="true">💬</span> 가족방 <span id="familyUnreadBadge" class="unread-badge" hidden>0</span></button>
-        <button class="tab parent-tab" data-view="parent" data-parent-only hidden>부모관리</button>
+      <nav class="tabs" aria-label="?붾㈃ ?좏깮">
+        <button class="tab active" data-view="today">?숈뒿</button>
+        <button class="tab" data-view="progress">?ㅽ떚而?/button>
+        <button class="tab" data-view="rewards">蹂댁긽?곸젏</button>
+        <button class="tab family-tab-button" data-view="family-chat"><span aria-hidden="true">?뮠</span> 媛議깅갑 <span id="familyUnreadBadge" class="unread-badge" hidden>0</span></button>
+        <button class="tab parent-tab" data-view="parent" data-parent-only hidden>遺紐④?由?/button>
       </nav>
 
       <div id="connectionStatus" class="connection-status" hidden></div>
@@ -44,13 +44,13 @@
           <div class="section-head">
             <div>
               <p class="eyebrow" id="todayDate"></p>
-              <h2 id="todayTitle">학습할 일정</h2>
+              <h2 id="todayTitle">?숈뒿???쇱젙</h2>
             </div>
           </div>
-          <div class="today-filters" aria-label="학습 화면 필터">
-            <button class="today-filter active" data-learning-filter="due">오늘+지연</button>
-            <button class="today-filter" data-learning-filter="week">이번 주</button>
-            <button class="today-filter" data-learning-filter="upcoming">전체 예정</button>
+          <div class="today-filters" aria-label="?숈뒿 ?붾㈃ ?꾪꽣">
+            <button class="today-filter active" data-learning-filter="due">?ㅻ뒛+吏??/button>
+            <button class="today-filter" data-learning-filter="week">?대쾲 二?/button>
+            <button class="today-filter" data-learning-filter="upcoming">?꾩껜 ?덉젙</button>
           </div>
           <div id="rewardGoalWidget" class="reward-goal-widget" hidden></div>
           <div id="todayList" class="today-list"></div>
@@ -60,32 +60,32 @@
           <div class="section-head">
             <div>
               <p class="eyebrow">Sticker Wallet</p>
-              <h2 id="progressTitle">내 스티커 지갑</h2>
+              <h2 id="progressTitle">???ㅽ떚而?吏媛?/h2>
             </div>
           </div>
           <section class="wallet-summary">
-            <p>현재 보유 스티커</p><div id="walletStars" class="wallet-stars">⭐</div><strong><span id="walletBalance">0</span>개</strong>
+            <p>?꾩옱 蹂댁쑀 ?ㅽ떚而?/p><div id="walletStars" class="wallet-stars">狩?/div><strong><span id="walletBalance">0</span>媛?/strong>
             <small id="walletAvailable"></small>
           </section>
-          <section class="wallet-history"><h3>최근 적립·사용 내역</h3><div id="stickerTransactionList"></div></section>
-          <h3 class="progress-subtitle">학습 진도표</h3>
+          <section class="wallet-history"><h3>理쒓렐 ?곷┰쨌?ъ슜 ?댁뿭</h3><div id="stickerTransactionList"></div></section>
+          <h3 class="progress-subtitle">?숈뒿 吏꾨룄??/h3>
           <div class="legend">
-            <span><i class="dot planned"></i>예정</span>
-            <span><i class="dot done"></i>완료</span>
-            <span><i class="dot late"></i>지연</span>
+            <span><i class="dot planned"></i>?덉젙</span>
+            <span><i class="dot done"></i>?꾨즺</span>
+            <span><i class="dot late"></i>吏??/span>
           </div>
           <div class="table-wrap">
             <table class="progress-table">
               <thead>
                 <tr>
-                  <th>과목</th>
-                  <th>문제집</th>
-                  <th>단원</th>
-                  <th>차시</th>
-                  <th>일차</th>
-                  <th>학습일자</th>
-                  <th>목표</th>
-                  <th>상태</th>
+                  <th>怨쇰ぉ</th>
+                  <th>臾몄젣吏?/th>
+                  <th>?⑥썝</th>
+                  <th>李⑥떆</th>
+                  <th>?쇱감</th>
+                  <th>?숈뒿?쇱옄</th>
+                  <th>紐⑺몴</th>
+                  <th>?곹깭</th>
                 </tr>
               </thead>
               <tbody id="progressTable"></tbody>
@@ -97,7 +97,7 @@
           <div class="section-head">
             <div>
               <p class="eyebrow">Reward Shop</p>
-              <h2 id="rewardTitle">보상상점</h2>
+              <h2 id="rewardTitle">蹂댁긽?곸젏</h2>
             </div>
           </div>
           <div id="rewardPanel" class="reward-panel"></div>
@@ -105,8 +105,18 @@
 
         <section id="family-chat" class="view family-chat-view" aria-labelledby="familyChatTitle">
           <header class="family-chat-head">
-            <div><p class="eyebrow">Family Chat</p><h2 id="familyChatTitle">우리 가족 대화방</h2><p id="familyCurrentMember">가족 사용자를 선택해 주세요.</p></div>
-            <div class="family-chat-head-actions"><button type="button" id="familyPushButton">알림 받기</button><button type="button" id="familySelfPinButton" disabled>PIN 변경</button><button type="button" id="familyChangeMemberButton">사용자 변경</button></div>
+            <div>
+              <p class="eyebrow">Family Chat</p>
+              <h2 id="familyChatTitle">우리 가족 대화방</h2>
+              <p id="familyCurrentMember">가족 사용자를 선택해 주세요.</p>
+              <p id="familyPushGuide" class="family-push-guide">알림을 켜면 가족방 새 메시지를 받을 수 있어요.</p>
+            </div>
+            <div class="family-chat-head-actions">
+              <button type="button" id="familyPushButton">🔔 알림 받기</button>
+              <button type="button" id="familySelfPinButton" disabled>PIN 변경</button>
+              <button type="button" id="familyChangeMemberButton">계정 전환</button>
+              <button type="button" id="familyLogoutButton">로그아웃</button>
+            </div>
           </header>
           <div id="familyChatNotice" class="family-chat-notice" role="status" aria-live="polite" hidden></div>
           <div id="familyMessageList" class="family-message-list" aria-live="polite"><div class="empty"><h3>가족 대화방</h3><p>가족 구성원으로 인증하면 대화를 볼 수 있어요.</p></div></div>
@@ -120,50 +130,50 @@
           <div class="section-head">
             <div>
               <p class="eyebrow">Parent Desk</p>
-              <h2 id="parentTitle">부모 관리</h2>
+              <h2 id="parentTitle">遺紐?愿由?/h2>
             </div>
-            <button class="return-child" id="returnChildButton">아이 화면으로 돌아가기</button>
+            <button class="return-child" id="returnChildButton">?꾩씠 ?붾㈃?쇰줈 ?뚯븘媛湲?/button>
           </div>
 
           <div class="dashboard-grid">
             <article class="metric">
-              <span>전체 계획</span>
+              <span>?꾩껜 怨꾪쉷</span>
               <strong id="totalPlans">0</strong>
             </article>
             <article class="metric">
-              <span>완료</span>
+              <span>?꾨즺</span>
               <strong id="donePlans">0</strong>
             </article>
             <article class="metric">
-              <span>지연</span>
+              <span>吏??/span>
               <strong id="latePlans">0</strong>
             </article>
             <article class="metric">
-              <span>주간 완료율</span>
+              <span>二쇨컙 ?꾨즺??/span>
               <strong id="weeklyRate">0%</strong>
             </article>
           </div>
 
           <form id="planForm" class="planner-form">
             <input type="hidden" id="planId" />
-            <label>과목<input id="subject" required placeholder="수학" /></label>
-            <label>문제집명<input id="book" required placeholder="최상위 수학" /></label>
-            <label>단원명<input id="unit" required placeholder="분수의 덧셈" /></label>
-            <label>차시<input id="lessonNo" required placeholder="3차시" /></label>
-            <label>학습일자<input id="studyDate" type="date" required /></label>
-            <label>일차<input id="dayNo" required placeholder="12일차" /></label>
-            <label class="wide">학습내용<input id="content" required placeholder="개념 익히기와 확인문제" /></label>
-            <label>목표<input id="target" required placeholder="42-45쪽" /></label>
-            <label>상태
+            <label>怨쇰ぉ<input id="subject" required placeholder="?섑븰" /></label>
+            <label>臾몄젣吏묐챸<input id="book" required placeholder="理쒖긽???섑븰" /></label>
+            <label>?⑥썝紐?input id="unit" required placeholder="遺꾩닔???㏃뀍" /></label>
+            <label>李⑥떆<input id="lessonNo" required placeholder="3李⑥떆" /></label>
+            <label>?숈뒿?쇱옄<input id="studyDate" type="date" required /></label>
+            <label>?쇱감<input id="dayNo" required placeholder="12?쇱감" /></label>
+            <label class="wide">?숈뒿?댁슜<input id="content" required placeholder="媛쒕뀗 ?듯엳湲곗? ?뺤씤臾몄젣" /></label>
+            <label>紐⑺몴<input id="target" required placeholder="42-45履? /></label>
+            <label>?곹깭
               <select id="status">
-                <option value="planned">예정</option>
-                <option value="done">완료</option>
-                <option value="late">지연</option>
+                <option value="planned">?덉젙</option>
+                <option value="done">?꾨즺</option>
+                <option value="late">吏??/option>
               </select>
             </label>
             <div class="form-actions">
-              <button type="submit" class="primary" id="planSubmitButton">저장</button>
-              <button type="button" id="resetFormButton">새 계획</button>
+              <button type="submit" class="primary" id="planSubmitButton">???/button>
+              <button type="button" id="resetFormButton">??怨꾪쉷</button>
             </div>
           </form>
 
@@ -193,36 +203,36 @@
           </form>
 
           <form id="rewardProductForm" class="reward-form">
-            <h3>보상 상품 관리</h3><input type="hidden" id="rewardProductId" />
-            <label>상품명<input id="rewardProductName" maxlength="80" required /></label>
-            <label>이모지<input id="rewardProductEmoji" maxlength="8" placeholder="🎁" /></label>
-            <label>필요 스티커<input id="rewardProductCost" type="number" min="1" required /></label>
-            <label>재고<input id="rewardProductStock" type="number" min="0" placeholder="비우면 무제한" /></label>
-            <label>카테고리<select id="rewardProductCategory"><option>간식</option><option>문구</option><option>장난감</option><option>도서</option><option>체험</option><option>기타</option></select></label>
-            <label>노출 순서<input id="rewardProductSort" type="number" value="0" /></label>
-            <label class="wide">상품 설명<input id="rewardProductDescription" maxlength="500" /></label>
-            <label class="wide">상품 이미지 URL<input id="rewardProductImage" type="url" placeholder="https://..." /></label>
-            <label>판매 시작<input id="rewardProductFrom" type="datetime-local" /></label>
-            <label>판매 종료<input id="rewardProductUntil" type="datetime-local" /></label>
-            <label><input id="rewardProductActive" type="checkbox" checked /> 활성 상품</label>
-            <div class="form-actions"><button type="submit" class="primary" id="rewardProductSubmit">상품 추가</button><button type="button" id="rewardProductReset">새 상품</button></div>
+            <h3>蹂댁긽 ?곹뭹 愿由?/h3><input type="hidden" id="rewardProductId" />
+            <label>?곹뭹紐?input id="rewardProductName" maxlength="80" required /></label>
+            <label>?대え吏<input id="rewardProductEmoji" maxlength="8" placeholder="?럞" /></label>
+            <label>?꾩슂 ?ㅽ떚而?input id="rewardProductCost" type="number" min="1" required /></label>
+            <label>?ш퀬<input id="rewardProductStock" type="number" min="0" placeholder="鍮꾩슦硫?臾댁젣?? /></label>
+            <label>移댄뀒怨좊━<select id="rewardProductCategory"><option>媛꾩떇</option><option>臾멸뎄</option><option>?λ궃媛?/option><option>?꾩꽌</option><option>泥댄뿕</option><option>湲고?</option></select></label>
+            <label>?몄텧 ?쒖꽌<input id="rewardProductSort" type="number" value="0" /></label>
+            <label class="wide">?곹뭹 ?ㅻ챸<input id="rewardProductDescription" maxlength="500" /></label>
+            <label class="wide">?곹뭹 ?대?吏 URL<input id="rewardProductImage" type="url" placeholder="https://..." /></label>
+            <label>?먮ℓ ?쒖옉<input id="rewardProductFrom" type="datetime-local" /></label>
+            <label>?먮ℓ 醫낅즺<input id="rewardProductUntil" type="datetime-local" /></label>
+            <label><input id="rewardProductActive" type="checkbox" checked /> ?쒖꽦 ?곹뭹</label>
+            <div class="form-actions"><button type="submit" class="primary" id="rewardProductSubmit">?곹뭹 異붽?</button><button type="button" id="rewardProductReset">???곹뭹</button></div>
             <div id="rewardProductAdminList" class="reward-product-admin-list"></div>
           </form>
-          <section class="reward-form"><h3>교환 신청 관리</h3><div id="rewardRequestAdminList" class="reward-request-admin-list"></div></section>
+          <section class="reward-form"><h3>援먰솚 ?좎껌 愿由?/h3><div id="rewardRequestAdminList" class="reward-request-admin-list"></div></section>
 
           <section class="reward-form" id="parentNotificationPanel">
-            <h3>부모 알림</h3>
-            <p id="parentNotificationStatus">알림 상태를 확인하고 있어요.</p>
-            <button type="button" class="primary" id="enableParentNotificationButton">알림 수신 설정</button>
-            <button type="button" id="testParentNotificationButton" disabled>테스트 알림 보내기</button>
+            <h3>遺紐??뚮┝</h3>
+            <p id="parentNotificationStatus">?뚮┝ ?곹깭瑜??뺤씤?섍퀬 ?덉뼱??</p>
+            <button type="button" class="primary" id="enableParentNotificationButton">?뚮┝ ?섏떊 ?ㅼ젙</button>
+            <button type="button" id="testParentNotificationButton" disabled>?뚯뒪???뚮┝ 蹂대궡湲?/button>
             <div id="parentNotificationPreferences" class="notification-preferences"></div>
           </section>
 
           <section class="reward-form family-admin-panel" id="familyAdminPanel">
-            <h3>가족관리</h3>
-            <p>가족 구성원별 PIN 변경, 활성 상태와 알림 설정을 관리합니다. PIN 변경은 부모 인증 후에만 가능합니다.</p>
-            <label><input id="familyChatNotificationsEnabled" type="checkbox" /> 가족방 전체 알림</label>
-            <label><input id="familySystemNotificationsEnabled" type="checkbox" /> 학습 시스템 메시지 알림</label>
+            <h3>媛議깃?由?/h3>
+            <p>媛議?援ъ꽦?먮퀎 PIN 蹂寃? ?쒖꽦 ?곹깭? ?뚮┝ ?ㅼ젙??愿由ы빀?덈떎. PIN 蹂寃쎌? 遺紐??몄쬆 ?꾩뿉留?媛?ν빀?덈떎.</p>
+            <label><input id="familyChatNotificationsEnabled" type="checkbox" /> 媛議깅갑 ?꾩껜 ?뚮┝</label>
+            <label><input id="familySystemNotificationsEnabled" type="checkbox" /> ?숈뒿 ?쒖뒪??硫붿떆吏 ?뚮┝</label>
             <div id="familyAdminList" class="family-admin-list"></div>
           </section>
 
@@ -234,24 +244,25 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <div id="celebration" class="celebration" aria-hidden="true"></div>
     <div class="install-panel" id="installPanel" hidden>
-      <button type="button" class="install-button" id="installAppButton">앱 설치하기</button>
-      <p id="installHelp">iPhone/Safari에서는 공유 버튼 → 홈 화면에 추가를 눌러주세요.</p>
+      <button type="button" class="install-button" id="installAppButton">???ㅼ튂?섍린</button>
+      <p id="installHelp">iPhone/Safari?먯꽌??怨듭쑀 踰꾪듉 ?????붾㈃??異붽?瑜??뚮윭二쇱꽭??</p>
     </div>
     <dialog id="passwordDialog" class="password-dialog" aria-labelledby="passwordTitle">
       <form id="passwordForm" method="dialog">
-        <button class="dialog-close" id="closePasswordButton" type="button" aria-label="닫기">×</button>
+        <button class="dialog-close" id="closePasswordButton" type="button" aria-label="?リ린">횞</button>
         <p class="eyebrow">Parent Mode</p>
-        <h2 id="passwordTitle">부모 비밀번호</h2>
-        <label>비밀번호<input id="parentPasswordInput" type="password" inputmode="numeric" autocomplete="current-password" required /></label>
+        <h2 id="passwordTitle">遺紐?鍮꾨?踰덊샇</h2>
+        <label>鍮꾨?踰덊샇<input id="parentPasswordInput" type="password" inputmode="numeric" autocomplete="current-password" required /></label>
         <p class="password-error" id="passwordError" aria-live="polite"></p>
-        <button type="submit" class="primary">부모 모드로 들어가기</button>
+        <button type="submit" class="primary">遺紐?紐⑤뱶濡??ㅼ뼱媛湲?/button>
       </form>
     </dialog>
 
     <dialog id="familyLoginDialog" class="password-dialog" aria-labelledby="familyLoginTitle">
       <form id="familyLoginForm" method="dialog">
         <button class="dialog-close" id="closeFamilyLoginButton" type="button" aria-label="닫기">×</button>
-        <p class="eyebrow">Family Login</p><h2 id="familyLoginTitle">가족 사용자 선택</h2>
+        <p class="eyebrow">Family Login</p>
+        <h2 id="familyLoginTitle">가족 사용자 선택</h2>
         <div id="familyMemberChoices" class="family-member-choices" aria-label="가족 구성원 선택"></div>
         <p id="familyMemberSelectionStatus" class="family-member-selection-status" aria-live="polite">가족 구성원을 불러오고 있어요.</p>
         <label>4자리 PIN<input id="familyPinInput" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required /></label>
@@ -259,7 +270,6 @@
         <button type="submit" class="primary" id="familyLoginButton">가족방 들어가기</button>
       </form>
     </dialog>
-
     <dialog id="familyPinDialog" class="password-dialog" aria-labelledby="familyPinTitle">
       <form id="familyPinForm" method="dialog">
         <button class="dialog-close" id="closeFamilyPinButton" type="button" aria-label="닫기">×</button>
@@ -269,7 +279,6 @@
         <p class="password-error" id="familyPinError" aria-live="polite"></p><button type="submit" class="primary">변경하기</button>
       </form>
     </dialog>
-
     <dialog id="familySelfPinDialog" class="password-dialog" aria-labelledby="familySelfPinTitle">
       <form id="familySelfPinForm" method="dialog">
         <button class="dialog-close" id="closeFamilySelfPinButton" type="button" aria-label="닫기">×</button>
@@ -289,11 +298,11 @@
 
     <dialog id="rewardExchangeDialog" class="password-dialog" aria-labelledby="rewardExchangeTitle">
       <form id="rewardExchangeForm" method="dialog">
-        <button class="dialog-close" id="closeRewardExchangeButton" type="button" aria-label="닫기">×</button>
-        <h2 id="rewardExchangeTitle">보상 교환 신청</h2><input type="hidden" id="rewardExchangeProductId" />
+        <button class="dialog-close" id="closeRewardExchangeButton" type="button" aria-label="?リ린">횞</button>
+        <h2 id="rewardExchangeTitle">蹂댁긽 援먰솚 ?좎껌</h2><input type="hidden" id="rewardExchangeProductId" />
         <div id="rewardExchangeSummary" class="reward-exchange-summary"></div>
         <p class="password-error" id="rewardExchangeError" aria-live="polite"></p>
-        <div class="form-actions"><button type="button" id="cancelRewardExchangeButton">취소</button><button type="submit" class="primary" id="confirmRewardExchangeButton">교환 신청</button></div>
+        <div class="form-actions"><button type="button" id="cancelRewardExchangeButton">痍⑥냼</button><button type="submit" class="primary" id="confirmRewardExchangeButton">援먰솚 ?좎껌</button></div>
       </form>
     </dialog>
 

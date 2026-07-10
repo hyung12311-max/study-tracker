@@ -19,11 +19,8 @@ module.exports = async function handler(request, response) {
     if (!isDone(plan.status)) return u.json(response, 409, { ok: false, error: "완료된 학습만 알림을 보낼 수 있습니다." });
     if (plan.parent_notified_at) return u.json(response, 200, { ok: true, skipped: true, reason: "already-notified" });
 
-    const members = await u.supabaseFetch(`family_members?select=member_key,display_name,role&family_id=eq.${claims.family}&is_active=eq.true`);
-    const parentKeys = (members || [])
-      .filter((member) => member.role === "parent" && member.member_key !== claims.key)
-      .map((member) => member.member_key);
-    const sender = (members || []).find((member) => member.member_key === claims.key);
+    const member = await u.activeMember(claims);
+    const parentKeys = await u.parentMemberKeys(claims.family, claims.key);
     const subject = plan.subject || plan.workbook || "학습";
     const result = await u.sendToFamily({
       familyId: claims.family,
@@ -32,7 +29,7 @@ module.exports = async function handler(request, response) {
       event: "study_complete",
       payload: {
         title: "⭐ 학습 완료",
-        body: `${sender?.display_name || "아이가"} ${subject} 학습을 완료했어요.`,
+        body: `${member.display_name || "아이가"} ${subject} 학습을 완료했어요.`,
         icon: "/icons/icon-192.png",
         badge: "/icons/icon-192.png",
         url: "/?tab=today",
@@ -47,11 +44,12 @@ module.exports = async function handler(request, response) {
         parent_notification_delivered: result.success > 0,
       }),
     });
-    return u.json(response, 200, { ok: true, ...result });
+    return u.json(response, 200, { ok: true, targetMemberKeys: parentKeys, ...result });
   } catch (error) {
     return u.json(response, error.statusCode || 500, {
       ok: false,
-      error: error.statusCode ? error.message : "학습 완료 알림을 보내지 못했습니다.",
+      code: error.code || "STUDY_NOTIFICATION_FAILED",
+      error: error.message,
     });
   }
 };

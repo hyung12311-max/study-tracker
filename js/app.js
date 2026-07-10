@@ -810,7 +810,7 @@ async function requestJson(url, options = {}) {
 }
 
 function familyAuthHeaders() {
-  const token = sessionStorage.getItem(FAMILY_TOKEN_KEY);
+  const token = localStorage.getItem(FAMILY_TOKEN_KEY) || sessionStorage.getItem(FAMILY_TOKEN_KEY);
   return token ? { Authorization: `Bearer ${token}` } : null;
 }
 
@@ -870,7 +870,18 @@ async function notifyParentOfCompletion(plan) {
 }
 
 async function notifyParentOfAcademyCompletion(schedule, completedDate) {
-  return;
+  const authHeaders = familyAuthHeaders();
+  if (!authHeaders) return;
+  try {
+    await requestJson("/api/notifications/academy-complete", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({ scheduleId: schedule.id, completedDate }),
+    });
+  } catch (error) {
+    console.warn("[parent notification] academy push failed", error);
+    showToast("학원 일정 완료는 저장됐지만 부모 알림 전송은 실패했어요.");
+  }
 }
 
 async function createFamilyStudyMessage(plan) {

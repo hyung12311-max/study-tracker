@@ -8,9 +8,15 @@ const EVENT_COLUMNS = Object.freeze({
   overdue_study: "overdue_study_enabled",
 });
 
+const PARENT_ROLES = new Set(["parent", "guardian", "protector"]);
+
 function truncate(value, limit = 50) {
   const text = String(value || "").trim().replace(/\s+/g, " ");
   return text.length > limit ? `${text.slice(0, limit - 1)}...` : text;
+}
+
+function isParentRole(role) {
+  return PARENT_ROLES.has(String(role || "").toLowerCase());
 }
 
 function clientDeviceName(request, body) {
@@ -38,6 +44,7 @@ function subscriptionLogInfo(row) {
   }
   return {
     member_key: row.member_key || null,
+    role: row.role || null,
     endpoint_host: host,
     endpoint_tail: tail,
     has_p256dh: Boolean(row.p256dh),
@@ -45,25 +52,47 @@ function subscriptionLogInfo(row) {
   };
 }
 
+async function activeMember(claims) {
+  const row = (await family.supabaseFetch(
+    `family_members?select=id,family_id,member_key,display_name,role,is_active&family_id=eq.${claims.family}&id=eq.${claims.sub}&member_key=eq.${encodeURIComponent(claims.key)}&limit=1`
+  ))?.[0];
+  if (!row) throw family.err("AUTH_REQUIRED", 401, "AUTH_REQUIRED");
+  if (!row.is_active) throw family.err("MEMBER_INACTIVE", 403, "MEMBER_INACTIVE");
+  return row;
+}
+
 async function upsertSubscription({ request, claims, subscription, body }) {
+  const member = await activeMember(claims);
   const { endpoint, p256dh, auth } = push.validateSubscriptionPayload(subscription);
-  const rows = await family.supabaseFetch("family_push_subscriptions?on_conflict=endpoint", {
-    method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify({
-      family_id: claims.family,
-      member_id: claims.sub,
-      member_key: claims.key,
-      endpoint,
-      p256dh,
-      auth,
-      user_agent: request.headers["user-agent"] || "",
-      device_name: clientDeviceName(request, body),
-      is_active: true,
-      last_used_at: new Date().toISOString(),
-    }),
-  });
-  return rows?.[0] || null;
+  try {
+    const rows = await family.supabaseFetch("family_push_subscriptions?on_conflict=endpoint", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify({
+        family_id: member.family_id,
+        member_id: member.id,
+        member_key: member.member_key,
+        role: member.role,
+        endpoint,
+        p256dh,
+        auth,
+        user_agent: request.headers["user-agent"] || "",
+        device_name: clientDeviceName(request, body),
+        is_active: true,
+        last_used_at: new Date().toISOString(),
+      }),
+    });
+    return rows?.[0] || null;
+  } catch (error) {
+    console.error("[notifications/subscribe] save failed", {
+      code: error.code || null,
+      statusCode: error.statusCode || null,
+      supabaseCode: error.supabaseCode || null,
+      message: error.message,
+      supabaseMessage: error.supabaseMessage || null,
+    });
+    throw family.err(error.message || "SUBSCRIPTION_SAVE_FAILED", error.statusCode || 500, "SUBSCRIPTION_SAVE_FAILED");
+  }
 }
 
 async function markInactive(endpoint) {
@@ -79,13 +108,15 @@ async function activeSubscriptions({ familyId, memberKeys, excludeMemberKey, eve
   const keyFilter = memberKeys?.length ? `&member_key=in.(${memberKeys.map(encodeURIComponent).join(",")})` : "";
   const excludeFilter = excludeMemberKey ? `&member_key=neq.${encodeURIComponent(excludeMemberKey)}` : "";
   const rows = await family.supabaseFetch(
-    `family_push_subscriptions?select=endpoint,p256dh,auth,member_key&family_id=eq.${familyId}&is_active=eq.true${keyFilter}${excludeFilter}`
+    `family_push_subscriptions?select=endpoint,p256dh,auth,member_key,role&family_id=eq.${familyId}&is_active=eq.true${keyFilter}${excludeFilter}`
   );
-  const preferenceRows = await family.supabaseFetch(
-    `family_notification_preferences?select=member_key,${column}&family_id=eq.${familyId}`
-  ).catch(() => []);
+  const [preferenceRows, activeMembers] = await Promise.all([
+    family.supabaseFetch(`family_notification_preferences?select=member_key,${column}&family_id=eq.${familyId}`).catch(() => []),
+    family.supabaseFetch(`family_members?select=member_key,role&family_id=eq.${familyId}&is_active=eq.true`).catch(() => []),
+  ]);
   const preferences = new Map((preferenceRows || []).map((row) => [row.member_key, row[column]]));
-  const filtered = (rows || []).filter((row) => preferences.get(row.member_key) !== false);
+  const activeMemberMap = new Map((activeMembers || []).map((row) => [row.member_key, row.role]));
+  const filtered = (rows || []).filter((row) => activeMemberMap.has(row.member_key) && preferences.get(row.member_key) !== false);
   console.log("[notifications/activeSubscriptions]", {
     familyId,
     event,
@@ -94,7 +125,7 @@ async function activeSubscriptions({ familyId, memberKeys, excludeMemberKey, eve
     fetchedCount: rows?.length || 0,
     enabledCount: filtered.length,
   });
-  return filtered;
+  return filtered.map((row) => ({ ...row, role: activeMemberMap.get(row.member_key) || row.role }));
 }
 
 async function sendPayload(payload, rows) {
@@ -132,6 +163,13 @@ async function sendPayload(payload, rows) {
   return { success, failure, subscriptionCount: rows?.length || 0 };
 }
 
+async function parentMemberKeys(familyId, excludeMemberKey) {
+  const rows = await family.supabaseFetch(`family_members?select=member_key,role&family_id=eq.${familyId}&is_active=eq.true`);
+  return (rows || [])
+    .filter((member) => isParentRole(member.role) && member.member_key !== excludeMemberKey)
+    .map((member) => member.member_key);
+}
+
 async function sendToFamily({ familyId, memberKeys, excludeMemberKey, event, payload }) {
   const rows = await activeSubscriptions({ familyId, memberKeys, excludeMemberKey, event });
   return sendPayload(payload, rows);
@@ -139,7 +177,10 @@ async function sendToFamily({ familyId, memberKeys, excludeMemberKey, event, pay
 
 module.exports = {
   ...family,
+  activeMember,
   activeSubscriptions,
+  isParentRole,
+  parentMemberKeys,
   sendPayload,
   sendToFamily,
   truncate,
