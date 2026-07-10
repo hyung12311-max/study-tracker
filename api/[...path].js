@@ -14,6 +14,7 @@ const rewardsWishlist = require("../server/api/rewards/wishlist");
 
 const routes = Object.freeze({
   "family/members": familyMembers,
+  "family/login": familyVerifyPin,
   "family/messages": familyMessages,
   "family/pin": familyPin,
   "family/read": familyRead,
@@ -29,7 +30,15 @@ const routes = Object.freeze({
 });
 
 function routeKey(request) {
-  const pathname = new URL(request.url, "http://localhost").pathname;
+  const queryPath = request.query?.path;
+  if (Array.isArray(queryPath)) return queryPath.join("/");
+  if (typeof queryPath === "string" && queryPath) return queryPath.replace(/^\/+|\/+$/g, "");
+
+  const url = new URL(request.url, "http://localhost");
+  const searchPath = url.searchParams.get("path");
+  if (searchPath) return searchPath.replace(/^\/+|\/+$/g, "");
+
+  const pathname = url.pathname;
   return pathname.replace(/^\/api\/?/, "").replace(/\/+$/, "");
 }
 
