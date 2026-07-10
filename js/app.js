@@ -622,6 +622,7 @@ let isParentMode = false;
 let learningFilter = "due";
 let isRemoteRefreshPending = false;
 let installPrompt = null;
+const PWA_INSTALLED_KEY = "study-sticker-pwa-installed-v1";
 let parentPushState = { status: "idle", message: "", registered: false };
 let familyChatController = null;
 let rewardStoreController = null;
@@ -914,6 +915,26 @@ function isStandaloneDisplay() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
+function getInstallMarker() {
+  try {
+    return localStorage.getItem(PWA_INSTALLED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setInstallMarker() {
+  try {
+    localStorage.setItem(PWA_INSTALLED_KEY, "1");
+  } catch (error) {
+    console.warn("[pwa-install] install marker could not be saved:", error);
+  }
+}
+
+function isKnownInstalled() {
+  return isStandaloneDisplay() || getInstallMarker();
+}
+
 function isIosDevice() {
   return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 }
@@ -924,7 +945,7 @@ function updateInstallUI() {
   const help = $("#installHelp");
   if (!panel || !button || !help) return;
 
-  if (isStandaloneDisplay()) {
+  if (isKnownInstalled()) {
     panel.hidden = true;
     return;
   }
@@ -956,8 +977,18 @@ async function promptInstallApp() {
   installPrompt.prompt();
   const choice = await installPrompt.userChoice;
   console.log("[pwa-install] user choice:", choice.outcome);
+  if (choice.outcome === "accepted") setInstallMarker();
   installPrompt = null;
   updateInstallUI();
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
+    .then(() => refreshParentPushRegistrationState())
+    .catch((error) => {
+      console.log("[service-worker] registration failed:", error);
+    });
 }
 
 async function markOverduePlans() {
@@ -1751,9 +1782,12 @@ function bindEvents() {
 
   window.addEventListener("appinstalled", () => {
     installPrompt = null;
+    setInstallMarker();
     $("#installPanel").hidden = true;
     console.log("[pwa-install] app installed.");
   });
+
+  window.matchMedia("(display-mode: standalone)").addEventListener?.("change", updateInstallUI);
 
   $$(".tab").forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -1879,6 +1913,7 @@ async function reloadFromRemote() {
 
 async function init() {
   bindEvents();
+  registerServiceWorker();
   familyChatController = await initFamilyChat();
   rewardStoreController = await initRewardStore({ openFamily: () => switchView("family-chat") });
   updateInstallUI();
@@ -1896,14 +1931,6 @@ async function init() {
   } catch (error) {
     render();
     handleRepositoryError(error);
-  }
-
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
-      .then(() => refreshParentPushRegistrationState())
-      .catch((error) => {
-        console.log("[service-worker] registration failed:", error);
-      });
   }
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
   if (["today", "progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);

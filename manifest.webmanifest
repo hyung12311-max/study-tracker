@@ -2,6 +2,7 @@
   "name": "하겸이 학습 스티커",
   "short_name": "학습스티커",
   "description": "아이 학습 진도와 스티커 보상을 관리하는 PWA",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
