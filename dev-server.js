@@ -14,6 +14,27 @@ const types = {
 
 http.createServer((request, response) => {
   const urlPath = decodeURIComponent(request.url.split("?")[0]);
+  if (urlPath.startsWith("/api/")) {
+    const apiPath = path.normalize(path.join(root, `${urlPath.slice(1)}.js`));
+    if (!apiPath.startsWith(path.join(root, "api"))) {
+      response.writeHead(403);
+      response.end("Forbidden");
+      return;
+    }
+    try {
+      const handler = require(apiPath);
+      Promise.resolve(handler(request, response)).catch((error) => {
+        console.error("[dev api] request failed", { path: urlPath, message: error.message });
+        if (!response.headersSent) response.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
+        if (!response.writableEnded) response.end(JSON.stringify({ error: "Local API request failed." }));
+      });
+    } catch (error) {
+      console.error("[dev api] route unavailable", { path: urlPath, message: error.message });
+      response.writeHead(404, { "Content-Type": "application/json; charset=utf-8" });
+      response.end(JSON.stringify({ error: "API route not found." }));
+    }
+    return;
+  }
   const relativePath = urlPath === "/" ? "index.html" : urlPath.slice(1);
   const filePath = path.normalize(path.join(root, relativePath));
 

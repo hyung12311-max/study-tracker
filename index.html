@@ -31,8 +31,9 @@
 
       <nav class="tabs" aria-label="화면 선택">
         <button class="tab active" data-view="today">학습</button>
-        <button class="tab" data-view="progress">진도표</button>
-        <button class="tab" data-view="rewards">보상</button>
+        <button class="tab" data-view="progress">스티커</button>
+        <button class="tab" data-view="rewards">보상상점</button>
+        <button class="tab family-tab-button" data-view="family-chat"><span aria-hidden="true">💬</span> 가족방 <span id="familyUnreadBadge" class="unread-badge" hidden>0</span></button>
         <button class="tab parent-tab" data-view="parent" data-parent-only hidden>부모관리</button>
       </nav>
 
@@ -51,16 +52,23 @@
             <button class="today-filter" data-learning-filter="week">이번 주</button>
             <button class="today-filter" data-learning-filter="upcoming">전체 예정</button>
           </div>
+          <div id="rewardGoalWidget" class="reward-goal-widget" hidden></div>
           <div id="todayList" class="today-list"></div>
         </section>
 
         <section id="progress" class="view" aria-labelledby="progressTitle">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Progress Board</p>
-              <h2 id="progressTitle">엑셀처럼 보는 진도표</h2>
+              <p class="eyebrow">Sticker Wallet</p>
+              <h2 id="progressTitle">내 스티커 지갑</h2>
             </div>
           </div>
+          <section class="wallet-summary">
+            <p>현재 보유 스티커</p><div id="walletStars" class="wallet-stars">⭐</div><strong><span id="walletBalance">0</span>개</strong>
+            <small id="walletAvailable"></small>
+          </section>
+          <section class="wallet-history"><h3>최근 적립·사용 내역</h3><div id="stickerTransactionList"></div></section>
+          <h3 class="progress-subtitle">학습 진도표</h3>
           <div class="legend">
             <span><i class="dot planned"></i>예정</span>
             <span><i class="dot done"></i>완료</span>
@@ -89,10 +97,23 @@
           <div class="section-head">
             <div>
               <p class="eyebrow">Reward Shop</p>
-              <h2 id="rewardTitle">스티커 보상</h2>
+              <h2 id="rewardTitle">보상상점</h2>
             </div>
           </div>
           <div id="rewardPanel" class="reward-panel"></div>
+        </section>
+
+        <section id="family-chat" class="view family-chat-view" aria-labelledby="familyChatTitle">
+          <header class="family-chat-head">
+            <div><p class="eyebrow">Family Chat</p><h2 id="familyChatTitle">우리 가족 대화방</h2><p id="familyCurrentMember">가족 사용자를 선택해 주세요.</p></div>
+            <div class="family-chat-head-actions"><button type="button" id="familyPushButton">알림 받기</button><button type="button" id="familyChangeMemberButton">사용자 변경</button></div>
+          </header>
+          <div id="familyChatNotice" class="family-chat-notice" role="status" aria-live="polite" hidden></div>
+          <div id="familyMessageList" class="family-message-list" aria-live="polite"><div class="empty"><h3>가족 대화방</h3><p>가족 구성원으로 인증하면 대화를 볼 수 있어요.</p></div></div>
+          <form id="familyMessageForm" class="family-message-form">
+            <textarea id="familyMessageInput" maxlength="1000" rows="1" placeholder="메시지를 입력하세요" disabled></textarea>
+            <button type="submit" class="primary" id="familySendButton" disabled>전송</button>
+          </form>
         </section>
 
         <section id="parent" class="view" aria-labelledby="parentTitle">
@@ -171,19 +192,37 @@
             <div id="academyScheduleList" class="academy-admin-list"></div>
           </form>
 
-          <form id="rewardForm" class="reward-form">
-            <h3>보상 마일스톤</h3>
-            <input type="hidden" id="rewardMilestoneId" />
-            <label>필요 별<input id="rewardGoal" type="number" min="1" required /></label>
-            <label>보상 이름<input id="rewardName" required /></label>
-            <button type="submit" class="primary" id="rewardSubmitButton">보상 추가</button>
-            <div id="rewardMilestoneList" class="reward-milestone-admin"></div>
+          <form id="rewardProductForm" class="reward-form">
+            <h3>보상 상품 관리</h3><input type="hidden" id="rewardProductId" />
+            <label>상품명<input id="rewardProductName" maxlength="80" required /></label>
+            <label>이모지<input id="rewardProductEmoji" maxlength="8" placeholder="🎁" /></label>
+            <label>필요 스티커<input id="rewardProductCost" type="number" min="1" required /></label>
+            <label>재고<input id="rewardProductStock" type="number" min="0" placeholder="비우면 무제한" /></label>
+            <label>카테고리<select id="rewardProductCategory"><option>간식</option><option>문구</option><option>장난감</option><option>도서</option><option>체험</option><option>기타</option></select></label>
+            <label>노출 순서<input id="rewardProductSort" type="number" value="0" /></label>
+            <label class="wide">상품 설명<input id="rewardProductDescription" maxlength="500" /></label>
+            <label class="wide">상품 이미지 URL<input id="rewardProductImage" type="url" placeholder="https://..." /></label>
+            <label>판매 시작<input id="rewardProductFrom" type="datetime-local" /></label>
+            <label>판매 종료<input id="rewardProductUntil" type="datetime-local" /></label>
+            <label><input id="rewardProductActive" type="checkbox" checked /> 활성 상품</label>
+            <div class="form-actions"><button type="submit" class="primary" id="rewardProductSubmit">상품 추가</button><button type="button" id="rewardProductReset">새 상품</button></div>
+            <div id="rewardProductAdminList" class="reward-product-admin-list"></div>
           </form>
+          <section class="reward-form"><h3>교환 신청 관리</h3><div id="rewardRequestAdminList" class="reward-request-admin-list"></div></section>
 
           <section class="reward-form" id="parentNotificationPanel">
             <h3>부모 알림</h3>
             <p id="parentNotificationStatus">알림 상태를 확인하고 있어요.</p>
             <button type="button" class="primary" id="enableParentNotificationButton">알림 수신 설정</button>
+            <button type="button" id="testParentNotificationButton" disabled>테스트 알림 보내기</button>
+          </section>
+
+          <section class="reward-form family-admin-panel" id="familyAdminPanel">
+            <h3>가족관리</h3>
+            <p>가족 구성원별 PIN 변경, 활성 상태와 알림 설정을 관리합니다. PIN 변경은 부모 인증 후에만 가능합니다.</p>
+            <label><input id="familyChatNotificationsEnabled" type="checkbox" /> 가족방 전체 알림</label>
+            <label><input id="familySystemNotificationsEnabled" type="checkbox" /> 학습 시스템 메시지 알림</label>
+            <div id="familyAdminList" class="family-admin-list"></div>
           </section>
 
           <div id="planList" class="plan-list"></div>
@@ -197,7 +236,7 @@
       <button type="button" class="install-button" id="installAppButton">앱 설치하기</button>
       <p id="installHelp">iPhone/Safari에서는 공유 버튼 → 홈 화면에 추가를 눌러주세요.</p>
     </div>
-    <footer class="data-source" id="dataSource">Data source: Supabase / Build: v22</footer>
+    <footer class="data-source" id="dataSource">Data source: Supabase / Build: v24</footer>
 
     <dialog id="passwordDialog" class="password-dialog" aria-labelledby="passwordTitle">
       <form id="passwordForm" method="dialog">
@@ -207,6 +246,38 @@
         <label>비밀번호<input id="parentPasswordInput" type="password" inputmode="numeric" autocomplete="current-password" required /></label>
         <p class="password-error" id="passwordError" aria-live="polite"></p>
         <button type="submit" class="primary">부모 모드로 들어가기</button>
+      </form>
+    </dialog>
+
+    <dialog id="familyLoginDialog" class="password-dialog" aria-labelledby="familyLoginTitle">
+      <form id="familyLoginForm" method="dialog">
+        <button class="dialog-close" id="closeFamilyLoginButton" type="button" aria-label="닫기">×</button>
+        <p class="eyebrow">Family Login</p><h2 id="familyLoginTitle">가족 사용자 선택</h2>
+        <div id="familyMemberChoices" class="family-member-choices" aria-label="가족 구성원 선택"></div>
+        <p id="familyMemberSelectionStatus" class="family-member-selection-status" aria-live="polite">가족 구성원을 불러오고 있어요.</p>
+        <label>4자리 PIN<input id="familyPinInput" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required /></label>
+        <p class="password-error" id="familyLoginError" aria-live="polite"></p>
+        <button type="submit" class="primary" id="familyLoginButton">가족방 들어가기</button>
+      </form>
+    </dialog>
+
+    <dialog id="familyPinDialog" class="password-dialog" aria-labelledby="familyPinTitle">
+      <form id="familyPinForm" method="dialog">
+        <button class="dialog-close" id="closeFamilyPinButton" type="button" aria-label="닫기">×</button>
+        <h2 id="familyPinTitle">PIN 변경</h2><input type="hidden" id="familyPinMemberId" />
+        <label>새 PIN<input id="familyNewPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required /></label>
+        <label>PIN 확인<input id="familyConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required /></label>
+        <p class="password-error" id="familyPinError" aria-live="polite"></p><button type="submit" class="primary">변경하기</button>
+      </form>
+    </dialog>
+
+    <dialog id="rewardExchangeDialog" class="password-dialog" aria-labelledby="rewardExchangeTitle">
+      <form id="rewardExchangeForm" method="dialog">
+        <button class="dialog-close" id="closeRewardExchangeButton" type="button" aria-label="닫기">×</button>
+        <h2 id="rewardExchangeTitle">보상 교환 신청</h2><input type="hidden" id="rewardExchangeProductId" />
+        <div id="rewardExchangeSummary" class="reward-exchange-summary"></div>
+        <p class="password-error" id="rewardExchangeError" aria-live="polite"></p>
+        <div class="form-actions"><button type="button" id="cancelRewardExchangeButton">취소</button><button type="submit" class="primary" id="confirmRewardExchangeButton">교환 신청</button></div>
       </form>
     </dialog>
 

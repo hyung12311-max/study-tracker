@@ -1,0 +1,13 @@
+const family=require("../family/_utils");
+const push=require("../push/_utils");
+
+function productSafe(row){return{id:row.id,name:row.name,description:row.description||"",sticker_cost:Number(row.sticker_cost),image_url:row.image_url||"",emoji:row.emoji||"🎁",stock:row.stock===null?null:Number(row.stock),is_active:Boolean(row.is_active),sort_order:Number(row.sort_order||0),category:row.category||"기타",available_from:row.available_from,available_until:row.available_until,created_at:row.created_at};}
+function requestSafe(row){return{id:row.id,member_id:row.member_id,product_id:row.product_id,product_name:row.product_name,product_emoji:row.product_emoji,sticker_cost:Number(row.sticker_cost),status:row.status,requested_at:row.requested_at,decided_at:row.decided_at,rejection_reason:row.rejection_reason,member:row.family_members?{display_name:row.family_members.display_name,avatar_emoji:row.family_members.avatar_emoji}:null};}
+
+async function insertSystemMessage(familyId,type,id,content){try{await family.supabaseFetch("family_messages?on_conflict=family_id,related_type,related_id",{method:"POST",headers:{Prefer:"resolution=ignore-duplicates"},body:JSON.stringify({family_id:familyId,sender_id:null,message_type:"system",content,related_type:type,related_id:String(id),push_sent_at:new Date().toISOString()})})}catch(error){console.warn("[reward system message] failed",{requestId:id,statusCode:error.statusCode||500})}}
+
+async function sendTargetedPush({familyId,target="parent",memberId,title,body,tag}){try{push.configureWebPush();let query=`push_subscriptions?select=endpoint,p256dh,auth,family_member_id,family_members!inner(role,family_id,notifications_enabled)&is_active=eq.true&family_members.family_id=eq.${familyId}&family_members.notifications_enabled=eq.true`;if(target==="parent")query+="&family_members.role=eq.parent";else query+=`&family_member_id=eq.${memberId}`;const rows=await push.supabaseFetch(query)||[];let success=0,failure=0;await Promise.all(rows.map(async row=>{try{await push.webPush.sendNotification(push.normalizeSubscription(row),JSON.stringify({title,body,url:"/?tab=rewards",tag}));success++}catch(error){failure++;if([404,410].includes(error.statusCode))await push.markInactive(row.endpoint)}}));console.log("[reward push]",{tag,success,failure})}catch(error){console.warn("[reward push] failed",{tag,statusCode:error.statusCode||500})}}
+
+async function memberInFamily(memberId,familyId){return(await family.supabaseFetch(`family_members?select=id,display_name,avatar_emoji,role,is_active&id=eq.${memberId}&family_id=eq.${familyId}&limit=1`))?.[0]||null;}
+
+module.exports={...family,insertSystemMessage,memberInFamily,productSafe,requestSafe,sendTargetedPush};

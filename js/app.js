@@ -1,8 +1,10 @@
 import { createClient } from "./vendor/supabase-js.js";
 import { SUPABASE_CONFIG } from "./config.js";
+import { initFamilyChat } from "./family-chat.js";
+import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v22";
+const BUILD_VERSION = "v24";
 const LOCAL_DATA_KEY = "study-tracker-local-data-v1";
 const LOCAL_NOTIFICATION_KEY = "study-tracker-parent-notifications-v1";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
@@ -620,6 +622,9 @@ let isParentMode = false;
 let learningFilter = "due";
 let isRemoteRefreshPending = false;
 let installPrompt = null;
+let parentPushState = { status: "idle", message: "", registered: false };
+let familyChatController = null;
+let rewardStoreController = null;
 
 function addDays(date, amount) {
   const next = new Date(date);
@@ -771,8 +776,10 @@ function replaceAcademyScheduleId(localId, savedSchedule) {
 
 function parentNotificationMessage(plan) {
   return {
-    title: "\uD558\uACB8\uC774\uAC00 \uC624\uB298 \uD559\uC2B5\uC744 \uC644\uB8CC\uD588\uC5B4\uC694!",
-    body: `\uACFC\uBAA9: ${plan.subject} / \uB2E8\uC6D0: ${plan.unit} / \uBAA9\uD45C: ${plan.target}`,
+    title: "하겸이 학습 완료 ⭐",
+    body: `하겸이가 ${plan.subject} · ${plan.book} 학습을 완료했어요. 스티커 1개를 받았습니다.`,
+    url: "/?tab=progress",
+    tag: `study-complete-${plan.id}`,
   };
 }
 
@@ -783,17 +790,42 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
-async function getParentPushSubscription() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
-  if (!SUPABASE_CONFIG.pushPublicKey) return null;
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : {};
+  if (!response.ok) {
+    throw new Error(data.error || `${url} failed with ${response.status}`);
+  }
+  return data;
+}
 
+async function fetchPushPublicKey() {
+  const data = await requestJson("/api/push/public-key");
+  if (!data.configured || !data.publicKey) {
+    throw new Error("알림 서버 설정이 완료되지 않았어요.");
+  }
+  return data.publicKey;
+}
+
+function isSecurePushContext() {
+  return window.isSecureContext || ["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
+async function getParentPushSubscription(publicKey) {
   const registration = await navigator.serviceWorker.ready;
   const existing = await registration.pushManager.getSubscription();
   if (existing) return existing;
 
   return registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(SUPABASE_CONFIG.pushPublicKey),
+    applicationServerKey: urlBase64ToUint8Array(publicKey),
   });
 }
 
@@ -808,28 +840,44 @@ async function notifyParentOfCompletion(plan) {
   };
 
   try {
-    if ("Notification" in window) {
-      if (Notification.permission === "default") {
-        await Notification.requestPermission();
-      }
-      if (Notification.permission === "granted") {
-        new Notification(message.title, { body: message.body, tag: `study-complete-${plan.id}` });
-        entry.delivered = true;
-      }
-    }
-
-    const subscription = await getParentPushSubscription();
-    if (subscription) {
-      entry.pushSubscription = subscription.toJSON();
-    }
+    const result = await requestJson("/api/push/send", {
+      method: "POST",
+      body: JSON.stringify({ type: "study-complete", planId: plan.id }),
+    });
+    entry.delivered = Number(result.success || 0) > 0;
+    entry.result = result;
   } catch (error) {
     console.warn("[parent notification] push failed", error);
     entry.errorMessage = error?.message || String(error);
+    showToast("학습 완료는 저장됐지만 부모 알림 전송은 실패했어요.");
   } finally {
     writeLocalNotification(entry);
     repository.recordCompletionNotification(entry).catch((error) => {
       console.warn("[parent notification] remote log skipped", error);
     });
+  }
+}
+
+async function notifyParentOfAcademyCompletion(schedule, completedDate) {
+  try {
+    await requestJson("/api/push/send", {
+      method: "POST",
+      body: JSON.stringify({ type: "academy-complete", scheduleId: schedule.id, completedDate }),
+    });
+  } catch (error) {
+    console.warn("[parent notification] academy push failed", error);
+    showToast("일정 완료는 저장됐지만 부모 알림 전송은 실패했어요.");
+  }
+}
+
+async function createFamilyStudyMessage(plan) {
+  try {
+    await requestJson("/api/family/messages", {
+      method: "POST",
+      body: JSON.stringify({ messageType: "system", relatedType: "study_complete", relatedId: plan.id }),
+    });
+  } catch (error) {
+    console.warn("[family chat] study message skipped", error?.message || error);
   }
 }
 
@@ -841,6 +889,8 @@ function render() {
   renderProgress();
   renderRewards();
   renderParent();
+  rewardStoreController?.render();
+  rewardStoreController?.scheduleRefresh();
 }
 
 function renderApp() {
@@ -1019,7 +1069,7 @@ async function handleCompletePlan(id, button) {
     console.log("[complete-refresh-success]", id);
     launchCelebration();
     const completedPlan = state.plans.find((plan) => String(plan.id) === String(id)) || planBeforeComplete;
-    if (completedPlan) await notifyParentOfCompletion(completedPlan);
+    if (completedPlan) await Promise.allSettled([notifyParentOfCompletion(completedPlan), createFamilyStudyMessage(completedPlan)]);
     showToast("GOOD!! 너무 잘했어!");
   } catch (error) {
     if (isNetworkFallbackError(error)) {
@@ -1061,31 +1111,7 @@ function renderProgress() {
 }
 
 function renderRewards() {
-  const count = completedCount();
-  const milestones = normalizeRewardMilestones(state.rewardMilestones, state.reward);
-  const nextReward = milestones.find((milestone) => count < milestone.stars);
-  const activeReward = nextReward || milestones[milestones.length - 1];
-  const remaining = nextReward ? nextReward.stars - count : 0;
-  const previousGoal = milestones.filter((milestone) => milestone.stars <= count).at(-1)?.stars || 0;
-  const progressMax = Math.max((nextReward?.stars || activeReward.stars) - previousGoal, 1);
-  const progressValue = Math.min(Math.max(count - previousGoal, 0), progressMax);
-  const message = nextReward
-    ? `조금만 더! 별 ${remaining}개만 더 모으면 ${nextReward.name} 보상이에요.`
-    : "대단해요! 준비된 보상을 모두 달성했어요.";
-
-  $("#rewardPanel").innerHTML = `
-    <article class="reward-card">
-      <p class="eyebrow">Reward Milestones</p>
-      <h3>현재 별: ${count}개</h3>
-      <p>${escapeHtml(message)}</p>
-      <progress value="${progressValue}" max="${progressMax}"></progress>
-      <p>${nextReward ? `다음 보상: ${escapeHtml(nextReward.name)} · 필요 별 ${nextReward.stars}개 · 남은 별 ${remaining}개` : "새 보상 기준을 부모관리에서 추가할 수 있어요."}</p>
-    </article>
-    <article class="reward-card">
-      <p class="eyebrow">Milestone Map</p>
-      <div class="reward-milestones">${milestones.map((milestone) => createRewardMilestoneCard(milestone, count, nextReward)).join("")}</div>
-    </article>
-  `;
+  if (!rewardStoreController) $("#rewardPanel").innerHTML = `<div class="empty">보상상점을 불러오는 중이에요.</div>`;
 }
 
 function createAcademyCard(schedule) {
@@ -1132,7 +1158,6 @@ function renderParent() {
   $("#latePlans").textContent = late;
   $("#weeklyRate").textContent = `${calculateWeeklyRate()}%`;
   renderAcademyScheduleAdmin();
-  renderRewardMilestoneAdmin();
   renderParentNotificationSettings();
 
   $("#planList").innerHTML = [...state.plans]
@@ -1206,34 +1231,112 @@ function renderParentNotificationSettings() {
   const panel = $("#parentNotificationPanel");
   const status = $("#parentNotificationStatus");
   const button = $("#enableParentNotificationButton");
+  const testButton = $("#testParentNotificationButton");
   if (!panel || !status || !button) return;
 
   const notificationAvailable = "Notification" in window;
   const pushAvailable = "serviceWorker" in navigator && "PushManager" in window;
   const permission = notificationAvailable ? Notification.permission : "unsupported";
-  const pushReady = pushAvailable && Boolean(SUPABASE_CONFIG.pushPublicKey);
 
-  button.disabled = !notificationAvailable;
-  status.textContent = `브라우저 알림: ${permission} / Push 구독: ${pushReady ? "설정 가능" : "서버 키 필요"}`;
+  button.disabled = !notificationAvailable || !pushAvailable || !isSecurePushContext() || parentPushState.status === "working";
+  if (testButton) testButton.disabled = !parentPushState.registered || parentPushState.status === "working";
+
+  if (!isSecurePushContext()) {
+    status.textContent = "HTTPS 또는 localhost에서만 부모 알림을 설정할 수 있어요.";
+    button.textContent = "알림 설정 불가";
+    return;
+  }
+  if (!notificationAvailable || !pushAvailable) {
+    status.textContent = "이 브라우저는 푸시 알림을 지원하지 않아요.";
+    button.textContent = "알림 설정 불가";
+    return;
+  }
+  if (permission === "denied") {
+    status.textContent = "브라우저 설정에서 알림을 허용해주세요.";
+    button.textContent = "알림 허용 필요";
+    return;
+  }
+
+  status.textContent = parentPushState.message || (
+    parentPushState.registered
+      ? "이 기기에서 부모 알림을 받고 있어요."
+      : "미등록 상태예요. 버튼을 눌러 부모 알림을 설정하세요."
+  );
+  button.textContent = parentPushState.registered ? "알림 설정 완료" : "알림 받기";
 }
 
 async function handleEnableParentNotifications() {
   try {
-    if (!("Notification" in window)) {
-      console.warn("[parent notification] Notification API is not available.");
-      renderParentNotificationSettings();
-      return;
-    }
+    parentPushState = { status: "working", message: "알림 권한을 확인하고 있어요.", registered: false };
+    renderParentNotificationSettings();
 
+    if (!isSecurePushContext()) throw new Error("HTTPS 또는 localhost에서만 부모 알림을 설정할 수 있어요.");
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      throw new Error("이 브라우저는 푸시 알림을 지원하지 않아요.");
+    }
     if (Notification.permission === "default") {
-      await Notification.requestPermission();
+      parentPushState.message = "알림 권한 요청 중이에요.";
+      renderParentNotificationSettings();
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") throw new Error("브라우저 설정에서 알림을 허용해주세요.");
+    }
+    if (Notification.permission === "denied") {
+      throw new Error("브라우저 설정에서 알림을 허용해주세요.");
     }
 
-    await getParentPushSubscription();
+    parentPushState.message = "알림 서버 설정을 확인하고 있어요.";
+    renderParentNotificationSettings();
+    const publicKey = await fetchPushPublicKey();
+
+    parentPushState.message = "이 기기를 부모 알림 수신 기기로 등록하고 있어요.";
+    renderParentNotificationSettings();
+    const subscription = await getParentPushSubscription(publicKey);
+
+    await requestJson("/api/push/subscribe", {
+      method: "POST",
+      body: JSON.stringify({ childName: "하겸이", subscription: subscription.toJSON() }),
+    });
+    parentPushState = { status: "ready", message: "이 기기에서 부모 알림을 받고 있어요.", registered: true };
+    showToast("부모 알림 설정 완료");
   } catch (error) {
     console.warn("[parent notification] setup failed", error);
+    parentPushState = { status: "error", message: error?.message || "알림 설정에 실패했어요.", registered: false };
   } finally {
     renderParentNotificationSettings();
+  }
+}
+
+async function handleTestParentNotification() {
+  try {
+    parentPushState = { ...parentPushState, status: "working", message: "테스트 알림을 보내고 있어요." };
+    renderParentNotificationSettings();
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (!subscription) throw new Error("먼저 알림 받기를 설정해주세요.");
+    await requestJson("/api/push/send", {
+      method: "POST",
+      body: JSON.stringify({ type: "test", subscription: subscription.toJSON() }),
+    });
+    parentPushState = { status: "ready", message: "테스트 알림을 보냈어요.", registered: true };
+  } catch (error) {
+    console.warn("[parent notification] test failed", error);
+    parentPushState = { ...parentPushState, status: "error", message: error?.message || "테스트 알림 전송에 실패했어요." };
+  } finally {
+    renderParentNotificationSettings();
+  }
+}
+
+async function refreshParentPushRegistrationState() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !isSecurePushContext()) return;
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      parentPushState = { status: "ready", message: "이 기기에서 부모 알림을 받고 있어요.", registered: true };
+      renderParentNotificationSettings();
+    }
+  } catch (error) {
+    console.warn("[parent notification] registration state check failed", error);
   }
 }
 
@@ -1266,6 +1369,8 @@ async function handleCompleteAcademy(id, button) {
   if (!String(schedule.id).startsWith("local-")) {
     try {
       await repository.completeAcademySchedule(schedule, today);
+      await notifyParentOfAcademyCompletion(schedule, today);
+      await rewardStoreController?.refresh({ silent: true });
     } catch (error) {
       console.warn("[academy] completion saved locally only", error);
     }
@@ -1445,6 +1550,7 @@ async function handleDeleteAcademySchedule(id) {
   if (!String(id).startsWith("local-")) {
     try {
       await repository.deleteAcademySchedule(id);
+      await rewardStoreController?.refresh({ silent: true });
     } catch (error) {
       console.warn("[academy] remote delete skipped", error);
     }
@@ -1585,6 +1691,12 @@ function switchView(viewName) {
   $$(".view").forEach((item) => {
     item.classList.toggle("active", item.id === viewName);
   });
+  familyChatController?.setActive(viewName === "family-chat");
+  rewardStoreController?.setActive(["progress", "rewards", "parent"].includes(viewName));
+  const url = new URL(window.location.href);
+  if (viewName === "today") url.searchParams.delete("tab");
+  else url.searchParams.set("tab", viewName);
+  history.replaceState(null, "", url);
 }
 
 function openPasswordDialog() {
@@ -1739,8 +1851,9 @@ function bindEvents() {
   $("#closePasswordButton").addEventListener("click", closePasswordDialog);
   $("#planForm").addEventListener("submit", handlePlanSubmit);
   $("#academyForm")?.addEventListener("submit", handleAcademySubmit);
-  $("#rewardForm").addEventListener("submit", handleRewardSubmit);
+  $("#rewardForm")?.addEventListener("submit", handleRewardSubmit);
   $("#enableParentNotificationButton")?.addEventListener("click", handleEnableParentNotifications);
+  $("#testParentNotificationButton")?.addEventListener("click", handleTestParentNotification);
   $("#resetFormButton").addEventListener("click", resetForm);
   $("#resetAcademyFormButton")?.addEventListener("click", resetAcademyForm);
 }
@@ -1765,8 +1878,9 @@ async function reloadFromRemote() {
 }
 
 async function init() {
-  clearBrowserStorage();
   bindEvents();
+  familyChatController = await initFamilyChat();
+  rewardStoreController = await initRewardStore({ openFamily: () => switchView("family-chat") });
   updateInstallUI();
   resetForm();
   resetAcademyForm();
@@ -1785,10 +1899,14 @@ async function init() {
   }
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch((error) => {
-      console.log("[service-worker] registration failed:", error);
-    });
+    navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
+      .then(() => refreshParentPushRegistrationState())
+      .catch((error) => {
+        console.log("[service-worker] registration failed:", error);
+      });
   }
+  const requestedTab = new URLSearchParams(window.location.search).get("tab");
+  if (["today", "progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);
 }
 
 init();

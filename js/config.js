@@ -3,5 +3,4 @@ export const SUPABASE_CONFIG = {
   publishableKey: "sb_publishable_1O7BOzUiH3XfFy3N1fVTxA_caN3EMIY",
   enableRealtime: false,
   requestTimeoutMs: 4500,
-  pushPublicKey: "",
 };
