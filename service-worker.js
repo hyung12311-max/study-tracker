@@ -1,4 +1,4 @@
-const CACHE_NAME = "hagyeom-study-sticker-v24";
+const CACHE_NAME = "hagyeom-study-sticker-v25";
 const ASSETS = [
   "/",
   "/index.html",
@@ -62,20 +62,18 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  if (shouldSkipServiceWorker(event.request)) {
-    return;
-  }
+  if (shouldSkipServiceWorker(event.request)) return;
   event.respondWith(networkFirst(event.request));
 });
 
 self.addEventListener("push", (event) => {
   let payload = {
-    title: "하겸이 학습 완료 ⭐",
-    body: "학습 완료 알림이 도착했어요.",
+    title: "학습 스티커",
+    body: "새 알림이 도착했어요.",
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
     url: "/",
-    tag: "study-complete",
+    tag: "study-sticker",
   };
 
   try {
@@ -102,8 +100,7 @@ self.addEventListener("notificationclick", (event) => {
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
       const sameOriginClient = clientList.find((client) => new URL(client.url).origin === self.location.origin);
       if (sameOriginClient) {
-        sameOriginClient.focus();
-        return sameOriginClient.navigate(targetUrl);
+        return sameOriginClient.focus().then(() => sameOriginClient.navigate(targetUrl));
       }
       return clients.openWindow(targetUrl);
     })

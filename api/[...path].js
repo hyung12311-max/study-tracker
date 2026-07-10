@@ -1,8 +1,15 @@
 const familyMembers = require("../server/api/family/members");
 const familyMessages = require("../server/api/family/messages");
+const familyChangePin = require("../server/api/family/change-pin");
 const familyPin = require("../server/api/family/pin");
 const familyRead = require("../server/api/family/read");
 const familyVerifyPin = require("../server/api/family/verify-pin");
+const notificationsPublicKey = require("../server/api/notifications/public-key");
+const notificationsPreferences = require("../server/api/notifications/preferences");
+const notificationsStudyComplete = require("../server/api/notifications/study-complete");
+const notificationsSubscribe = require("../server/api/notifications/subscribe");
+const notificationsTest = require("../server/api/notifications/test");
+const notificationsUnsubscribe = require("../server/api/notifications/unsubscribe");
 const pushPublicKey = require("../server/api/push/public-key");
 const pushSend = require("../server/api/push/send");
 const pushSubscribe = require("../server/api/push/subscribe");
@@ -15,10 +22,17 @@ const rewardsWishlist = require("../server/api/rewards/wishlist");
 const routes = Object.freeze({
   "family/members": familyMembers,
   "family/login": familyVerifyPin,
+  "family/change-pin": familyChangePin,
   "family/messages": familyMessages,
   "family/pin": familyPin,
   "family/read": familyRead,
   "family/verify-pin": familyVerifyPin,
+  "notifications/public-key": notificationsPublicKey,
+  "notifications/preferences": notificationsPreferences,
+  "notifications/study-complete": notificationsStudyComplete,
+  "notifications/subscribe": notificationsSubscribe,
+  "notifications/test": notificationsTest,
+  "notifications/unsubscribe": notificationsUnsubscribe,
   "push/public-key": pushPublicKey,
   "push/send": pushSend,
   "push/subscribe": pushSubscribe,

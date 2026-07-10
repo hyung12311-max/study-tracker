@@ -23,7 +23,7 @@ module.exports=async function(req,res){
   }
   const filter=claims?`&family_id=eq.${claims.family}`:"";
   const rows=await u.supabaseFetch(`family_members?select=id,family_id,member_key,display_name,role,avatar_emoji,is_active,notifications_enabled${filter}&order=created_at.asc`);
-  let settings=null;if(claims){settings=(await u.supabaseFetch(`families?select=chat_notifications_enabled,system_notifications_enabled&id=eq.${claims.family}&limit=1`))?.[0]||null;if(claims.role==="parent"){const devices=await u.supabaseFetch("push_subscriptions?select=family_member_id&is_active=eq.true&family_member_id=not.is.null");for(const row of rows||[])row.device_count=(devices||[]).filter(d=>d.family_member_id===row.id).length}}
+  let settings=null;if(claims){settings=(await u.supabaseFetch(`families?select=chat_notifications_enabled,system_notifications_enabled&id=eq.${claims.family}&limit=1`))?.[0]||null;if(claims.role==="parent"){const devices=await u.supabaseFetch(`family_push_subscriptions?select=member_id&family_id=eq.${claims.family}&is_active=eq.true&member_id=not.is.null`);for(const row of rows||[])row.device_count=(devices||[]).filter(d=>d.member_id===row.id).length}}
   const members=(rows||[]).filter(row=>claims||row.is_active).map(row=>claims?row:((({family_id,...safe})=>safe)(row)));
   console.info("[family members] query success",{rowCount:Array.isArray(rows)?rows.length:0,activeMemberCount:members.length,authenticated:Boolean(claims)});
   if(!members.length){console.warn("[family members] no active family members found");return u.json(res,200,{members:[],settings,message:"가족 구성원이 없습니다."});}

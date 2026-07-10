@@ -106,7 +106,7 @@
         <section id="family-chat" class="view family-chat-view" aria-labelledby="familyChatTitle">
           <header class="family-chat-head">
             <div><p class="eyebrow">Family Chat</p><h2 id="familyChatTitle">우리 가족 대화방</h2><p id="familyCurrentMember">가족 사용자를 선택해 주세요.</p></div>
-            <div class="family-chat-head-actions"><button type="button" id="familyPushButton">알림 받기</button><button type="button" id="familyChangeMemberButton">사용자 변경</button></div>
+            <div class="family-chat-head-actions"><button type="button" id="familyPushButton">알림 받기</button><button type="button" id="familySelfPinButton" disabled>PIN 변경</button><button type="button" id="familyChangeMemberButton">사용자 변경</button></div>
           </header>
           <div id="familyChatNotice" class="family-chat-notice" role="status" aria-live="polite" hidden></div>
           <div id="familyMessageList" class="family-message-list" aria-live="polite"><div class="empty"><h3>가족 대화방</h3><p>가족 구성원으로 인증하면 대화를 볼 수 있어요.</p></div></div>
@@ -215,6 +215,7 @@
             <p id="parentNotificationStatus">알림 상태를 확인하고 있어요.</p>
             <button type="button" class="primary" id="enableParentNotificationButton">알림 수신 설정</button>
             <button type="button" id="testParentNotificationButton" disabled>테스트 알림 보내기</button>
+            <div id="parentNotificationPreferences" class="notification-preferences"></div>
           </section>
 
           <section class="reward-form family-admin-panel" id="familyAdminPanel">
@@ -236,8 +237,6 @@
       <button type="button" class="install-button" id="installAppButton">앱 설치하기</button>
       <p id="installHelp">iPhone/Safari에서는 공유 버튼 → 홈 화면에 추가를 눌러주세요.</p>
     </div>
-    <footer class="data-source" id="dataSource">Data source: Supabase / Build: v24</footer>
-
     <dialog id="passwordDialog" class="password-dialog" aria-labelledby="passwordTitle">
       <form id="passwordForm" method="dialog">
         <button class="dialog-close" id="closePasswordButton" type="button" aria-label="닫기">×</button>
@@ -268,6 +267,23 @@
         <label>새 PIN<input id="familyNewPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required /></label>
         <label>PIN 확인<input id="familyConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required /></label>
         <p class="password-error" id="familyPinError" aria-live="polite"></p><button type="submit" class="primary">변경하기</button>
+      </form>
+    </dialog>
+
+    <dialog id="familySelfPinDialog" class="password-dialog" aria-labelledby="familySelfPinTitle">
+      <form id="familySelfPinForm" method="dialog">
+        <button class="dialog-close" id="closeFamilySelfPinButton" type="button" aria-label="닫기">×</button>
+        <p class="eyebrow">Family PIN</p>
+        <h2 id="familySelfPinTitle">내 PIN 변경</h2>
+        <p id="familySelfPinMember" class="family-self-pin-member"></p>
+        <label>현재 PIN<input id="familyCurrentPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required /></label>
+        <label>새 PIN<input id="familySelfNewPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required /></label>
+        <label>새 PIN 확인<input id="familySelfConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required /></label>
+        <p class="password-error" id="familySelfPinError" aria-live="polite"></p>
+        <div class="form-actions">
+          <button type="button" id="cancelFamilySelfPinButton">취소</button>
+          <button type="submit" class="primary" id="familySelfPinSubmitButton">변경하기</button>
+        </div>
       </form>
     </dialog>
 
