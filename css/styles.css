@@ -773,7 +773,6 @@ select {
 .family-chat-head h2 { font-size: clamp(1.18rem, 2vw, 1.55rem); }
 .family-chat-head p { color: var(--muted); font-size: .9rem; font-weight: 800; }
 .family-chat-head-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-.family-push-guide { margin: 6px 0 0; color: #6b7280; font-size: 0.9rem; }
 .family-chat-head-actions button { min-height: 38px; border-radius: 999px; padding: 0 13px; background: #f3f5f8; color: #454956; font-size: .88rem; font-weight: 900; box-shadow: inset 0 0 0 1px rgba(43,42,53,.06); }
 .family-chat-head-actions button:hover { background: #fff0bd; color: var(--ink); }
 .family-chat-head-actions button:disabled { cursor: default; opacity: .45; }

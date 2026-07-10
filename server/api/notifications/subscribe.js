@@ -6,14 +6,11 @@ module.exports = async function handler(request, response) {
     const claims = u.authenticate(request);
     const body = await u.readJson(request);
     const row = await u.upsertSubscription({ request, claims, subscription: body.subscription || body, body });
-    return u.json(response, 200, { ok: true, id: row?.id || null, member_key: claims.key, role: claims.role });
+    return u.json(response, 200, { ok: true, id: row?.id || null });
   } catch (error) {
-    const code = error.code || (error.statusCode === 401 ? "AUTH_REQUIRED" : "SUBSCRIPTION_SAVE_FAILED");
     return u.json(response, error.statusCode || 500, {
       ok: false,
-      code,
-      error: code,
-      message: error.message,
+      error: error.statusCode ? error.message : "알림 구독을 저장하지 못했습니다.",
     });
   }
 };
