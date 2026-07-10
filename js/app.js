@@ -1062,44 +1062,6 @@ function renderProgress() {
 
 function renderRewards() {
   const count = completedCount();
-  const reward = state.reward;
-  const progress = Math.min(Math.max(count, 0), reward.goal);
-  const canClaim = count >= reward.goal;
-  $("#rewardPanel").innerHTML = `
-    <article class="reward-card">
-      <p class="eyebrow">Sticker Mission</p>
-      <h3>${reward.goal}개 모으면 ${escapeHtml(reward.name)}</h3>
-      <p>현재 ${count}개 완료했어요. 완료 1개마다 스티커 1개가 쌓입니다.</p>
-      <progress value="${progress}" max="${reward.goal}"></progress>
-      <p>${progress} / ${reward.goal}</p>
-      <button class="complete-btn" id="claimRewardButton" ${canClaim ? "" : "disabled"}>
-        ${canClaim ? "보상 받기!" : "조금만 더!"}
-      </button>
-    </article>
-    <article class="reward-card">
-      <p class="eyebrow">My Stickers</p>
-      <div class="sticker-board">${createStickers(progress, reward.goal)}</div>
-    </article>
-  `;
-  $("#claimRewardButton").addEventListener("click", claimReward);
-}
-
-function createStickers(count, goal) {
-  return Array.from({ length: goal }, (_, index) => {
-    const earned = index < count;
-    return `<span class="sticker ${earned ? "" : "locked"}">${earned ? "⭐" : "☆"}</span>`;
-  }).join("");
-}
-
-async function claimReward() {
-  if (completedCount() < state.reward.goal) return;
-  const rewardName = state.reward.name;
-  launchCelebration();
-  showToast(`PERFECT! ${rewardName} 보상 달성!`);
-}
-
-function renderRewards() {
-  const count = completedCount();
   const milestones = normalizeRewardMilestones(state.rewardMilestones, state.reward);
   const nextReward = milestones.find((milestone) => count < milestone.stars);
   const activeReward = nextReward || milestones[milestones.length - 1];
