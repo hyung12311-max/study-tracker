@@ -321,7 +321,11 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "학원 완료 이력 불러오기 실패",
-        client.from("academy_completion_history").select("*"),
+        familyAuthHeaders()
+          ? requestJson("/api/rewards/academy-complete", { headers: familyAuthHeaders() })
+              .then((result) => ({ data: result.completions, error: null }))
+              .catch((error) => ({ data: null, error }))
+          : Promise.resolve({ data: localData.academyCompletions, error: null }),
         localData.academyCompletions
       ),
     ]);
@@ -533,17 +537,14 @@ function createSupabaseRepository(config) {
   }
 
   async function completeAcademySchedule(schedule, completedDate) {
-    assertConfigured();
-    const payload = sanitizePayload({
-      academy_schedule_id: schedule.id,
-      completed_date: completedDate,
-      star_count: Number(schedule.stars || 1),
+    const authHeaders = familyAuthHeaders();
+    if (!authHeaders) throw new Error("가족 사용자 인증이 필요해요.");
+    const data = await requestJson("/api/rewards/academy-complete", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({ scheduleId: schedule.id, completedDate }),
     });
-    const { data } = await request(
-      "학원 완료 저장 실패",
-      client.from("academy_completion_history").insert(payload).select("*").single()
-    );
-    return academyCompletionFromRow(data);
+    return academyCompletionFromRow(data.completion);
   }
 
   async function recordCompletionNotification(entry) {
@@ -730,9 +731,9 @@ function isAcademyCompleted(scheduleId, date = toDateInput(new Date())) {
   });
 }
 
-function completeAcademyLocally(schedule, date = toDateInput(new Date())) {
+function completeAcademyLocally(schedule, date = toDateInput(new Date()), savedCompletion = null) {
   if (isAcademyCompleted(schedule.id, date)) return null;
-  const completion = {
+  const completion = savedCompletion || {
     id: `local-academy-completion-${Date.now()}`,
     scheduleId: schedule.id,
     completedDate: date,
@@ -1455,21 +1456,36 @@ async function handleCompleteAcademy(id, button) {
     button.textContent = "\uC800\uC7A5 \uC911...";
   }
 
-  completeAcademyLocally(schedule, today);
+  if (String(schedule.id).startsWith("local-")) {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "잘 다녀왔어요";
+    }
+    showToast("학원 일정이 서버에 저장된 뒤 완료할 수 있어요.");
+    return;
+  }
+
+  let savedCompletion = null;
+  try {
+    savedCompletion = await repository.completeAcademySchedule(schedule, today);
+  } catch (error) {
+    console.warn("[academy] completion failed", error);
+    if (button) {
+      button.disabled = false;
+      button.textContent = "잘 다녀왔어요";
+    }
+    showToast(error?.message || "학원 완료를 저장하지 못했어요.");
+    return;
+  }
+
+  completeAcademyLocally(schedule, today, savedCompletion);
   renderApp();
   setConnectionStatus("");
   launchCelebration();
   showToast(`\uC798 \uB2E4\uB140\uC654\uC5B4\uC694! \uBCC4 ${stars}\uAC1C\uAC00 \uC313\uC600\uC5B4\uC694.`);
 
-  if (!String(schedule.id).startsWith("local-")) {
-    try {
-      await repository.completeAcademySchedule(schedule, today);
-      await notifyParentOfAcademyCompletion(schedule, today);
-      await rewardStoreController?.refresh({ silent: true });
-    } catch (error) {
-      console.warn("[academy] completion saved locally only", error);
-    }
-  }
+  await notifyParentOfAcademyCompletion(schedule, today);
+  await rewardStoreController?.refresh({ silent: true });
 }
 
 function calculateWeeklyRate() {

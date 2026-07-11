@@ -15,6 +15,7 @@ const pushSend = require("../server/api/push/send");
 const pushSubscribe = require("../server/api/push/subscribe");
 const pushUnsubscribe = require("../server/api/push/unsubscribe");
 const rewards = require("../server/api/rewards");
+const rewardsAcademyComplete = require("../server/api/rewards/academy-complete");
 const rewardsExchange = require("../server/api/rewards/exchange");
 const rewardsProducts = require("../server/api/rewards/products");
 const rewardsWishlist = require("../server/api/rewards/wishlist");
@@ -38,6 +39,7 @@ const routes = Object.freeze({
   "push/subscribe": pushSubscribe,
   "push/unsubscribe": pushUnsubscribe,
   rewards,
+  "rewards/academy-complete": rewardsAcademyComplete,
   "rewards/exchange": rewardsExchange,
   "rewards/products": rewardsProducts,
   "rewards/wishlist": rewardsWishlist,

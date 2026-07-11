@@ -7,6 +7,29 @@ begin;
 
 create extension if not exists pgcrypto;
 
+-- Academy schedules use the column names already referenced by js/app.js.
+create table if not exists public.academy_schedules (
+  id uuid primary key default gen_random_uuid(),
+  academy_name text not null,
+  day_of_week integer not null check (day_of_week between 0 and 6),
+  start_time time not null,
+  memo text,
+  star_count integer not null default 1 check (star_count > 0),
+  created_at timestamptz not null default now()
+);
+
+-- Completion ownership is recorded by the authenticated family API.
+create table if not exists public.academy_completion_history (
+  id uuid primary key default gen_random_uuid(),
+  family_id uuid not null references public.families(id) on delete cascade,
+  member_id uuid not null references public.family_members(id) on delete cascade,
+  academy_schedule_id uuid not null references public.academy_schedules(id) on delete cascade,
+  completed_date date not null,
+  star_count integer not null default 1 check (star_count > 0),
+  created_at timestamptz not null default now(),
+  unique (member_id, academy_schedule_id, completed_date)
+);
+
 -- 1. Exchange requests: API POST creates pending rows; parent decisions update them.
 create table if not exists public.reward_exchange_requests (
   id uuid primary key default gen_random_uuid(),
@@ -82,6 +105,10 @@ create index if not exists reward_exchange_history_member_completed_idx
   on public.reward_exchange_history (member_id, completed_at desc);
 create index if not exists reward_wishlist_member_created_idx
   on public.reward_wishlist (member_id, created_at desc);
+create index if not exists academy_schedules_day_time_idx
+  on public.academy_schedules (day_of_week, start_time);
+create index if not exists academy_completion_member_date_idx
+  on public.academy_completion_history (member_id, completed_date desc);
 
 create or replace function public.set_reward_exchange_updated_at()
 returns trigger
@@ -184,6 +211,113 @@ select
 from public.sticker_history sh
 join public.study_plans sp on sp.id = sh.study_plan_id
 cross join lateral public.default_reward_member() target
+on conflict (member_id, source_type, source_id) do nothing;
+
+-- Creates the completion row and its sticker transaction in one transaction.
+create or replace function public.complete_academy_schedule(
+  p_family_id uuid,
+  p_member_id uuid,
+  p_schedule_id uuid,
+  p_completed_date date
+)
+returns public.academy_completion_history
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  schedule public.academy_schedules%rowtype;
+  completion public.academy_completion_history%rowtype;
+begin
+  perform 1
+  from public.family_members
+  where id = p_member_id
+    and family_id = p_family_id
+    and is_active = true
+  for update;
+  if not found then raise exception 'member unavailable'; end if;
+
+  select * into completion
+  from public.academy_completion_history
+  where member_id = p_member_id
+    and academy_schedule_id = p_schedule_id
+    and completed_date = p_completed_date;
+  if found then return completion; end if;
+
+  select * into schedule
+  from public.academy_schedules
+  where id = p_schedule_id
+  for update;
+  if not found then raise exception 'academy schedule unavailable'; end if;
+
+  insert into public.academy_completion_history (
+    family_id, member_id, academy_schedule_id, completed_date, star_count
+  ) values (
+    p_family_id, p_member_id, schedule.id, p_completed_date, schedule.star_count
+  ) returning * into completion;
+
+  insert into public.sticker_transactions (
+    family_id, member_id, amount, transaction_type,
+    source_type, source_id, description, metadata
+  ) values (
+    p_family_id, p_member_id, completion.star_count, 'earn',
+    'academy_complete', completion.id::text,
+    schedule.academy_name || ' 다녀오기 완료',
+    jsonb_build_object(
+      'academy_schedule_id', schedule.id,
+      'academy_name', schedule.academy_name,
+      'completed_date', completion.completed_date
+    )
+  )
+  on conflict (member_id, source_type, source_id) do nothing;
+
+  return completion;
+end;
+$$;
+
+-- Deleting a completion (including schedule cascade deletion) removes its earn row.
+create or replace function public.delete_academy_sticker_transaction()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from public.sticker_transactions
+  where member_id = old.member_id
+    and source_type = 'academy_complete'
+    and source_id = old.id::text;
+  return old;
+end;
+$$;
+
+drop trigger if exists delete_academy_sticker_transaction
+  on public.academy_completion_history;
+create trigger delete_academy_sticker_transaction
+after delete on public.academy_completion_history
+for each row execute function public.delete_academy_sticker_transaction();
+
+-- Backfill existing academy completions without duplicate awards.
+insert into public.sticker_transactions (
+  family_id, member_id, amount, transaction_type,
+  source_type, source_id, description, metadata, created_at
+)
+select
+  ach.family_id,
+  ach.member_id,
+  ach.star_count,
+  'earn',
+  'academy_complete',
+  ach.id::text,
+  schedules.academy_name || ' 다녀오기 완료',
+  jsonb_build_object(
+    'academy_schedule_id', schedules.id,
+    'academy_name', schedules.academy_name,
+    'completed_date', ach.completed_date
+  ),
+  ach.created_at
+from public.academy_completion_history ach
+join public.academy_schedules schedules on schedules.id = ach.academy_schedule_id
 on conflict (member_id, source_type, source_id) do nothing;
 
 -- Idempotently creates one pending request per clientRequestId and member.
@@ -336,6 +470,8 @@ alter table public.reward_exchange_requests enable row level security;
 alter table public.sticker_transactions enable row level security;
 alter table public.reward_exchange_history enable row level security;
 alter table public.reward_wishlist enable row level security;
+alter table public.academy_schedules enable row level security;
+alter table public.academy_completion_history enable row level security;
 
 drop policy if exists reward_exchange_requests_family_select
   on public.reward_exchange_requests;
@@ -402,25 +538,54 @@ with check (
   )
 );
 
+-- Schedule CRUD remains compatible with the existing Supabase browser repository.
+drop policy if exists academy_schedules_existing_app_access
+  on public.academy_schedules;
+create policy academy_schedules_existing_app_access
+on public.academy_schedules for all to anon, authenticated
+using (true)
+with check (true);
+
+drop policy if exists academy_completion_family_select
+  on public.academy_completion_history;
+create policy academy_completion_family_select
+on public.academy_completion_history for select to authenticated
+using (
+  exists (
+    select 1 from public.family_members viewer
+    where viewer.id = auth.uid()
+      and viewer.family_id = academy_completion_history.family_id
+      and viewer.is_active = true
+      and (viewer.role = 'parent' or viewer.id = academy_completion_history.member_id)
+  )
+);
+
 grant select on public.reward_exchange_requests to authenticated;
 grant select on public.sticker_transactions to authenticated;
 grant select on public.reward_exchange_history to authenticated;
 grant select, insert, delete on public.reward_wishlist to authenticated;
+grant select, insert, update, delete on public.academy_schedules to anon, authenticated;
+grant select on public.academy_completion_history to authenticated;
 
 revoke insert, update, delete on public.reward_exchange_requests from anon, authenticated;
 revoke insert, update, delete on public.sticker_transactions from anon, authenticated;
 revoke insert, update, delete on public.reward_exchange_history from anon, authenticated;
+revoke insert, update, delete on public.academy_completion_history from anon, authenticated;
 
 revoke all on function public.default_reward_member() from public, anon, authenticated;
 revoke all on function public.create_reward_exchange_request(uuid, uuid, uuid, text)
   from public, anon, authenticated;
 revoke all on function public.approve_reward_exchange(uuid, uuid, uuid)
   from public, anon, authenticated;
+revoke all on function public.complete_academy_schedule(uuid, uuid, uuid, date)
+  from public, anon, authenticated;
 
 grant execute on function public.default_reward_member() to service_role;
 grant execute on function public.create_reward_exchange_request(uuid, uuid, uuid, text)
   to service_role;
 grant execute on function public.approve_reward_exchange(uuid, uuid, uuid)
+  to service_role;
+grant execute on function public.complete_academy_schedule(uuid, uuid, uuid, date)
   to service_role;
 
 commit;
