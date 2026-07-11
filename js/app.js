@@ -55,19 +55,20 @@ function normalizeRewardMilestones(milestones, legacyReward) {
 function readLocalData() {
   try {
     const raw = localStorage.getItem(LOCAL_DATA_KEY);
-    if (!raw) return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], academySchedules: [], academyCompletions: [] };
+    if (!raw) return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
     const parsed = JSON.parse(raw);
     return {
       reward: parsed.reward || { ...DEFAULT_REWARD },
       rewardMilestones: normalizeRewardMilestones(parsed.rewardMilestones || parsed.rewards, parsed.reward),
       stickerCount: Number(parsed.stickerCount || 0),
       plans: Array.isArray(parsed.plans) ? parsed.plans : [],
+      bookPlans: Array.isArray(parsed.bookPlans) ? parsed.bookPlans : [],
       academySchedules: Array.isArray(parsed.academySchedules) ? parsed.academySchedules : [],
       academyCompletions: Array.isArray(parsed.academyCompletions) ? parsed.academyCompletions : [],
     };
   } catch (error) {
     console.warn("[local fallback] read failed", error);
-    return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], academySchedules: [], academyCompletions: [] };
+    return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
   }
 }
 
@@ -80,6 +81,7 @@ function writeLocalData(data) {
         rewardMilestones: normalizeRewardMilestones(data.rewardMilestones, data.reward),
         stickerCount: Number(data.stickerCount || 0),
         plans: Array.isArray(data.plans) ? data.plans : [],
+        bookPlans: Array.isArray(data.bookPlans) ? data.bookPlans : [],
         academySchedules: Array.isArray(data.academySchedules) ? data.academySchedules : [],
         academyCompletions: Array.isArray(data.academyCompletions) ? data.academyCompletions : [],
         updatedAt: new Date().toISOString(),
@@ -197,6 +199,31 @@ function createSupabaseRepository(config) {
       content: row.content,
       target: row.goal,
       status: row.status,
+      bookPlanId: row.book_plan_id || null,
+      sequenceNo: Number(row.sequence_no || 0),
+      startPage: row.start_page == null ? null : Number(row.start_page),
+      endPage: row.end_page == null ? null : Number(row.end_page),
+      taskType: row.task_type || (row.book_plan_id ? "page" : "daily"),
+      note: row.note || "",
+    };
+  }
+
+  function bookPlanFromRow(row) {
+    return {
+      id: row.id,
+      subject: row.subject,
+      book: row.workbook,
+      unit: row.chapter,
+      lessonNo: row.lesson,
+      content: row.content || "",
+      startDate: row.start_date,
+      weekdays: row.study_weekdays || [],
+      startPage: Number(row.start_page),
+      endPage: Number(row.end_page),
+      pagesPerDay: Number(row.pages_per_day),
+      target: row.goal || "",
+      memo: row.memo || "",
+      expectedEndDate: row.expected_end_date,
     };
   }
 
@@ -290,6 +317,7 @@ function createSupabaseRepository(config) {
 
     const [
       { data: plans },
+      { data: bookPlans },
       { data: reward },
       { data: rewardMilestones },
       { data: stickers },
@@ -300,6 +328,11 @@ function createSupabaseRepository(config) {
         "학습계획 불러오기 실패",
         client.from("study_plans").select("*").order("study_date", { ascending: true }),
         localData.plans
+      ),
+      requestOrFallback(
+        "교재 계획 불러오기 실패",
+        client.from("book_plans").select("*").order("updated_at", { ascending: false }),
+        localData.bookPlans || []
       ),
       requestOrFallback(
         "보상 설정 불러오기 실패",
@@ -353,6 +386,7 @@ function createSupabaseRepository(config) {
         ? loadedStickerCount
         : Number(localData.stickerCount || 0),
       plans: safePlans.map(normalizeLoadedPlan),
+      bookPlans: (Array.isArray(bookPlans) ? bookPlans : []).map(bookPlanFromRow),
       academySchedules: safeAcademySchedules.map(normalizeLoadedAcademySchedule),
       academyCompletions: safeAcademyCompletions.map(normalizeLoadedAcademyCompletion),
     };
@@ -407,6 +441,55 @@ function createSupabaseRepository(config) {
       client.from("sticker_history").delete().eq("study_plan_id", planId)
     );
     await request("학습계획 삭제 실패", client.from("study_plans").delete().eq("id", planId));
+  }
+
+  async function createBookPlan(input) {
+    assertConfigured();
+    const { data } = await request("교재 계획 생성 실패", client.rpc("create_book_plan", {
+      p_subject: input.subject,
+      p_workbook: input.book,
+      p_chapter: input.unit,
+      p_lesson: input.lessonNo,
+      p_content: input.content || "",
+      p_start_date: input.startDate,
+      p_study_weekdays: input.weekdays,
+      p_start_page: input.startPage,
+      p_end_page: input.endPage,
+      p_pages_per_day: input.pagesPerDay,
+      p_goal: input.target || "",
+      p_memo: input.memo || "",
+    }));
+    return bookPlanFromRow(Array.isArray(data) ? data[0] : data);
+  }
+
+  async function addBookPlanReview(bookPlanId, afterSequence, content) {
+    assertConfigured();
+    await request("복습 일정 추가 실패", client.rpc("add_book_plan_review", {
+      p_book_plan_id: bookPlanId,
+      p_after_sequence: Number(afterSequence || 0),
+      p_content: content || "복습",
+    }));
+  }
+
+  async function updateBookPlanPages(bookPlanId, pagesPerDay) {
+    assertConfigured();
+    await request("하루 학습량 변경 실패", client.rpc("update_book_plan_pages", {
+      p_book_plan_id: bookPlanId,
+      p_pages_per_day: Number(pagesPerDay),
+    }));
+  }
+
+  async function deleteBookPlanTask(id) {
+    assertConfigured();
+    await request("교재 일정 삭제 실패", client.rpc("delete_book_plan_task", { p_study_plan_id: String(id) }));
+  }
+
+  async function moveBookPlanForward(bookPlanId) {
+    assertConfigured();
+    await request("지연 일정 이동 실패", client.rpc("reflow_book_plan", {
+      p_book_plan_id: bookPlanId,
+      p_from_date: toDateInput(new Date()),
+    }));
   }
 
   async function completePlan(id) {
@@ -600,6 +683,11 @@ function createSupabaseRepository(config) {
     save,
     upsertPlan,
     deletePlan,
+    createBookPlan,
+    addBookPlanReview,
+    updateBookPlanPages,
+    deleteBookPlanTask,
+    moveBookPlanForward,
     completePlan,
     recordCompletionNotification,
     saveReward,
@@ -618,6 +706,7 @@ let state = {
   rewardMilestones: [...DEFAULT_REWARD_MILESTONES],
   stickerCount: 0,
   plans: [],
+  bookPlans: [],
   academySchedules: [],
   academyCompletions: [],
 };
@@ -1182,6 +1271,29 @@ function createRewardMilestoneCard(milestone, count, nextReward) {
   `;
 }
 
+function renderBookProjectCard(project) {
+  const tasks = state.plans.filter((plan) => plan.bookPlanId === project.id).sort((a, b) => a.sequenceNo - b.sequenceNo || a.studyDate.localeCompare(b.studyDate));
+  const completed = tasks.filter((plan) => isDoneStatus(plan.status)).length;
+  const remaining = tasks.length - completed;
+  const progress = tasks.length ? Math.round(completed / tasks.length * 100) : 0;
+  return `<details class="book-project-card">
+    <summary>
+      <div><span>${escapeHtml(project.subject)}</span><h3>${escapeHtml(project.book)}</h3><p>${escapeHtml(project.unit)} · ${completed} / ${tasks.length} 완료 · 남은 일정 ${remaining}회</p></div>
+      <div class="book-project-progress"><strong>${progress}%</strong><i><b style="width:${progress}%"></b></i><small>예상 완료일 ${project.expectedEndDate ? escapeHtml(formatDate(project.expectedEndDate)) : "-"}</small></div>
+    </summary>
+    <div class="book-project-toolbar">
+      <button type="button" data-action="change-book-pages" data-book-plan-id="${project.id}" data-pages="${project.pagesPerDay}">하루 학습량 변경</button>
+      <button type="button" data-action="add-book-review" data-book-plan-id="${project.id}" data-sequence="${tasks.at(-1)?.sequenceNo || 0}">복습 일정 추가</button>
+    </div>
+    <div class="book-project-tasks">${tasks.map((plan) => `<article class="book-project-task ${isDoneStatus(plan.status) ? "done" : isLateStatus(plan.status) ? "late" : ""}">
+      <span>${escapeHtml(plan.dayNo || `${plan.sequenceNo}일차`)}</span><time>${escapeHtml(formatDate(plan.studyDate))}</time>
+      <strong>${plan.taskType === "review" ? escapeHtml(plan.content || "복습") : `${plan.startPage}~${plan.endPage}쪽`}</strong>
+      <em>${isDoneStatus(plan.status) ? "완료" : isLateStatus(plan.status) ? "지연" : "예정"}</em>
+      ${isDoneStatus(plan.status) ? "" : `<div>${isLateStatus(plan.status) ? `<button type="button" data-action="move-book-task" data-book-plan-id="${project.id}">다음 학습일로 이동</button><button type="button" data-action="keep-book-task">그대로 유지</button>` : ""}<button type="button" data-action="add-book-review" data-book-plan-id="${project.id}" data-sequence="${plan.sequenceNo}">뒤에 복습</button><button type="button" class="delete-btn" data-action="delete-book-task" data-id="${plan.id}">삭제</button></div>`}
+    </article>`).join("")}</div>
+  </details>`;
+}
+
 function renderParent() {
   const total = state.plans.length;
   const done = state.plans.filter((plan) => isDoneStatus(plan.status)).length;
@@ -1193,7 +1305,8 @@ function renderParent() {
   renderAcademyScheduleAdmin();
   renderParentNotificationSettings();
 
-  $("#planList").innerHTML = [...state.plans]
+  const projects = (state.bookPlans || []).map(renderBookProjectCard).join("");
+  const standalone = [...state.plans].filter((plan) => !plan.bookPlanId)
     .sort((a, b) => b.studyDate.localeCompare(a.studyDate))
     .map((plan) => `
       <article class="plan-item">
@@ -1208,6 +1321,7 @@ function renderParent() {
         </div>
       </article>
     `).join("");
+  $("#planList").innerHTML = `${projects}${standalone ? `<section class="standalone-plan-list"><h3>하루 계획</h3>${standalone}</section>` : ""}${!projects && !standalone ? '<div class="empty">등록된 학습 계획이 없습니다.</div>' : ""}`;
 }
 
 function renderRewardMilestoneAdmin() {
@@ -1504,6 +1618,7 @@ function calculateWeeklyRate() {
 
 async function handleEditPlan(id) {
   if (!isParentMode) return;
+  selectPlanRegistrationMode("daily");
   const plan = state.plans.find((item) => Number(item.id) === Number(id));
   if (!plan) {
     handleRepositoryError(new Error("수정할 학습계획을 찾지 못했습니다."));
@@ -1528,6 +1643,7 @@ async function handleEditPlan(id) {
 
 async function handleCopyPlan(id) {
   if (!isParentMode) return;
+  selectPlanRegistrationMode("daily");
   console.log("[copy-click]", id);
   console.log("[copy-plans]", state.plans.map((plan) => plan.id));
   const plan = state.plans.find((item) => Number(item.id) === Number(id));
@@ -1559,6 +1675,35 @@ async function handleDeletePlan(id) {
   await saveAndRender("학습계획이 삭제되었습니다.", () => repository.deletePlan(id));
 }
 
+async function handleAddBookReview(bookPlanId, sequence) {
+  if (!isParentMode) return;
+  const content = window.prompt("추가할 복습 내용을 입력해 주세요.", "복습");
+  if (content === null) return;
+  await saveAndRender("복습 일정을 추가하고 이후 날짜를 재배치했습니다.", () => repository.addBookPlanReview(bookPlanId, sequence, content));
+}
+
+async function handleChangeBookPages(bookPlanId, currentPages) {
+  if (!isParentMode) return;
+  const value = window.prompt("앞으로 하루에 학습할 페이지 수를 입력해 주세요.", String(currentPages || 4));
+  if (value === null) return;
+  const pages = Number(value);
+  if (!Number.isInteger(pages) || pages < 1) {
+    showToast("하루 학습량은 1 이상의 숫자로 입력해 주세요.");
+    return;
+  }
+  await saveAndRender("미완료 일정을 새로운 학습량으로 다시 계산했습니다.", () => repository.updateBookPlanPages(bookPlanId, pages));
+}
+
+async function handleDeleteBookTask(id) {
+  if (!isParentMode || !window.confirm("이 일정을 삭제하고 이후 페이지와 날짜를 다시 계산할까요?")) return;
+  await saveAndRender("일정을 삭제하고 이후 계획을 다시 계산했습니다.", () => repository.deleteBookPlanTask(id));
+}
+
+async function handleMoveBookTask(bookPlanId) {
+  if (!isParentMode || !window.confirm("이 일정부터 다음 가능한 학습일로 이동할까요?")) return;
+  await saveAndRender("지연 일정과 이후 일정을 이동했습니다.", () => repository.moveBookPlanForward(bookPlanId));
+}
+
 function resetForm() {
   $("#planForm").reset();
   $("#planId").value = "";
@@ -1566,6 +1711,88 @@ function resetForm() {
   $("#status").value = "planned";
   state.formMode = "create";
   updatePlanSubmitButton();
+}
+
+function selectedBookPlanWeekdays() {
+  return $$('input[name="bookPlanWeekday"]:checked').map((input) => Number(input.value));
+}
+
+function readBookPlanForm() {
+  return {
+    subject: $("#bookPlanSubject").value.trim(),
+    book: $("#bookPlanName").value.trim(),
+    unit: $("#bookPlanUnit").value.trim(),
+    lessonNo: $("#bookPlanLesson").value.trim(),
+    content: $("#bookPlanContent").value.trim(),
+    startDate: $("#bookPlanStartDate").value,
+    weekdays: selectedBookPlanWeekdays(),
+    startPage: Number($("#bookPlanStartPage").value),
+    endPage: Number($("#bookPlanEndPage").value),
+    pagesPerDay: Number($("#bookPlanPagesPerDay").value),
+    target: $("#bookPlanGoal").value.trim(),
+    memo: $("#bookPlanMemo").value.trim(),
+  };
+}
+
+function calculateBookPlanSchedule(input) {
+  if (!input.startDate || !input.weekdays.length || input.startPage < 1 || input.endPage < input.startPage || input.pagesPerDay < 1) return [];
+  const result = [];
+  let page = input.startPage;
+  const date = new Date(`${input.startDate}T12:00:00`);
+  while (page <= input.endPage && result.length < 1000) {
+    if (input.weekdays.includes(date.getDay())) {
+      const endPage = Math.min(page + input.pagesPerDay - 1, input.endPage);
+      result.push({ sequenceNo: result.length + 1, studyDate: toDateInput(date), startPage: page, endPage });
+      page = endPage + 1;
+    }
+    date.setDate(date.getDate() + 1);
+  }
+  return result;
+}
+
+function renderBookPlanPreview() {
+  const input = readBookPlanForm();
+  const schedules = calculateBookPlanSchedule(input);
+  const calculation = $("#bookPlanCalculation");
+  const preview = $("#bookPlanPreview");
+  const button = $("#createBookPlanButton");
+  if (!schedules.length) {
+    calculation.innerHTML = "<span>페이지 범위와 학습 요일을 입력하면 계획을 자동으로 계산합니다.</span>";
+    preview.innerHTML = "";
+    button.disabled = true;
+    return;
+  }
+  const totalPages = input.endPage - input.startPage + 1;
+  const expectedEnd = schedules.at(-1).studyDate;
+  calculation.innerHTML = `<strong>총 ${totalPages}페이지</strong><strong>총 ${schedules.length}회</strong><span>예상 완료일 ${escapeHtml(formatDate(expectedEnd))}</span>`;
+  preview.innerHTML = `<h4>생성 미리보기</h4><div>${schedules.map((schedule) => `<article><strong>${schedule.sequenceNo}일차</strong><span>${escapeHtml(formatDate(schedule.studyDate))}</span><b>${schedule.startPage}~${schedule.endPage}쪽</b></article>`).join("")}</div>`;
+  button.disabled = false;
+}
+
+function resetBookPlanForm() {
+  window.setTimeout(() => {
+    $("#bookPlanStartDate").value = toDateInput(new Date());
+    $("#bookPlanPagesPerDay").value = "4";
+    renderBookPlanPreview();
+  });
+}
+
+function selectPlanRegistrationMode(mode) {
+  $$('[data-plan-mode]').forEach((button) => button.setAttribute("aria-selected", String(button.dataset.planMode === mode)));
+  $$('[data-plan-form]').forEach((panel) => { panel.hidden = panel.dataset.planForm !== mode; });
+}
+
+async function handleBookPlanSubmit(event) {
+  event.preventDefault();
+  if (!isParentMode) return;
+  const input = readBookPlanForm();
+  if (!input.weekdays.length) {
+    showToast("학습 요일을 하나 이상 선택해 주세요.");
+    return;
+  }
+  await saveAndRender("교재 전체 계획을 생성했습니다.", () => repository.createBookPlan(input));
+  event.currentTarget.reset();
+  resetBookPlanForm();
 }
 
 function updatePlanSubmitButton() {
@@ -1917,6 +2144,41 @@ function bindEvents() {
       return;
     }
 
+    const addReviewButton = event.target.closest('[data-action="add-book-review"]');
+    if (addReviewButton) {
+      event.preventDefault();
+      await handleAddBookReview(addReviewButton.dataset.bookPlanId, addReviewButton.dataset.sequence);
+      return;
+    }
+
+    const changePagesButton = event.target.closest('[data-action="change-book-pages"]');
+    if (changePagesButton) {
+      event.preventDefault();
+      await handleChangeBookPages(changePagesButton.dataset.bookPlanId, changePagesButton.dataset.pages);
+      return;
+    }
+
+    const deleteBookTaskButton = event.target.closest('[data-action="delete-book-task"]');
+    if (deleteBookTaskButton) {
+      event.preventDefault();
+      await handleDeleteBookTask(deleteBookTaskButton.dataset.id);
+      return;
+    }
+
+    const moveBookTaskButton = event.target.closest('[data-action="move-book-task"]');
+    if (moveBookTaskButton) {
+      event.preventDefault();
+      await handleMoveBookTask(moveBookTaskButton.dataset.bookPlanId);
+      return;
+    }
+
+    const keepBookTaskButton = event.target.closest('[data-action="keep-book-task"]');
+    if (keepBookTaskButton) {
+      event.preventDefault();
+      showToast("현재 날짜와 지연 상태를 그대로 유지합니다.");
+      return;
+    }
+
     const copyButton = event.target.closest('[data-action="copy"]');
     if (copyButton) {
       event.stopPropagation();
@@ -1970,6 +2232,11 @@ function bindEvents() {
   $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
   $("#closePasswordButton").addEventListener("click", closePasswordDialog);
   $("#planForm").addEventListener("submit", handlePlanSubmit);
+  $("#bookPlanForm")?.addEventListener("submit", handleBookPlanSubmit);
+  $("#bookPlanForm")?.addEventListener("input", renderBookPlanPreview);
+  $("#bookPlanForm")?.addEventListener("change", renderBookPlanPreview);
+  $("#resetBookPlanButton")?.addEventListener("click", resetBookPlanForm);
+  $$('[data-plan-mode]').forEach((button) => button.addEventListener("click", () => selectPlanRegistrationMode(button.dataset.planMode)));
   $("#academyForm")?.addEventListener("submit", handleAcademySubmit);
   $("#rewardForm")?.addEventListener("submit", handleRewardSubmit);
   $("#enableParentNotificationButton")?.addEventListener("click", handleEnableParentNotifications);
@@ -2007,6 +2274,7 @@ async function init() {
   rewardStoreController = await initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") });
   updateInstallUI();
   resetForm();
+  resetBookPlanForm();
   resetAcademyForm();
   $("#todayList").innerHTML = `<div class="empty"><h3>학습계획을 불러오는 중이에요</h3><p>Supabase에서 데이터를 가져오고 있어요.</p></div>`;
   try {

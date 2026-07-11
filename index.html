@@ -154,7 +154,12 @@
             </article>
           </div>
 
-          <form id="planForm" class="planner-form">
+          <div class="plan-registration-switch" role="tablist" aria-label="학습 계획 등록 방식">
+            <button type="button" role="tab" aria-selected="false" data-plan-mode="daily">하루 계획 등록</button>
+            <button type="button" role="tab" aria-selected="true" data-plan-mode="book">교재 계획 자동 생성</button>
+          </div>
+
+          <form id="planForm" class="planner-form plan-registration-panel" data-plan-form="daily" hidden>
             <input type="hidden" id="planId" />
             <label>과목<input id="subject" required placeholder="수학" /></label>
             <label>문제집명<input id="book" required placeholder="최상위 수학" /></label>
@@ -174,6 +179,42 @@
             <div class="form-actions">
               <button type="submit" class="primary" id="planSubmitButton">저장</button>
               <button type="button" id="resetFormButton">새 계획</button>
+            </div>
+          </form>
+
+          <form id="bookPlanForm" class="book-plan-form plan-registration-panel" data-plan-form="book">
+            <div class="book-plan-fields">
+              <label>과목<input id="bookPlanSubject" required placeholder="수학" /></label>
+              <label>문제집명<input id="bookPlanName" required placeholder="최상위 수학" /></label>
+              <label>단원명<input id="bookPlanUnit" required placeholder="분수의 덧셈" /></label>
+              <label>차시<input id="bookPlanLesson" required placeholder="1단원" /></label>
+              <label class="book-plan-wide">학습 내용 <small>선택</small><input id="bookPlanContent" placeholder="개념 익히기와 확인 문제" /></label>
+              <label>학습 시작일<input id="bookPlanStartDate" type="date" required /></label>
+              <fieldset class="book-plan-weekdays book-plan-wide">
+                <legend>학습 요일</legend>
+                <div>
+                  <label><input type="checkbox" name="bookPlanWeekday" value="1" checked /><span>월</span></label>
+                  <label><input type="checkbox" name="bookPlanWeekday" value="2" checked /><span>화</span></label>
+                  <label><input type="checkbox" name="bookPlanWeekday" value="3" checked /><span>수</span></label>
+                  <label><input type="checkbox" name="bookPlanWeekday" value="4" checked /><span>목</span></label>
+                  <label><input type="checkbox" name="bookPlanWeekday" value="5" checked /><span>금</span></label>
+                  <label><input type="checkbox" name="bookPlanWeekday" value="6" /><span>토</span></label>
+                  <label><input type="checkbox" name="bookPlanWeekday" value="0" /><span>일</span></label>
+                </div>
+              </fieldset>
+              <label>시작 페이지<input id="bookPlanStartPage" type="number" min="1" required placeholder="42" /></label>
+              <label>마지막 페이지<input id="bookPlanEndPage" type="number" min="1" required placeholder="103" /></label>
+              <label>하루 학습 페이지<input id="bookPlanPagesPerDay" type="number" min="1" required value="4" /></label>
+              <label>목표 <small>선택</small><input id="bookPlanGoal" placeholder="매일 꾸준히 학습하기" /></label>
+              <label class="book-plan-wide">메모 <small>선택</small><textarea id="bookPlanMemo" rows="2" placeholder="교재 계획 메모"></textarea></label>
+            </div>
+            <section id="bookPlanCalculation" class="book-plan-calculation" aria-live="polite">
+              <span>페이지 범위를 입력하면 계획을 자동으로 계산합니다.</span>
+            </section>
+            <div id="bookPlanPreview" class="book-plan-preview" aria-live="polite"></div>
+            <div class="form-actions book-plan-actions">
+              <button type="reset" id="resetBookPlanButton">새 교재 계획</button>
+              <button type="submit" class="primary" id="createBookPlanButton">전체 계획 생성</button>
             </div>
           </form>
           <div id="planList" class="plan-list"></div>
