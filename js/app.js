@@ -228,11 +228,12 @@ function createSupabaseRepository(config) {
   }
 
   function academyCompletionFromRow(row) {
+    const value = Number(row?.star_count ?? row?.stars ?? 1);
     return {
       id: row.id,
       scheduleId: row.academy_schedule_id,
       completedDate: row.completed_date,
-      stars: Number(row.star_count || 1),
+      stars: Number.isFinite(value) && value > 0 ? value : 1,
     };
   }
 
@@ -739,10 +740,13 @@ function completeAcademyLocally(schedule, date = toDateInput(new Date()), savedC
     completedDate: date,
     stars: Number(schedule.stars || 1),
   };
+  const rawEarnedStars = Number(completion?.stars ?? completion?.star_count ?? schedule?.stars ?? 1);
+  const earnedStars = Number.isFinite(rawEarnedStars) && rawEarnedStars > 0 ? rawEarnedStars : 1;
+  const currentStickerCount = Number(state.stickerCount);
   state = {
     ...state,
-    academyCompletions: [...(state.academyCompletions || []), completion],
-    stickerCount: Number(state.stickerCount || 0) + completion.stars,
+    academyCompletions: [...(state.academyCompletions || []), { ...completion, stars: earnedStars }],
+    stickerCount: (Number.isFinite(currentStickerCount) ? currentStickerCount : 0) + earnedStars,
   };
   writeLocalData(state);
   return completion;

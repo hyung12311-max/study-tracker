@@ -11,7 +11,7 @@ module.exports=async function handler(req,res){
   const body=await u.readJson(req);
   if(!/^[0-9a-f-]{36}$/i.test(body.scheduleId||"")||!/^\d{4}-\d{2}-\d{2}$/.test(body.completedDate||""))throw u.err("Invalid academy completion.");
   const rows=await u.supabaseFetch("rpc/complete_academy_schedule",{method:"POST",body:JSON.stringify({p_family_id:c.family,p_member_id:c.sub,p_schedule_id:body.scheduleId,p_completed_date:body.completedDate})});
-  const completion=rows?.[0]||rows;
+  const row=rows?.[0]||rows,starCount=Number(row?.star_count),completion=row?{id:row.id,academy_schedule_id:row.academy_schedule_id,completed_date:row.completed_date,star_count:Number.isFinite(starCount)&&starCount>0?starCount:1,created_at:row.created_at}:null;
   if(!completion?.id)throw u.err("Unable to complete academy schedule.",409);
   return u.json(res,200,{completion});
  }catch(e){

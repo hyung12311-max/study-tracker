@@ -30,6 +30,15 @@ create table if not exists public.academy_completion_history (
   unique (member_id, academy_schedule_id, completed_date)
 );
 
+-- Repair legacy rows before enforcing the current star-count contract.
+update public.academy_completion_history
+set star_count = 1
+where star_count is null or star_count <= 0;
+
+alter table public.academy_completion_history
+  alter column star_count set default 1,
+  alter column star_count set not null;
+
 -- 1. Exchange requests: API POST creates pending rows; parent decisions update them.
 create table if not exists public.reward_exchange_requests (
   id uuid primary key default gen_random_uuid(),
@@ -237,24 +246,32 @@ begin
   for update;
   if not found then raise exception 'member unavailable'; end if;
 
-  select * into completion
-  from public.academy_completion_history
-  where member_id = p_member_id
-    and academy_schedule_id = p_schedule_id
-    and completed_date = p_completed_date;
-  if found then return completion; end if;
-
   select * into schedule
   from public.academy_schedules
   where id = p_schedule_id
   for update;
   if not found then raise exception 'academy schedule unavailable'; end if;
 
-  insert into public.academy_completion_history (
-    family_id, member_id, academy_schedule_id, completed_date, star_count
-  ) values (
-    p_family_id, p_member_id, schedule.id, p_completed_date, schedule.star_count
-  ) returning * into completion;
+  select * into completion
+  from public.academy_completion_history
+  where member_id = p_member_id
+    and academy_schedule_id = p_schedule_id
+    and completed_date = p_completed_date
+  for update;
+
+  if found then
+    update public.academy_completion_history
+    set star_count = greatest(coalesce(star_count, schedule.star_count, 1), 1)
+    where id = completion.id
+    returning * into completion;
+  else
+    insert into public.academy_completion_history (
+      family_id, member_id, academy_schedule_id, completed_date, star_count
+    ) values (
+      p_family_id, p_member_id, schedule.id, p_completed_date,
+      greatest(coalesce(schedule.star_count, 1), 1)
+    ) returning * into completion;
+  end if;
 
   insert into public.sticker_transactions (
     family_id, member_id, amount, transaction_type,
@@ -269,7 +286,11 @@ begin
       'completed_date', completion.completed_date
     )
   )
-  on conflict (member_id, source_type, source_id) do nothing;
+  on conflict (member_id, source_type, source_id)
+  do update set
+    amount = excluded.amount,
+    description = excluded.description,
+    metadata = excluded.metadata;
 
   return completion;
 end;
@@ -318,7 +339,11 @@ select
   ach.created_at
 from public.academy_completion_history ach
 join public.academy_schedules schedules on schedules.id = ach.academy_schedule_id
-on conflict (member_id, source_type, source_id) do nothing;
+on conflict (member_id, source_type, source_id)
+do update set
+  amount = excluded.amount,
+  description = excluded.description,
+  metadata = excluded.metadata;
 
 -- Idempotently creates one pending request per clientRequestId and member.
 create or replace function public.create_reward_exchange_request(
