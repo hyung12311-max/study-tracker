@@ -763,10 +763,11 @@ select {
 
 .family-tab-button { position: relative; }
 .unread-badge { position: absolute; top: 3px; right: 5px; min-width: 20px; padding: 2px 5px; border-radius: 999px; background: #e34242; color: white; font-size: .7rem; line-height: 16px; }
+.family-chat-mode { overflow: hidden; }
 .family-chat-mode .app-shell { width: min(1520px, 100%); }
 .family-chat-mode .topbar { display: none; }
 .family-chat-mode .tabs { padding: 8px 0 12px; }
-.family-chat-view.active { display: flex; flex-direction: column; width: min(1380px, 100%); min-height: max(640px, calc(100dvh - 112px)); margin: 0 auto; overflow: hidden; border-radius: 22px; background: rgba(255,255,255,.72); box-shadow: var(--shadow); }
+.family-chat-view.active { display: flex; flex-direction: column; width: min(1380px, 100%); height: calc(100vh - 112px); height: calc(100dvh - 112px); min-height: 0; margin: 0 auto; overflow: hidden; border-radius: 22px; background: rgba(255,255,255,.72); box-shadow: var(--shadow); }
 .family-chat-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 78px; padding: 16px 18px; border-bottom: 1px solid rgba(43,42,53,.08); background: rgba(255,255,255,.88); }
 .family-chat-head h2,.family-chat-head p { margin: 0; }
 .family-chat-head .eyebrow { margin-bottom: 2px; font-size: .72rem; }
@@ -777,7 +778,7 @@ select {
 .family-chat-head-actions button:hover { background: #fff0bd; color: var(--ink); }
 .family-chat-head-actions button:disabled { cursor: default; opacity: .45; }
 .family-chat-notice { margin: 10px 16px 0; padding: 9px 12px; border-radius: 12px; background: #fff2cf; color: #765400; font-weight: 800; }
-.family-message-list { flex: 1 1 auto; min-height: 500px; overflow-y: auto; overscroll-behavior: contain; padding: 22px clamp(14px, 3vw, 34px); background: #edf7fb; background-image: linear-gradient(180deg,#eaf6fb 0%,#f7f3e8 100%); scroll-behavior: smooth; }
+.family-message-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 22px clamp(14px, 3vw, 34px) 112px; background: #edf7fb; background-image: linear-gradient(180deg,#eaf6fb 0%,#f7f3e8 100%); scroll-behavior: smooth; }
 .family-message-row { display: flex; align-items: flex-end; gap: 8px; margin: 9px 0; }
 .family-message-row + .family-message-row { margin-top: 4px; }
 .family-message-row.mine { justify-content: flex-end; }
@@ -790,7 +791,7 @@ select {
 .family-message-time { display: block; margin-top: 3px; color: #737986; font-size: .68rem; text-align: right; }
 .family-system-message { width: min(92%,620px); margin: 14px auto; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.65); color: #6f7784; text-align: center; font-size: .78rem; font-weight: 800; }
 .family-date-divider { width: fit-content; margin: 18px auto 12px; padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,.68); color: #69717e; text-align: center; font-size: .74rem; font-weight: 900; }
-.family-message-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid rgba(43,42,53,.08); background: rgba(255,255,255,.94); }
+.family-message-form { position: sticky; bottom: 0; z-index: 2; flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid rgba(43,42,53,.08); background: rgba(255,255,255,.94); }
 .family-message-form textarea { width: 100%; min-height: 48px; max-height: 116px; resize: none; overflow-y: auto; border: 1px solid #dfe3e8; border-radius: 20px; padding: 12px 15px; background: #f9fafb; line-height: 1.35; }
 .family-message-form textarea:focus { outline: 2px solid rgba(255,207,77,.65); border-color: #f2bd31; background: white; }
 .family-message-form button { width: 54px; min-width: 54px; min-height: 48px; align-self: end; border-radius: 16px; padding: 0; }
@@ -853,11 +854,11 @@ select {
 @media (max-width:760px){
  .family-chat-mode .app-shell { padding: 10px; }
  .family-chat-mode .tabs { padding: 4px 0 8px; }
- .family-chat-view.active { width: 100%; min-height: calc(100dvh - 86px); border-radius: 16px; }
+ .family-chat-view.active { width: 100%; height: calc(100vh - 86px); height: calc(100dvh - 86px); min-height: 0; border-radius: 16px; }
  .family-chat-head { align-items: flex-start; gap: 10px; min-height: 74px; padding: 13px; }
  .family-chat-head-actions { max-width: 132px; gap: 6px; }
  .family-chat-head-actions button { min-height: 34px; padding: 0 10px; font-size: .8rem; }
- .family-message-list { min-height: 0; padding: 18px 12px; }
+ .family-message-list { min-height: 0; padding: 18px 12px 94px; }
  .family-message-stack { max-width: 76%; }
  .family-message-avatar { flex-basis: 30px; width: 30px; height: 30px; font-size: 1.1rem; }
  .family-message-form { gap: 8px; padding: 10px 10px max(10px, env(safe-area-inset-bottom)); }
