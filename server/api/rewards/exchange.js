@@ -2,6 +2,7 @@ const u = require("./_utils");
 
 module.exports = async function handler(req, res) {
   if (!["POST", "PATCH"].includes(req.method)) return u.allow(res, ["POST", "PATCH"]);
+  let rpcPayload = null;
   try {
     const c = u.authenticate(req);
     const body = await u.readJson(req);
@@ -10,12 +11,30 @@ module.exports = async function handler(req, res) {
       if (!/^[0-9a-f-]{36}$/i.test(body.productId || "") || !/^[a-zA-Z0-9_-]{8,100}$/.test(body.clientRequestId || "")) {
         throw u.err("Invalid exchange request.");
       }
+      let memberId = c.sub;
+      if (c.role === "parent") {
+        if (!/^[0-9a-f-]{36}$/i.test(body.memberId || "")) throw u.err("Child member is required.");
+        const walletMember = await u.memberInFamily(body.memberId, c.family);
+        if (!walletMember || walletMember.role !== "child" || !walletMember.is_active) {
+          throw u.err("Active child member not found.", 404);
+        }
+        memberId = walletMember.id;
+      } else if (body.memberId && body.memberId !== c.sub) {
+        throw u.err("Another member exchange is not allowed.", 403);
+      }
+      rpcPayload = {
+        p_family_id: c.family,
+        p_member_id: memberId,
+        p_product_id: body.productId,
+        p_client_request_id: body.clientRequestId,
+      };
+      console.log("[reward exchange] create RPC", rpcPayload);
       const rows = await u.supabaseFetch("rpc/create_reward_exchange_request", {
         method: "POST",
-        body: JSON.stringify({ p_family_id: c.family, p_member_id: c.sub, p_product_id: body.productId, p_client_request_id: body.clientRequestId }),
+        body: JSON.stringify(rpcPayload),
       });
       const request = rows?.[0] || rows;
-      const member = await u.memberInFamily(c.sub, c.family);
+      const member = await u.memberInFamily(memberId, c.family);
       if (!request?.id) throw u.err("Unable to create exchange request.", 409);
       const who = member?.display_name || "아이";
       const icon = request.product_emoji || "🎁";
@@ -88,6 +107,16 @@ module.exports = async function handler(req, res) {
         : message.includes("unavailable")
           ? "현재 교환할 수 없는 상품입니다."
           : e.statusCode ? e.message : "Reward exchange failed.";
-    return u.json(res, e.statusCode || 400, { error: friendly });
+    const actualMessage = e.supabaseMessage || e.message || friendly;
+    const details = e.supabaseDetails || e.details || null;
+    const code = e.supabaseCode || e.code || null;
+    const hint = e.supabaseHint || e.hint || null;
+    console.error(e);
+    console.error(actualMessage);
+    console.error(details);
+    console.error(code);
+    console.error(hint);
+    console.error("[reward exchange] RPC payload", rpcPayload);
+    return u.json(res, e.statusCode || 400, { error: actualMessage, message: actualMessage, code, details, hint });
   }
 };
