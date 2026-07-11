@@ -139,18 +139,35 @@ for each row execute function public.set_reward_exchange_updated_at();
 -- The existing app awards study stickers to the default child account.
 create or replace function public.default_reward_member()
 returns table(family_id uuid, member_id uuid)
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 as $$
+declare
+  candidate_count integer;
+begin
+  select count(*) into candidate_count
+  from public.family_members fm
+  where fm.member_key = 'hagyeom'
+    and fm.is_active = true;
+
+  if candidate_count = 0 then
+    raise warning '[reward wallet] active member_key=hagyeom was not found';
+    return;
+  end if;
+
+  if candidate_count > 1 then
+    raise warning '[reward wallet] member_key=hagyeom is ambiguous across % active members', candidate_count;
+    return;
+  end if;
+
+  return query
   select fm.family_id, fm.id
   from public.family_members fm
-  join public.families f on f.id = fm.family_id
-  where f.family_key = 'default'
-    and fm.member_key = 'hagyeom'
-    and fm.is_active = true
-  limit 1
+  where fm.member_key = 'hagyeom'
+    and fm.is_active = true;
+end;
 $$;
 
 create or replace function public.sync_study_sticker_transaction()
@@ -165,6 +182,8 @@ declare
 begin
   select * into target from public.default_reward_member();
   if target.member_id is null then
+    raise warning '[reward wallet] study sticker sync skipped: no unambiguous target member (study_plan_id=%)',
+      case when tg_op = 'DELETE' then old.study_plan_id::text else new.study_plan_id::text end;
     if tg_op = 'DELETE' then return old; else return new; end if;
   end if;
 
@@ -203,7 +222,31 @@ create trigger sync_study_sticker_transaction
 after insert or update or delete on public.sticker_history
 for each row execute function public.sync_study_sticker_transaction();
 
+-- Keep only the latest sticker_history row for each study plan.
+with ranked as (
+  select
+    id,
+    row_number() over (
+      partition by study_plan_id
+      order by created_at desc, id desc
+    ) as row_number
+  from public.sticker_history
+)
+delete from public.sticker_history history
+using ranked
+where history.id = ranked.id
+  and ranked.row_number > 1;
+
+create unique index if not exists sticker_history_study_plan_unique_idx
+  on public.sticker_history (study_plan_id);
+
 -- Backfill existing study stickers into the wallet ledger without duplication.
+with latest_history as (
+  select distinct on (study_plan_id)
+    id, study_plan_id, sticker_count, created_at
+  from public.sticker_history
+  order by study_plan_id, created_at desc, id desc
+)
 insert into public.sticker_transactions (
   family_id, member_id, amount, transaction_type,
   source_type, source_id, description, created_at
@@ -217,10 +260,13 @@ select
   sh.study_plan_id::text,
   coalesce(sp.subject, '학습') || ' 완료',
   sh.created_at
-from public.sticker_history sh
+from latest_history sh
 join public.study_plans sp on sp.id = sh.study_plan_id
 cross join lateral public.default_reward_member() target
-on conflict (member_id, source_type, source_id) do nothing;
+on conflict (member_id, source_type, source_id)
+do update set
+  amount = excluded.amount,
+  description = excluded.description;
 
 -- Creates the completion row and its sticker transaction in one transaction.
 create or replace function public.complete_academy_schedule(
@@ -614,3 +660,33 @@ grant execute on function public.complete_academy_schedule(uuid, uuid, uuid, dat
   to service_role;
 
 commit;
+
+-- Verification queries (safe, read-only):
+select * from public.default_reward_member();
+
+select
+  source_type,
+  count(*) as transaction_count,
+  sum(amount) as sticker_total
+from public.sticker_transactions
+group by source_type
+order by source_type;
+
+select
+  study_plan_id,
+  count(*) as history_count
+from public.sticker_history
+group by study_plan_id
+having count(*) > 1
+order by study_plan_id;
+
+select
+  count(*) as completed_plan_count,
+  coalesce(sum(sticker_count), 0) as expected_sticker_total
+from public.sticker_history;
+
+select
+  count(*) as transaction_count,
+  coalesce(sum(amount), 0) as transaction_sticker_total
+from public.sticker_transactions
+where source_type = 'study_complete';

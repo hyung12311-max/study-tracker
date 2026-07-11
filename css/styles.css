@@ -967,6 +967,8 @@ select {
 .goal-progress { height: 12px; overflow: hidden; border-radius: 999px; background: #e8e8ed; }
 .goal-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--sun),#ffb225); }
 .wallet-summary,.store-balance { display: grid; justify-items: center; gap: 6px; margin-bottom: 16px; padding: 20px; border-radius: 22px; background: linear-gradient(135deg,#fff3bd,#fffdfa); box-shadow: var(--shadow); text-align: center; }
+.reward-wallet-member { width: min(280px,100%); margin-bottom: 6px; text-align: left; }
+.reward-wallet-member select { min-height: 42px; background: #fff; }
 .wallet-summary p,.store-balance span { margin: 0; color: var(--muted); font-weight: 900; }
 .wallet-summary strong,.store-balance b { font-size: 1.65rem; }
 .wallet-stars,.store-balance>strong { max-width: 100%; overflow-wrap: anywhere; font-size: 1.5rem; }
