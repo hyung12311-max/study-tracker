@@ -5,7 +5,7 @@ module.exports=async function handler(req,res){if(req.method!=="GET")return u.al
   u.supabaseFetch(`sticker_transactions?select=id,amount,transaction_type,source_type,source_id,description,created_at&member_id=eq.${memberId}&order=created_at.desc&limit=50`),
   u.supabaseFetch(`sticker_transactions?select=amount&member_id=eq.${memberId}`),
   u.supabaseFetch(`reward_exchange_requests?select=*,family_members!reward_exchange_requests_member_id_fkey(display_name,avatar_emoji)&family_id=eq.${c.family}${c.role==="parent"?"":`&member_id=eq.${c.sub}`}&order=requested_at.desc&limit=100`),
-  u.supabaseFetch(`reward_exchange_history?select=*&family_id=eq.${c.family}${c.role==="parent"?"":`&member_id=eq.${c.sub}`}&order=completed_at.desc&limit=100`),
+  u.supabaseFetch(`reward_exchange_history?select=*&family_id=eq.${c.family}${c.role==="parent"?"":`&member_id=eq.${c.sub}`}&order=completed_at.desc&limit=100`).catch(error=>{if(error.supabaseCode==="PGRST205"){console.warn("[reward store] exchange history unavailable",{code:error.supabaseCode,message:error.supabaseMessage});return[]}throw error}),
   u.supabaseFetch(`reward_wishlist?select=product_id&member_id=eq.${memberId}`),
   c.role==="parent"?u.supabaseFetch(`family_members?select=id,display_name,avatar_emoji,role,is_active&family_id=eq.${c.family}&order=created_at.asc`):Promise.resolve([])
  ]);
