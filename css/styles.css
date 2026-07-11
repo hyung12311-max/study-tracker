@@ -511,6 +511,11 @@ h2 {
   margin-top: 14px;
 }
 
+.academy-admin-list {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 .reward-admin-row,
 .academy-admin-row {
   display: flex;
@@ -522,6 +527,70 @@ h2 {
   border-radius: 14px;
   background: #fff;
   font-weight: 800;
+}
+
+.academy-admin-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.academy-admin-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #f0edff;
+  font-size: 1.35rem;
+}
+
+.academy-admin-info {
+  min-width: 0;
+}
+
+.academy-admin-info strong,
+.academy-admin-info span,
+.academy-admin-info small {
+  display: block;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.academy-admin-info strong {
+  margin-bottom: 5px;
+  font-size: 1.08rem;
+}
+
+.academy-admin-info span {
+  white-space: nowrap;
+}
+
+.academy-admin-info small {
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.academy-admin-empty-memo {
+  opacity: .72;
+}
+
+.academy-admin-actions {
+  flex-shrink: 0;
+  width: auto;
+}
+
+.academy-admin-actions button {
+  flex: 0 0 auto;
+  min-width: 58px;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .empty-note {
@@ -937,5 +1006,22 @@ select {
 
   .plan-actions button {
     flex: 1;
+  }
+
+  .academy-admin-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 14px;
+  }
+
+  .academy-admin-actions {
+    grid-column: 2;
+    justify-self: end;
+    width: auto;
+  }
+
+  .academy-admin-actions button {
+    flex: 0 0 auto;
+    min-width: 58px;
   }
 }

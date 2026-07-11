@@ -1235,8 +1235,13 @@ function renderAcademyScheduleAdmin() {
 
   list.innerHTML = schedules.length ? schedules.map((schedule) => `
     <div class="academy-admin-row">
-      <span>${escapeHtml(schedule.name)} · ${escapeHtml(WEEKDAY_LABELS[Number(schedule.dayOfWeek)] || "")} · ${escapeHtml(schedule.time || "")} · \uBCC4 ${Number(schedule.stars || 1)}\uAC1C</span>
-      <div class="plan-actions">
+      <span class="academy-admin-icon" aria-hidden="true">🏫</span>
+      <div class="academy-admin-info">
+        <strong>${escapeHtml(schedule.name)}</strong>
+        <span>${escapeHtml(WEEKDAY_LABELS[Number(schedule.dayOfWeek)] || "")} · ${escapeHtml(schedule.time || "")} · 별 ${Number(schedule.stars || 1)}개</span>
+        ${schedule.memo ? `<small>${escapeHtml(schedule.memo)}</small>` : `<small class="academy-admin-empty-memo">메모 없음</small>`}
+      </div>
+      <div class="plan-actions academy-admin-actions">
         <button type="button" class="edit-btn" data-action="edit-academy" data-id="${schedule.id}">\uC218\uC815</button>
         <button type="button" class="delete-btn" data-action="delete-academy" data-id="${schedule.id}">\uC0AD\uC81C</button>
       </div>
