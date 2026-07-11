@@ -2,6 +2,7 @@ import { createClient } from "./vendor/supabase-js.js";
 import { SUPABASE_CONFIG } from "./config.js";
 import { TOKEN_KEY as FAMILY_TOKEN_KEY } from "./family-auth.js";
 import { initFamilyChat } from "./family-chat.js";
+import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
@@ -1999,6 +2000,7 @@ async function reloadFromRemote() {
 
 async function init() {
   bindEvents();
+  initParentDashboard();
   console.log(`[build] Data source: Supabase / Build: ${BUILD_VERSION}`);
   registerServiceWorker();
   familyChatController = await initFamilyChat();

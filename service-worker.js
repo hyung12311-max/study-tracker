@@ -6,6 +6,7 @@ const ASSETS = [
   "/js/app.js",
   "/js/family-auth.js",
   "/js/family-chat.js",
+  "/js/parent-dashboard.js",
   "/js/reward-store.js",
   "/js/config.js",
   "/manifest.webmanifest",

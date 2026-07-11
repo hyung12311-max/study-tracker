@@ -126,6 +126,15 @@
             <button class="return-child" id="returnChildButton">아이 화면으로 돌아가기</button>
           </div>
 
+          <nav class="parent-management-tabs" aria-label="부모 관리 메뉴" role="tablist">
+            <button type="button" id="parentTabStudy" role="tab" aria-selected="true" aria-controls="parentPanelStudy" data-parent-panel="study">학습 계획</button>
+            <button type="button" id="parentTabAcademy" role="tab" aria-selected="false" aria-controls="parentPanelAcademy" data-parent-panel="academy">학원 일정</button>
+            <button type="button" id="parentTabRewards" role="tab" aria-selected="false" aria-controls="parentPanelRewards" data-parent-panel="rewards">보상 상품</button>
+            <button type="button" id="parentTabFamily" role="tab" aria-selected="false" aria-controls="parentPanelFamily" data-parent-panel="family">가족 관리</button>
+          </nav>
+
+          <div class="parent-management-panels">
+          <section id="parentPanelStudy" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabStudy" data-parent-tab="study">
           <div class="dashboard-grid">
             <article class="metric">
               <span>전체 계획</span>
@@ -167,7 +176,10 @@
               <button type="button" id="resetFormButton">새 계획</button>
             </div>
           </form>
+          <div id="planList" class="plan-list"></div>
+          </section>
 
+          <section id="parentPanelAcademy" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabAcademy" data-parent-tab="academy" hidden>
           <form id="academyForm" class="reward-form">
             <h3>&#54617;&#50896; &#51068;&#51221;</h3>
             <input type="hidden" id="academyScheduleId" />
@@ -192,7 +204,9 @@
             </div>
             <div id="academyScheduleList" class="academy-admin-list"></div>
           </form>
+          </section>
 
+          <section id="parentPanelRewards" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabRewards" data-parent-tab="rewards" hidden>
           <form id="rewardProductForm" class="reward-form reward-product-form">
             <h3>보상 상품 관리</h3><input type="hidden" id="rewardProductId" />
             <div class="reward-product-fields">
@@ -212,7 +226,9 @@
             <div id="rewardProductAdminList" class="reward-product-admin-list"></div>
           </form>
           <section class="reward-form"><h3>교환 신청 관리</h3><div id="rewardRequestAdminList" class="reward-request-admin-list"></div></section>
+          </section>
 
+          <section id="parentPanelFamily" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabFamily" data-parent-tab="family" hidden>
           <section class="reward-form" id="parentNotificationPanel">
             <h3>부모 알림</h3>
             <p id="parentNotificationStatus">알림 상태를 확인하고 있어요.</p>
@@ -228,8 +244,8 @@
             <label><input id="familySystemNotificationsEnabled" type="checkbox" /> 학습 시스템 메시지 알림</label>
             <div id="familyAdminList" class="family-admin-list"></div>
           </section>
-
-          <div id="planList" class="plan-list"></div>
+          </section>
+          </div>
         </section>
       </main>
     </div>
