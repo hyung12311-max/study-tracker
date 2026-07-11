@@ -86,6 +86,8 @@ async function supabaseFetch(path, options = {}) {
     error.supabaseStatus = response.status;
     error.supabaseCode = details.code || null;
     error.supabaseMessage = details.message || details.hint || "Supabase request failed.";
+    error.supabaseDetails = details.details || null;
+    error.supabaseHint = details.hint || null;
     throw error;
   }
   if (response.status === 204) return null;
