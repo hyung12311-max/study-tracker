@@ -179,7 +179,7 @@ create or replace function public.create_book_plan(
   p_lesson text,
   p_content text,
   p_start_date date,
-  p_study_weekdays smallint[],
+  p_study_weekdays integer[],
   p_start_page integer,
   p_end_page integer,
   p_pages_per_day integer,
@@ -193,13 +193,21 @@ set search_path = public
 as $$
 declare
   project public.book_plans%rowtype;
+  normalized_weekdays smallint[];
 begin
+  select array_agg(distinct weekday::smallint order by weekday::smallint)
+  into normalized_weekdays
+  from unnest(coalesce(p_study_weekdays, array[]::integer[])) weekday
+  where weekday between 0 and 6;
+  if coalesce(cardinality(normalized_weekdays), 0) = 0 then
+    raise exception 'at least one study weekday is required';
+  end if;
   insert into public.book_plans (
     subject, workbook, chapter, lesson, content, start_date,
     study_weekdays, start_page, end_page, pages_per_day, goal, memo
   ) values (
     trim(p_subject), trim(p_workbook), trim(p_chapter), trim(p_lesson),
-    nullif(trim(p_content), ''), p_start_date, p_study_weekdays,
+    nullif(trim(p_content), ''), p_start_date, normalized_weekdays,
     p_start_page, p_end_page, p_pages_per_day,
     nullif(trim(p_goal), ''), nullif(trim(p_memo), '')
   ) returning * into project;
@@ -280,7 +288,7 @@ create policy book_plans_existing_app_access on public.book_plans
 for all to anon, authenticated using (true) with check (true);
 
 grant select, insert, update, delete on public.book_plans to anon, authenticated;
-grant execute on function public.create_book_plan(text,text,text,text,text,date,smallint[],integer,integer,integer,text,text) to anon, authenticated;
+grant execute on function public.create_book_plan(text,text,text,text,text,date,integer[],integer,integer,integer,text,text) to anon, authenticated;
 grant execute on function public.reflow_book_plan(uuid,date) to anon, authenticated;
 grant execute on function public.add_book_plan_review(uuid,integer,text) to anon, authenticated;
 grant execute on function public.delete_book_plan_task(text) to anon, authenticated;
