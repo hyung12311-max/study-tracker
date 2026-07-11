@@ -11,4 +11,4 @@ module.exports=async function handler(req,res){if(req.method!=="GET")return u.al
  ]);
  const balance=(balanceRows||[]).reduce((sum,row)=>sum+Number(row.amount||0),0),reserved=(requests||[]).filter(row=>row.member_id===memberId&&row.status==="pending").reduce((sum,row)=>sum+Number(row.sticker_cost||0),0);
  return u.json(res,200,{balance,availableBalance:Math.max(balance-reserved,0),products:(products||[]).map(u.productSafe),transactions:transactions||[],requests:(requests||[]).map(u.requestSafe),history:history||[],wishlist:(wishlist||[]).map(row=>row.product_id),members:members||[],viewer:{id:c.sub,role:c.role,walletMemberId:memberId}});
- }catch(e){return u.json(res,e.statusCode||500,{error:e.statusCode?e.message:"Unable to load reward store."})}};
+ }catch(e){console.error(e);console.error(e.supabaseMessage||e.message);console.error(e.supabaseDetails||e.details||null);console.error(e.supabaseCode||e.code||null);return u.json(res,e.statusCode||500,{error:e.supabaseMessage||e.message||"Unable to load reward store.",code:e.supabaseCode||e.code||null,details:e.supabaseDetails||e.details||null,hint:e.supabaseHint||e.hint||null})}};
