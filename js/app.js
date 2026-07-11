@@ -1,5 +1,6 @@
 import { createClient } from "./vendor/supabase-js.js";
 import { SUPABASE_CONFIG } from "./config.js";
+import { TOKEN_KEY as FAMILY_TOKEN_KEY } from "./family-auth.js";
 import { initFamilyChat } from "./family-chat.js";
 import { initRewardStore } from "./reward-store.js";
 
@@ -7,7 +8,6 @@ const PARENT_PASSWORD = "1234";
 const BUILD_VERSION = "v24";
 const LOCAL_DATA_KEY = "study-tracker-local-data-v1";
 const LOCAL_NOTIFICATION_KEY = "study-tracker-parent-notifications-v1";
-const FAMILY_TOKEN_KEY = "study-tracker-family-token-v1";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const DEFAULT_REWARD_MILESTONES = [
   { id: "default-5", stars: 5, name: "아이스크림" },
@@ -1982,7 +1982,7 @@ async function init() {
   console.log(`[build] Data source: Supabase / Build: ${BUILD_VERSION}`);
   registerServiceWorker();
   familyChatController = await initFamilyChat();
-  rewardStoreController = await initRewardStore({ openFamily: () => switchView("family-chat") });
+  rewardStoreController = await initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") });
   updateInstallUI();
   resetForm();
   resetAcademyForm();
