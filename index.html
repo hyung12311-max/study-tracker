@@ -192,20 +192,22 @@
             <div id="academyScheduleList" class="academy-admin-list"></div>
           </form>
 
-          <form id="rewardProductForm" class="reward-form">
+          <form id="rewardProductForm" class="reward-form reward-product-form">
             <h3>보상 상품 관리</h3><input type="hidden" id="rewardProductId" />
-            <label>상품명<input id="rewardProductName" maxlength="80" required /></label>
-            <label>이모지<input id="rewardProductEmoji" maxlength="8" placeholder="🎁" /></label>
-            <label>필요 스티커<input id="rewardProductCost" type="number" min="1" required /></label>
-            <label>재고<input id="rewardProductStock" type="number" min="0" placeholder="비우면 무제한" /></label>
-            <label>카테고리<select id="rewardProductCategory"><option>간식</option><option>문구</option><option>장난감</option><option>도서</option><option>체험</option><option>기타</option></select></label>
-            <label>노출 순서<input id="rewardProductSort" type="number" value="0" /></label>
-            <label class="wide">상품 설명<input id="rewardProductDescription" maxlength="500" /></label>
-            <label class="wide">상품 이미지 URL<input id="rewardProductImage" type="url" placeholder="https://..." /></label>
-            <label>판매 시작<input id="rewardProductFrom" type="datetime-local" /></label>
-            <label>판매 종료<input id="rewardProductUntil" type="datetime-local" /></label>
-            <label><input id="rewardProductActive" type="checkbox" checked /> 활성 상품</label>
-            <div class="form-actions"><button type="submit" class="primary" id="rewardProductSubmit">상품 추가</button><button type="button" id="rewardProductReset">새 상품</button></div>
+            <div class="reward-product-fields">
+              <label>상품명<input id="rewardProductName" maxlength="80" placeholder="상품 이름" required /></label>
+              <label>카테고리<select id="rewardProductCategory"><option>간식</option><option>문구</option><option>장난감</option><option>도서</option><option>체험</option><option>기타</option></select></label>
+              <label>필요 스티커<input id="rewardProductCost" type="number" min="1" placeholder="1" required /></label>
+              <label>재고<input id="rewardProductStock" type="number" min="0" placeholder="비우면 무제한" /></label>
+              <label>노출 순서<input id="rewardProductSort" type="number" value="0" /></label>
+              <label>이모지<input id="rewardProductEmoji" maxlength="8" placeholder="🎁" /></label>
+              <label class="reward-product-wide">상품 설명<input id="rewardProductDescription" maxlength="500" placeholder="상품을 간단히 설명해 주세요" /></label>
+              <label class="reward-product-wide">상품 이미지 URL<input id="rewardProductImage" type="url" placeholder="https://example.com/image.jpg" /></label>
+            </div>
+            <div class="reward-product-footer">
+              <label class="reward-product-active"><input id="rewardProductActive" type="checkbox" checked /> 활성 상품</label>
+              <div class="form-actions reward-product-actions"><button type="submit" class="primary" id="rewardProductSubmit">상품 추가</button><button type="button" id="rewardProductReset">새 상품</button></div>
+            </div>
             <div id="rewardProductAdminList" class="reward-product-admin-list"></div>
           </form>
           <section class="reward-form"><h3>교환 신청 관리</h3><div id="rewardRequestAdminList" class="reward-request-admin-list"></div></section>
