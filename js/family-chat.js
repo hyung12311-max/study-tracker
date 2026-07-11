@@ -22,12 +22,17 @@ function timeLabel(value){return new Intl.DateTimeFormat("ko-KR",{hour:"2-digit"
 function appendLinkedText(root,text){const re=/(https?:\/\/[^\s]+)/g;let last=0;for(const match of String(text).matchAll(re)){root.append(document.createTextNode(text.slice(last,match.index)));try{const url=new URL(match[0]);const a=document.createElement("a");a.href=url.href;a.target="_blank";a.rel="noopener noreferrer";a.textContent=match[0];root.append(a)}catch{root.append(document.createTextNode(match[0]))}last=match.index+match[0].length}root.append(document.createTextNode(text.slice(last)))}
 function isNearBottom(list){return list.scrollHeight-list.scrollTop-list.clientHeight<96}
 function appendMessageNodes(list,messages,day=""){
- for(const message of messages){const current=new Date(message.created_at).toDateString();if(current!==day){day=current;const divider=document.createElement("div");divider.className="family-date-divider";divider.textContent=dateLabel(message.created_at);list.append(divider)}
-  if(message.message_type==="system"){const system=document.createElement("div");system.className="family-system-message";system.textContent=`🤖 ${message.content}`;list.append(system);continue}
-  const mine=message.sender_id===state.member?.id,row=document.createElement("article");row.className=`family-message-row${mine?" mine":""}`;row.dataset.messageId=message.id;
-  if(!mine){const avatar=document.createElement("span");avatar.className="family-message-avatar";avatar.textContent=message.sender?.avatar_emoji||"👤";row.append(avatar)}
-  const stack=document.createElement("div");stack.className="family-message-stack";if(!mine){const name=document.createElement("p");name.className="family-message-name";name.textContent=message.sender?.display_name||"가족";stack.append(name)}
-  const bubble=document.createElement("div");bubble.className="family-message-bubble";appendLinkedText(bubble,message.content);stack.append(bubble);const time=document.createElement("time");time.className="family-message-time";time.dateTime=message.created_at;time.textContent=timeLabel(message.created_at);stack.append(time);row.append(stack);list.append(row)}
+ let previousSenderId=list.querySelector(".family-message-row:last-of-type")?.dataset.senderId||"";
+ for(const message of messages){
+  const current=new Date(message.created_at).toDateString();
+  if(current!==day){day=current;previousSenderId="";const divider=document.createElement("div");divider.className="family-date-divider";divider.textContent=dateLabel(message.created_at);list.append(divider)}
+  if(message.message_type==="system"){const system=document.createElement("div");system.className="family-system-message";system.textContent=`🤖 ${message.content}`;list.append(system);previousSenderId="";continue}
+  const mine=message.sender_id===state.member?.id,grouped=previousSenderId===message.sender_id,row=document.createElement("article");
+  row.className=`family-message-row${mine?" mine":""}${grouped?" grouped":""}`;row.dataset.messageId=message.id;row.dataset.senderId=message.sender_id||"";
+  const stack=document.createElement("div");stack.className="family-message-stack";
+  if(!mine&&!grouped){const sender=document.createElement("div"),avatar=document.createElement("span"),name=document.createElement("p");sender.className="family-message-sender";avatar.className="family-message-avatar";avatar.textContent=message.sender?.avatar_emoji||"👤";name.className="family-message-name";name.textContent=message.sender?.display_name||"가족";sender.append(avatar,name);stack.append(sender)}
+  const bubble=document.createElement("div");bubble.className="family-message-bubble";appendLinkedText(bubble,message.content);stack.append(bubble);const time=document.createElement("time");time.className="family-message-time";time.dateTime=message.created_at;time.textContent=timeLabel(message.created_at);stack.append(time);row.append(stack);list.append(row);previousSenderId=message.sender_id||"";
+ }
  return day
 }
 function renderMessages({preserveTop=false,forceBottom=false}={}){
