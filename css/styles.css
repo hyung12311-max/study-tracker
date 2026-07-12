@@ -304,7 +304,7 @@ h2 {
 .weekly-calendar { padding: 16px; border: 1px solid rgba(43,42,53,.09); border-radius: 22px; background: rgba(255,255,255,.82); }
 .calendar-period { margin: 0 0 12px; padding: 0 2px 10px; border-bottom: 3px solid var(--sun); font-size: 1.05rem; }
 .calendar-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
-.calendar-board { min-width: 840px; }
+.calendar-board { min-width: 980px; }
 .calendar-weekdays,
 .calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .calendar-weekdays { position: sticky; top: 0; z-index: 4; border: 1px solid rgba(43,42,53,.1); border-bottom: 0; border-radius: 14px 14px 0 0; overflow: hidden; background: #fffdf5; }
@@ -324,19 +324,35 @@ h2 {
 .calendar-badge { padding: 2px 5px; border-radius: 999px; font-size: .63rem; font-style: normal; font-weight: 1000; }
 .calendar-badge.today { background: var(--sun); color: #443508; }
 .calendar-badge.late { background: #ffe0e0; color: #9d2f2f; }
-.calendar-day-cards { display: grid; gap: 6px; }
+.calendar-day-cards { display: grid; grid-auto-rows: 1fr; gap: 8px; }
+.calendar-card-slot { min-width: 0; height: 100%; }
 .calendar-card-slot.is-extra { display: none; }
 .calendar-day.is-expanded .calendar-card-slot.is-extra { display: block; }
-.calendar-study-card { min-height: 0; padding: 8px; border-width: 1px; border-radius: 12px; box-shadow: 0 3px 10px rgba(43,42,53,.08); overflow: hidden; }
+.calendar-study-card { min-height: 0; border-width: 1px; border-radius: 12px; box-shadow: 0 3px 10px rgba(43,42,53,.08); }
 .calendar-study-card::after { display: none; }
-.calendar-study-card .card-status { padding: 2px 5px; font-size: .62rem; }
-.calendar-study-card h3,
-.calendar-study-card p,
-.calendar-study-card .card-meta span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.calendar-study-card h3 { margin: 5px 0 3px; font-size: .76rem; line-height: 1.3; }
-.calendar-study-card p { margin: 0; font-size: .68rem; line-height: 1.3; }
-.calendar-study-card .card-meta { gap: 2px; margin: 5px 0; font-size: .64rem; }
-.calendar-study-card .complete-btn { min-height: 28px; border-radius: 9px; font-size: .7rem; box-shadow: none; }
+.calendar-plan-card { display: flex; flex-direction: column; box-sizing: border-box; min-width: 0; height: 100%; padding: 12px; overflow: hidden; word-break: keep-all; }
+.calendar-plan-card__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.calendar-plan-card__status { flex: 0 0 auto; padding: 3px 7px; font-size: .7rem; }
+.calendar-plan-card__status.status-today { background: var(--sun); color: #443508; }
+.calendar-plan-card__title { display: flex; flex-direction: column; gap: 2px; min-width: 0; margin-top: 10px; text-align: left; }
+.calendar-plan-card__subject,
+.calendar-plan-card__workbook,
+.calendar-plan-card__lesson,
+.calendar-plan-card__task-text { min-width: 0; word-break: keep-all; }
+.calendar-plan-card__subject,
+.calendar-plan-card__workbook,
+.calendar-plan-card__lesson,
+.calendar-plan-card__task-text { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; }
+.calendar-plan-card__subject { -webkit-line-clamp: 1; font-size: 1rem; line-height: 1.35; font-weight: 1000; }
+.calendar-plan-card__workbook { -webkit-line-clamp: 1; color: #4f5260; font-size: .82rem; line-height: 1.4; font-weight: 800; }
+.calendar-plan-card__lesson { -webkit-line-clamp: 2; min-height: 2.7em; margin-top: 8px; color: var(--muted); font-size: .75rem; line-height: 1.35; font-weight: 750; }
+.calendar-plan-card__task { display: flex; flex-direction: column; gap: 3px; min-width: 0; margin-top: 9px; padding-top: 8px; border-top: 1px solid rgba(43,42,53,.08); }
+.calendar-plan-card__task-label { color: #756d57; font-size: .65rem; font-weight: 900; }
+.calendar-plan-card__task-text { -webkit-line-clamp: 2; min-height: 2.8em; color: #343641; font-size: .74rem; line-height: 1.4; }
+.calendar-plan-card__meta { display: flex; align-items: center; justify-content: space-between; gap: 6px 8px; flex-wrap: wrap; min-width: 0; margin-top: 9px; }
+.calendar-plan-card__page-range { color: #343641; font-size: .76rem; line-height: 1.3; }
+.calendar-plan-card__sequence { color: var(--muted); font-size: .68rem; line-height: 1.3; font-weight: 800; white-space: nowrap; }
+.calendar-plan-card__complete { width: 100%; min-height: 36px; margin-top: auto; padding: 6px 8px; border-radius: 10px; font-size: .76rem; line-height: 1; white-space: nowrap; box-shadow: none; }
 .calendar-more { width: 100%; margin-top: 6px; padding: 6px; border-radius: 9px; color: #67520e; background: #fff2b8; font-size: .7rem; font-weight: 900; }
 .undated-plans { padding: 16px; border-radius: 20px; background: rgba(255,255,255,.78); }
 .undated-plans > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
@@ -1295,7 +1311,9 @@ select {
   .current-user-avatar { grid-row: auto; }
   .current-user-card button { grid-column: auto; }
   .weekly-calendar { padding: 12px; border-radius: 18px; }
-  .calendar-board { min-width: 840px; }
+  .calendar-board { min-width: 980px; }
+  .calendar-plan-card__subject { font-size: .88rem; }
+  .calendar-plan-card__workbook { font-size: .76rem; }
 
   .tabs {
     grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));

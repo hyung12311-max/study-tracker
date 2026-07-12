@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v35";
+const BUILD_VERSION = "v36";
 const CACHE_VERSION = 2;
 const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
 const USER_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -1313,12 +1313,27 @@ function createCalendarStudyCard(plan) {
   const accessibleDate = dateInfo.valid ? `${formatUpcomingDate(dateInfo)} ${WEEKDAY_LABELS[dateInfo.weekday]}요일` : "날짜 미지정";
   const pageRange = plan.startPage != null && plan.endPage != null ? `${plan.startPage}~${plan.endPage}쪽` : plan.target || "";
   const title = `${plan.subject || ""} · ${plan.book || ""} / ${plan.unit || ""} / ${plan.lessonNo || ""} / ${plan.content || ""} / ${pageRange} / ${plan.dayNo || ""}`;
-  return `<article class="study-card calendar-study-card ${isLateStatus(plan.status) ? "late" : "planned"}" title="${escapeHtml(title)}">
-    <span class="card-status">${isLateStatus(plan.status) ? "지연" : "예정"}</span>
-    <h3>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)}</h3>
-    <p>${escapeHtml(plan.unit)}${plan.lessonNo ? ` / ${escapeHtml(plan.lessonNo)}` : ""}</p>
-    <div class="card-meta"><span>${escapeHtml(plan.content || "")}</span><span>${escapeHtml(pageRange)}</span><span>${escapeHtml(plan.dayNo || "")}</span></div>
-    <button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}" aria-label="${escapeHtml(`${accessibleDate} ${plan.subject} ${plan.book} 완료`)}">완료</button>
+  const isToday = dateInfo.valid && dateInfo.value === formatDateKey(new Date());
+  const status = isLateStatus(plan.status) || (dateInfo.valid && dateInfo.value < formatDateKey(new Date())) ? "지연" : isToday ? "오늘" : "예정";
+  const lesson = [plan.unit, plan.lessonNo].filter(Boolean).join(" · ");
+  return `<article class="study-card calendar-study-card calendar-plan-card ${status === "지연" ? "late" : "planned"}" title="${escapeHtml(title)}">
+    <div class="calendar-plan-card__top">
+      <span class="card-status calendar-plan-card__status status-${status === "지연" ? "late" : status === "오늘" ? "today" : "planned"}">${status}</span>
+    </div>
+    <div class="calendar-plan-card__title">
+      <strong class="calendar-plan-card__subject">${escapeHtml(plan.subject || "과목 미지정")}</strong>
+      <span class="calendar-plan-card__workbook">${escapeHtml(plan.book || "교재 미지정")}</span>
+    </div>
+    <div class="calendar-plan-card__lesson">${escapeHtml(lesson || "단원 정보 없음")}</div>
+    <div class="calendar-plan-card__task">
+      <span class="calendar-plan-card__task-label">오늘 할 일</span>
+      <span class="calendar-plan-card__task-text">${escapeHtml(plan.content || "학습 내용 없음")}</span>
+    </div>
+    <div class="calendar-plan-card__meta">
+      <strong class="calendar-plan-card__page-range">${escapeHtml(pageRange || "페이지 미지정")}</strong>
+      ${plan.dayNo ? `<span class="calendar-plan-card__sequence">${escapeHtml(plan.dayNo)}</span>` : ""}
+    </div>
+    <button type="button" class="complete-btn calendar-plan-card__complete" data-action="complete" data-id="${plan.id}" aria-label="${escapeHtml(`${accessibleDate} ${plan.subject} ${plan.book} 완료`)}">완료</button>
   </article>`;
 }
 
