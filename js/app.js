@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v27";
+const BUILD_VERSION = "v29";
 const CACHE_VERSION = 2;
 const LEGACY_LOCAL_DATA_KEY = "study-tracker-local-data-v1";
 const CACHE_PREFIX = "study_tracker_cache";
@@ -1128,13 +1128,20 @@ async function markOverduePlans() {
 
 function renderHeader() {
   $("#stickerCount").textContent = completedCount();
+  const member = familyChatController?.currentMember();
+  if (!member) return;
+  $("#currentUserAvatar").textContent = member.avatar_emoji || "👤";
+  $("#currentUserName").textContent = member.display_name || "가족 사용자";
+  $("#currentUserRole").textContent = member.role === "parent" ? "부모로 로그인 중" : "자녀로 로그인 중";
 }
 
 function renderRoleControls() {
+  const parentAuthenticated = familyChatController?.currentMember()?.role === "parent";
+  if (!parentAuthenticated) isParentMode = false;
   $$("[data-parent-only]").forEach((element) => {
     element.hidden = !isParentMode;
   });
-  $("#parentAccessButton").hidden = isParentMode;
+  $("#parentAccessButton").hidden = isParentMode || !parentAuthenticated;
 }
 
 function renderLearning() {
@@ -2072,6 +2079,10 @@ function switchView(viewName) {
 }
 
 function openPasswordDialog() {
+  if (familyChatController?.currentMember()?.role !== "parent") {
+    showToast("부모 사용자로 인증해야 부모관리를 이용할 수 있어요.");
+    return;
+  }
   const dialog = $("#passwordDialog");
   $("#parentPasswordInput").value = "";
   $("#passwordError").textContent = "";
@@ -2256,6 +2267,7 @@ function bindEvents() {
   });
 
   $("#parentAccessButton").addEventListener("click", openPasswordDialog);
+  $("#changeCurrentUserButton").addEventListener("click", () => familyChatController?.changeUser());
   $("#returnChildButton").addEventListener("click", exitParentMode);
   $("#installAppButton").addEventListener("click", promptInstallApp);
   $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
