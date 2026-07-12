@@ -6,8 +6,13 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v30";
+const BUILD_VERSION = "v33";
 const CACHE_VERSION = 2;
+const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
+const USER_CACHE_TTL_MS = 30 * 60 * 1000;
+const startupStartedAt = performance.now();
+const startupMetrics = { appShellMs: 0, authMs: null, firstContentMs: null, essentialDataMs: null, deferredDataMs: null, requests: [] };
+window.__studyTrackerStartupRequests = startupMetrics.requests;
 const LEGACY_LOCAL_DATA_KEY = "study-tracker-local-data-v1";
 const CACHE_PREFIX = "study_tracker_cache";
 const LOCAL_NOTIFICATION_KEY = "study-tracker-parent-notifications-v1";
@@ -66,6 +71,19 @@ function localDataKey() {
   return `${CACHE_PREFIX}_${familyId}_${memberKey}`;
 }
 
+function renderStoredUserHint() {
+  try {
+    const auth = JSON.parse(localStorage.getItem(FAMILY_AUTH_KEY) || "null");
+    if (!auth?.member || !auth.savedAt || Date.now() - new Date(auth.savedAt).getTime() > USER_CACHE_TTL_MS) return;
+    $("#currentUserAvatar").textContent = auth.member.avatar_emoji || "👤";
+    $("#currentUserName").textContent = auth.member.display_name || "가족 사용자";
+    $("#currentUserRole").textContent = auth.member.role === "parent" ? "부모 확인 중" : "자녀 확인 중";
+    $("#currentUserCard").classList.remove("startup-skeleton");
+  } catch (error) {
+    console.warn("[startup cache] user hint unavailable", error);
+  }
+}
+
 function emptyLocalData() {
   return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
 }
@@ -78,7 +96,7 @@ function readLocalData() {
     const parsed = JSON.parse(raw);
     const cached = parsed?.version ? parsed.data : parsed;
     if (parsed?.version && parsed.version !== CACHE_VERSION) { localStorage.removeItem(key); return emptyLocalData(); }
-    return {
+    const result = {
       reward: cached.reward || { ...DEFAULT_REWARD },
       rewardMilestones: normalizeRewardMilestones(cached.rewardMilestones || cached.rewards, cached.reward),
       stickerCount: Number(cached.stickerCount || 0),
@@ -87,6 +105,9 @@ function readLocalData() {
       academySchedules: Array.isArray(cached.academySchedules) ? cached.academySchedules : [],
       academyCompletions: Array.isArray(cached.academyCompletions) ? cached.academyCompletions : [],
     };
+    result.cacheSavedAt = parsed?.savedAt || null;
+    result.cacheFresh = Boolean(parsed?.savedAt && Date.now() - new Date(parsed.savedAt).getTime() <= STUDY_CACHE_TTL_MS);
+    return result;
   } catch (error) {
     console.warn("[local fallback] read failed", error);
     localStorage.removeItem(localDataKey());
@@ -195,9 +216,13 @@ function createSupabaseRepository(config) {
   }
 
   async function requestOrFallback(label, promise, fallbackData) {
+    const startedAt = performance.now();
     try {
-      return await request(label, promise);
+      const result = await request(label, promise);
+      startupMetrics.requests.push({ label, ms: Math.round(performance.now() - startedAt), ok: true });
+      return result;
     } catch (error) {
+      startupMetrics.requests.push({ label, ms: Math.round(performance.now() - startedAt), ok: false });
       warnReadFallback(label, error);
       return { data: fallbackData, count: 0 };
     }
@@ -336,7 +361,7 @@ function createSupabaseRepository(config) {
     }
   }
 
-  async function load() {
+  async function load({ essentialOnly = false } = {}) {
     const localData = readLocalData();
     if (!configured) {
       warnReadFallback("Supabase config is missing. Rendering fallback data.");
@@ -344,13 +369,18 @@ function createSupabaseRepository(config) {
     }
 
     const remoteLoad = (async () => {
+    const weekEnd = toDateInput(addDays(new Date(), 6));
+    let plansQuery = client.from("study_plans")
+      .select("id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status")
+      .order("study_date", { ascending: true });
+    if (essentialOnly) plansQuery = plansQuery.lte("study_date", weekEnd).not("status", "in", "(완료,done)");
     console.info("[study_plans query]", {
       select: "id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status",
-      where: {},
+      where: essentialOnly ? { study_date: `<=${weekEnd}`, status: "not in (완료,done)" } : {},
       order: { study_date: "asc" },
       cacheKey: localDataKey(),
     });
-    ensureRewardSettings();
+    if (!essentialOnly) ensureRewardSettings();
 
     const [
       { data: plans },
@@ -363,22 +393,22 @@ function createSupabaseRepository(config) {
     ] = await Promise.all([
       requestOrFallback(
         "학습계획 불러오기 실패",
-        client.from("study_plans").select("id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status").order("study_date", { ascending: true }),
+        plansQuery,
         localData.plans
       ),
       requestOrFallback(
         "교재 계획 불러오기 실패",
-        client.from("book_plans").select("id,subject,workbook,chapter,lesson,content,start_date,study_weekdays,start_page,end_page,pages_per_day,goal,memo,expected_end_date,updated_at").order("updated_at", { ascending: false }),
+        essentialOnly ? Promise.resolve({ data: localData.bookPlans || [], error: null }) : client.from("book_plans").select("id,subject,workbook,chapter,lesson,content,start_date,study_weekdays,start_page,end_page,pages_per_day,goal,memo,expected_end_date,updated_at").order("updated_at", { ascending: false }),
         localData.bookPlans || []
       ),
       requestOrFallback(
         "보상 설정 불러오기 실패",
-        client.from("reward_settings").select("id,target_stickers,reward_name").limit(1).maybeSingle(),
+        essentialOnly ? Promise.resolve({ data: localData.reward, error: null }) : client.from("reward_settings").select("id,target_stickers,reward_name").limit(1).maybeSingle(),
         localData.reward
       ),
       requestOrFallback(
         "보상 마일스톤 불러오기 실패",
-        client.from("reward_milestones").select("id,required_stickers,reward_name,sort_order").order("required_stickers", { ascending: true }),
+        essentialOnly ? Promise.resolve({ data: localData.rewardMilestones, error: null }) : client.from("reward_milestones").select("id,required_stickers,reward_name,sort_order").order("required_stickers", { ascending: true }),
         localData.rewardMilestones
       ),
       requestOrFallback(
@@ -388,12 +418,12 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "학원 일정 불러오기 실패",
-        client.from("academy_schedules").select("id,academy_name,day_of_week,start_time,memo,star_count").order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
+        essentialOnly ? Promise.resolve({ data: localData.academySchedules, error: null }) : client.from("academy_schedules").select("id,academy_name,day_of_week,start_time,memo,star_count").order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
         localData.academySchedules
       ),
       requestOrFallback(
         "학원 완료 이력 불러오기 실패",
-        familyAuthHeaders()
+        !essentialOnly && familyAuthHeaders()
           ? requestJson("/api/rewards/academy-complete", { headers: familyAuthHeaders() })
               .then((result) => ({ data: result.completions, error: null }))
               .catch((error) => ({ data: null, error }))
@@ -475,18 +505,24 @@ function createSupabaseRepository(config) {
     const { data } = await request("교재 계획 생성 실패", client.rpc("create_book_plan", {
       p_subject: input.subject,
       p_workbook: input.book,
-      p_chapter: input.unit,
-      p_lesson: input.lessonNo,
+      p_lesson: input.unit,
+      p_chapter: input.lessonNo,
       p_content: input.content || "",
       p_start_date: input.startDate,
-      p_study_weekdays: input.weekdays,
       p_start_page: input.startPage,
       p_end_page: input.endPage,
       p_pages_per_day: input.pagesPerDay,
+      p_study_weekdays: input.weekdays,
       p_goal: input.target || "",
       p_memo: input.memo || "",
     }));
-    return bookPlanFromRow(Array.isArray(data) ? data[0] : data);
+    const result = Array.isArray(data) ? data[0] : data;
+    return {
+      generatedCount: Number(result?.generated_count || 0),
+      firstStudyDate: result?.first_study_date || null,
+      lastStudyDate: result?.last_study_date || null,
+      rows: Array.isArray(result?.generated_rows) ? result.generated_rows : [],
+    };
   }
 
   async function addBookPlanReview(bookPlanId, afterSequence, content) {
@@ -521,32 +557,18 @@ function createSupabaseRepository(config) {
 
   async function completePlan(id) {
     assertConfigured();
-    const { data, error } = await client
-      .from("study_plans")
-      .update(sanitizePayload({ status: "완료" }))
-      .eq("id", id)
-      .select("*")
-      .single();
-
-    if (error) {
-      const detail = error.details ? ` (${error.details})` : "";
-      throw new Error(`완료 상태 저장 실패: ${error.message}${detail}`);
-    }
-    console.log("[complete-update-success]", data);
-
-    const stickerPayload = sanitizePayload({
-      study_plan_id: /^\d+$/.test(String(id)) ? Number(id) : id,
-      sticker_count: 1,
-    });
-    const { error: stickerError } = await client.from("sticker_history").insert(stickerPayload);
-
-    if (stickerError) {
-      const detail = stickerError.details ? ` (${stickerError.details})` : "";
-      throw new Error(`스티커 저장 실패: ${stickerError.message}${detail}`);
-    }
-    console.log("[complete-sticker-success]", stickerPayload);
-
-    return planFromRow(data);
+    const { data } = await request("학습 완료 및 일정 조정 실패", client.rpc("complete_study_plan_and_reschedule", {
+      p_plan_id: /^\d+$/.test(String(id)) ? Number(id) : id,
+      p_completed_date: toDateInput(new Date()),
+    }));
+    const result = Array.isArray(data) ? data[0] : data;
+    return {
+      plan: result?.completed_plan ? planFromRow(result.completed_plan) : null,
+      adjustmentType: result?.adjustment_type || "normal",
+      rescheduledCount: Number(result?.rescheduled_count || 0),
+      stickerAwarded: result?.sticker_awarded === true,
+      alreadyCompleted: result?.already_completed === true,
+    };
   }
 
   async function updatePlanStatus(id, status) {
@@ -1022,7 +1044,6 @@ function render() {
   renderRewards();
   renderParent();
   rewardStoreController?.render();
-  rewardStoreController?.scheduleRefresh();
 }
 
 function renderApp() {
@@ -1134,8 +1155,10 @@ async function markOverduePlans() {
 
 function renderHeader() {
   $("#stickerCount").textContent = completedCount();
+  if (state.cacheSavedAt) $("#stickerSummary").classList.remove("startup-skeleton");
   const member = familyChatController?.currentMember();
   if (!member) return;
+  $("#currentUserCard").classList.remove("startup-skeleton");
   $("#currentUserAvatar").textContent = member.avatar_emoji || "👤";
   $("#currentUserName").textContent = member.display_name || "가족 사용자";
   $("#currentUserRole").textContent = member.role === "parent" ? "부모로 로그인 중" : "자녀로 로그인 중";
@@ -1151,6 +1174,7 @@ function renderRoleControls() {
 }
 
 function renderLearning() {
+  $("#todayList").setAttribute("aria-busy", "false");
   const today = toDateInput(new Date());
   const weekEnd = toDateInput(addDays(new Date(), 6));
   $("#todayDate").textContent = formatDate(today);
@@ -1224,17 +1248,25 @@ async function handleCompletePlan(id, button) {
   }
 
   try {
-    await repository.completePlan(id);
+    const completion = await repository.completePlan(id);
     state = await repository.load();
     await markOverduePlans();
     writeLocalData(state);
     renderApp();
     setConnectionStatus("");
     console.log("[complete-refresh-success]", id);
-    launchCelebration();
+    if (!completion.alreadyCompleted) launchCelebration();
     const completedPlan = state.plans.find((plan) => String(plan.id) === String(id)) || planBeforeComplete;
-    if (completedPlan) await Promise.allSettled([notifyParentOfCompletion(completedPlan), createFamilyStudyMessage(completedPlan)]);
-    showToast("GOOD!! 너무 잘했어!");
+    if (!completion.alreadyCompleted && completedPlan) await Promise.allSettled([notifyParentOfCompletion(completedPlan), createFamilyStudyMessage(completedPlan)]);
+    if (completion.alreadyCompleted) {
+      showToast("이미 완료된 학습이에요.");
+    } else if (completion.adjustmentType === "early") {
+      showToast(`예정보다 일찍 완료했어요! 다음 학습 일정 ${completion.rescheduledCount}건을 앞당겼습니다.`);
+    } else if (completion.adjustmentType === "late") {
+      showToast(`학습을 완료했어요. 남은 일정 ${completion.rescheduledCount}건을 뒤로 조정했습니다.`);
+    } else {
+      showToast("GOOD!! 너무 잘했어!");
+    }
   } catch (error) {
     if (isNetworkFallbackError(error)) {
       const completedPlan = markPlanCompleteLocally(id) || planBeforeComplete;
@@ -1337,6 +1369,7 @@ function renderBookProjectCard(project) {
 }
 
 function renderParent() {
+  $$(".startup-metric-skeleton").forEach((element) => element.classList.remove("startup-metric-skeleton"));
   const total = state.plans.length;
   const done = state.plans.filter((plan) => isDoneStatus(plan.status)).length;
   const late = state.plans.filter((plan) => isLateStatus(plan.status)).length;
@@ -1827,14 +1860,36 @@ function selectPlanRegistrationMode(mode) {
 async function handleBookPlanSubmit(event) {
   event.preventDefault();
   if (!isParentMode) return;
+  const form = event.currentTarget;
+  const button = $("#createBookPlanButton");
   const input = readBookPlanForm();
   if (!input.weekdays.length) {
     showToast("학습 요일을 하나 이상 선택해 주세요.");
     return;
   }
-  await saveAndRender("교재 전체 계획을 생성했습니다.", () => repository.createBookPlan(input));
-  event.currentTarget.reset();
-  resetBookPlanForm();
+  button.disabled = true;
+  button.textContent = "계획 생성 중...";
+  try {
+    const result = await repository.createBookPlan(input);
+    state = await repository.load();
+    ensureFormMode();
+    await markOverduePlans();
+    writeLocalData(state);
+    render();
+    setConnectionStatus("");
+    const range = result.firstStudyDate && result.lastStudyDate
+      ? ` (${formatDate(result.firstStudyDate)} ~ ${formatDate(result.lastStudyDate)})`
+      : "";
+    showToast(`교재 계획 ${result.generatedCount}건을 생성했습니다.${range}`);
+    form.reset();
+    resetBookPlanForm();
+  } catch (error) {
+    console.error("[create_book_plan] failed", { error, input });
+    showToast("교재 계획 생성에 실패했습니다. 설정을 확인해주세요.");
+  } finally {
+    button.textContent = "전체 계획 생성";
+    renderBookPlanPreview();
+  }
 }
 
 function updatePlanSubmitButton() {
@@ -2274,6 +2329,12 @@ function bindEvents() {
 
   $("#parentAccessButton").addEventListener("click", openPasswordDialog);
   $("#changeCurrentUserButton").addEventListener("click", () => familyChatController?.changeUser());
+  $("#startupRetryButton").addEventListener("click", async () => {
+    $("#startupRetryButton").hidden = true;
+    setConnectionStatus("데이터를 다시 불러오는 중입니다...");
+    await Promise.allSettled([reloadFromRemote({ essentialOnly: true }), rewardStoreController?.refresh({ silent: true })]);
+    render();
+  });
   $("#returnChildButton").addEventListener("click", exitParentMode);
   $("#installAppButton").addEventListener("click", promptInstallApp);
   $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
@@ -2293,15 +2354,15 @@ function bindEvents() {
   $("#resetAcademyFormButton")?.addEventListener("click", resetAcademyForm);
 }
 
-async function reloadFromRemote() {
+async function reloadFromRemote(options = {}) {
   if (isRemoteRefreshPending) return remoteLoadPromise;
   isRemoteRefreshPending = true;
   remoteLoadPromise = (async () => {
     try {
       const previous = JSON.stringify(state);
-      state = await repository.load();
+      state = await repository.load(options);
       ensureFormMode();
-      await markOverduePlans();
+      if (!options.essentialOnly) await markOverduePlans();
       writeLocalData(state);
       if (JSON.stringify(state) !== previous) render();
       setConnectionStatus(navigator.onLine ? "" : "오프라인입니다. 저장된 정보를 표시합니다.");
@@ -2315,17 +2376,33 @@ async function reloadFromRemote() {
   return remoteLoadPromise;
 }
 
-async function init() {
+function deferStartupTask(callback) {
+  if ("requestIdleCallback" in window) return window.requestIdleCallback(callback, { timeout: 1500 });
+  return window.setTimeout(callback, 200);
+}
+
+function reportStartupPerformance() {
+  console.info("[startup performance]", { ...startupMetrics, requests: [...startupMetrics.requests] });
+}
+
+async function initApp() {
+  renderStoredUserHint();
   bindEvents();
   initParentDashboard();
   console.log(`[build] Data source: Supabase / Build: ${BUILD_VERSION}`);
-  registerServiceWorker();
+  requestAnimationFrame(() => {
+    startupMetrics.appShellMs = Math.round(performance.now() - startupStartedAt);
+    console.info("[startup] app shell visible", { ms: startupMetrics.appShellMs });
+  });
+  deferStartupTask(registerServiceWorker);
   updateInstallUI();
   resetForm();
   resetBookPlanForm();
   resetAcademyForm();
+  const authStartedAt = performance.now();
   familyChatController = await initFamilyChat();
   if (!familyChatController.isAuthenticated()) await familyChatController.requireAuthentication();
+  startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
   if (["today", "progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);
@@ -2334,8 +2411,6 @@ async function init() {
 async function enterAuthenticatedApp() {
   if (authenticationTransition) return authenticationTransition;
   authenticationTransition = (async () => {
-    const shell = $("#appShell");
-    shell.hidden = true;
     activeCacheKey = localDataKey();
     const currentMember = familyChatController?.currentMember();
     console.info("[startup auth]", {
@@ -2347,22 +2422,43 @@ async function enterAuthenticatedApp() {
     state = readLocalData();
     ensureFormMode();
     const hasCachedData = state.plans.length || state.academySchedules.length || state.stickerCount;
+    renderHeader();
+    renderRoleControls();
+    if (hasCachedData) {
+      render();
+      startupMetrics.firstContentMs ??= Math.round(performance.now() - startupStartedAt);
+    }
     setConnectionStatus(hasCachedData ? "최신 사용자 정보를 확인하고 있어요..." : "사용자 정보를 불러오고 있어요...");
     try {
+      const slowTimer = window.setTimeout(() => setConnectionStatus("데이터를 불러오는 중입니다..."), 5000);
+      const retryTimer = window.setTimeout(() => {
+        setConnectionStatus("데이터 연결이 지연되고 있습니다. 저장된 화면을 계속 사용할 수 있어요.");
+        $("#startupRetryButton").hidden = false;
+      }, 10000);
       const rewardTask = rewardStoreController
         ? rewardStoreController.refresh({ silent: true })
         : initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") })
             .then((controller) => { rewardStoreController = controller; });
-      await Promise.allSettled([reloadFromRemote(), rewardTask]);
+      await reloadFromRemote({ essentialOnly: true });
       render();
-      shell.hidden = false;
+      startupMetrics.firstContentMs ??= Math.round(performance.now() - startupStartedAt);
+      await Promise.allSettled([rewardTask]);
+      window.clearTimeout(slowTimer);
+      window.clearTimeout(retryTimer);
+      $("#startupRetryButton").hidden = true;
+      render();
+      startupMetrics.essentialDataMs = Math.round(performance.now() - startupStartedAt);
       appReady = true;
       realtimeUnsubscribe?.();
       realtimeUnsubscribe = repository.subscribe(reloadFromRemote, handleRepositoryError);
+      deferStartupTask(async () => {
+        await reloadFromRemote({ essentialOnly: false });
+        startupMetrics.deferredDataMs = Math.round(performance.now() - startupStartedAt);
+        reportStartupPerformance();
+      });
     } catch (error) {
       console.warn("[startup] authenticated data load failed", error);
       render();
-      shell.hidden = false;
       appReady = true;
       setConnectionStatus(hasCachedData ? "저장된 정보를 표시하고 있습니다. 연결되면 자동으로 최신화됩니다." : "인터넷 연결을 확인해 주세요.");
     }
@@ -2379,13 +2475,23 @@ window.addEventListener("family-auth-changed", async (event) => {
     appReady = false;
     realtimeUnsubscribe?.();
     realtimeUnsubscribe = null;
-    $("#appShell").hidden = true;
+    $("#todayList").setAttribute("aria-busy", "true");
     await familyChatController?.requireAuthentication();
   }
   if (familyChatController?.isAuthenticated()) await enterAuthenticatedApp();
 });
 
-init();
+let initializationPromise = null;
+function initializeOnce() {
+  if (!initializationPromise) initializationPromise = initApp().catch((error) => {
+    console.error("[startup] initialization failed", error);
+    setConnectionStatus("앱을 시작하지 못했습니다. 사용자 변경 또는 새로고침으로 다시 시도해 주세요.");
+    throw error;
+  });
+  return initializationPromise;
+}
+
+initializeOnce();
 
 
 

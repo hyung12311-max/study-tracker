@@ -13,24 +13,24 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <div class="app-shell" id="appShell" hidden>
+    <div class="app-shell" id="appShell">
       <header class="topbar">
         <div>
           <p class="eyebrow">Study Sticker</p>
           <h1>하겸이 학습 스티커</h1>
         </div>
         <div class="top-actions">
-          <section class="current-user-card" id="currentUserCard" aria-live="polite">
+          <section class="current-user-card startup-skeleton" id="currentUserCard" aria-live="polite">
             <span class="current-user-avatar" id="currentUserAvatar" aria-hidden="true">👤</span>
             <div class="current-user-copy">
               <strong id="currentUserName">사용자</strong>
-              <small id="currentUserRole">로그인 중</small>
+              <small id="currentUserRole">사용자 확인 중</small>
             </div>
             <button type="button" id="changeCurrentUserButton">사용자 변경</button>
           </section>
-          <div class="reward-pill" aria-live="polite">
+          <div class="reward-pill startup-skeleton" id="stickerSummary" aria-live="polite">
             <span>⭐</span>
-            <strong id="stickerCount">0</strong>
+            <strong id="stickerCount">…</strong>
             <small>스티커</small>
           </div>
           <button class="parent-access" id="parentAccessButton">부모관리</button>
@@ -46,6 +46,7 @@
       </nav>
 
       <div id="connectionStatus" class="connection-status" hidden></div>
+      <button type="button" id="startupRetryButton" class="startup-retry" hidden>데이터 다시 불러오기</button>
 
       <main>
         <section id="today" class="view active" aria-labelledby="todayTitle">
@@ -60,8 +61,11 @@
             <button class="today-filter" data-learning-filter="week">이번 주</button>
             <button class="today-filter" data-learning-filter="upcoming">전체 예정</button>
           </div>
-          <div id="rewardGoalWidget" class="reward-goal-widget" hidden></div>
-          <div id="todayList" class="today-list"></div>
+          <div id="rewardGoalWidget" class="reward-goal-widget startup-goal-skeleton" aria-label="현재 목표를 불러오는 중"></div>
+          <div id="todayList" class="today-list" aria-busy="true">
+            <article class="study-card startup-card-skeleton" aria-label="학습 일정을 불러오는 중"><i></i><i></i><i></i></article>
+            <article class="study-card startup-card-skeleton" aria-hidden="true"><i></i><i></i><i></i></article>
+          </div>
         </section>
 
         <section id="progress" class="view" aria-labelledby="progressTitle">
@@ -144,19 +148,19 @@
           <div class="parent-management-panels">
           <section id="parentPanelStudy" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabStudy" data-parent-tab="study">
           <div class="dashboard-grid">
-            <article class="metric">
+            <article class="metric startup-metric-skeleton">
               <span>전체 계획</span>
               <strong id="totalPlans">0</strong>
             </article>
-            <article class="metric">
+            <article class="metric startup-metric-skeleton">
               <span>완료</span>
               <strong id="donePlans">0</strong>
             </article>
-            <article class="metric">
+            <article class="metric startup-metric-skeleton">
               <span>지연</span>
               <strong id="latePlans">0</strong>
             </article>
-            <article class="metric">
+            <article class="metric startup-metric-skeleton">
               <span>주간 완료율</span>
               <strong id="weeklyRate">0%</strong>
             </article>

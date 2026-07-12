@@ -41,6 +41,51 @@ button {
   display: none !important;
 }
 
+.startup-card-skeleton,
+.startup-goal-skeleton,
+.startup-metric-skeleton,
+.current-user-card.startup-skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.reward-pill.startup-skeleton strong { color: transparent; min-width: 24px; border-radius: 8px; background: #ece8df; }
+
+.startup-card-skeleton i {
+  display: block;
+  width: 72%;
+  height: 15px;
+  margin: 11px 0;
+  border-radius: 999px;
+  background: #ece8df;
+}
+
+.startup-card-skeleton i:nth-child(2) { width: 48%; }
+.startup-card-skeleton i:nth-child(3) { width: 86%; }
+.startup-goal-skeleton { display: block; min-height: 74px; background: rgba(255,255,255,.72); }
+.startup-metric-skeleton strong { color: transparent; border-radius: 8px; background: #ece8df; }
+.startup-skeleton .current-user-copy { opacity: .55; }
+
+.startup-card-skeleton::after,
+.startup-goal-skeleton::after,
+.startup-metric-skeleton::after,
+.current-user-card.startup-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,.62) 45%, transparent 65%);
+  animation: startup-skeleton-shift 1.6s ease-in-out infinite;
+}
+
+@keyframes startup-skeleton-shift { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-card-skeleton::after,
+  .startup-goal-skeleton::after,
+  .startup-metric-skeleton::after,
+  .current-user-card.startup-skeleton::after { animation: none; }
+}
+
 .app-shell {
   width: min(1120px, 100%);
   margin: 0 auto;
@@ -59,6 +104,16 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.startup-retry {
+  margin: 8px auto 14px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #fff;
+  color: #9a5300;
+  font-weight: 800;
+  box-shadow: var(--shadow);
 }
 
 .current-user-card {
