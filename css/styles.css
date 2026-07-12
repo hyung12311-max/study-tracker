@@ -298,6 +298,52 @@ h2 {
   gap: 16px;
 }
 
+.upcoming-weekday-group {
+  grid-column: 1 / -1;
+  padding: 18px;
+  border: 1px solid rgba(43, 42, 53, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 10px 28px rgba(43, 42, 53, 0.08);
+}
+
+.upcoming-weekday-head {
+  margin-bottom: 14px;
+  padding: 4px 4px 12px;
+  border-bottom: 3px solid var(--sun);
+}
+
+.upcoming-weekday-head h3 { margin-bottom: 4px; }
+.upcoming-weekday-head p { margin-bottom: 0; color: var(--muted); font-weight: 700; }
+
+.upcoming-weekday-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 14px;
+}
+
+.upcoming-weekday-grid .study-card { height: 100%; min-width: 0; }
+
+.study-schedule-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 9px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(43, 42, 53, 0.1);
+}
+
+.study-schedule-date strong { font-size: 1.35rem; }
+.study-schedule-date span { color: var(--muted); font-weight: 800; }
+.schedule-relative { padding: 4px 8px; border-radius: 999px; background: #fff2b8; color: #705700; font-style: normal; font-size: .78rem; font-weight: 900; }
+.schedule-relative.late { background: #ffe0e0; color: #a33131; }
+
+@media (max-width: 980px) {
+  .upcoming-weekday-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .today-notice {
   grid-column: 1 / -1;
   padding: 14px 16px;
@@ -1251,6 +1297,8 @@ select {
   .current-user-card { flex: 1 1 100%; grid-template-columns: auto 1fr auto; }
   .current-user-avatar { grid-row: auto; }
   .current-user-card button { grid-column: auto; }
+  .upcoming-weekday-group { padding: 14px; border-radius: 18px; }
+  .upcoming-weekday-grid { grid-template-columns: minmax(0, 1fr); }
 
   .tabs {
     grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));

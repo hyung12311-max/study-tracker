@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v33";
+const BUILD_VERSION = "v34";
 const CACHE_VERSION = 2;
 const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
 const USER_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -23,6 +23,8 @@ const DEFAULT_REWARD_MILESTONES = [
   { id: "default-50", stars: 50, name: "수영장 쿠폰" },
 ];
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
+const UPCOMING_WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const SHOW_EMPTY_UPCOMING_WEEKDAYS = false;
 const statusLabels = {
   planned: "예정",
   done: "완료",
@@ -1188,13 +1190,14 @@ function renderLearning() {
   const weekPlans = state.plans
     .filter((plan) => !isDoneStatus(plan.status) && plan.studyDate >= today && plan.studyDate <= weekEnd)
     .sort(comparePlans);
-  const upcomingPlans = state.plans
-    .filter((plan) => !isDoneStatus(plan.status) && plan.studyDate >= today)
-    .sort(comparePlans);
+  const upcomingPlans = state.plans.filter((plan) => !isDoneStatus(plan.status));
   let plans = duePlans;
 
   if (learningFilter === "week") plans = weekPlans;
-  if (learningFilter === "upcoming") plans = upcomingPlans;
+  if (learningFilter === "upcoming") {
+    renderUpcomingByWeekday(upcomingPlans, today);
+    return;
+  }
   const academyTasks = learningFilter === "due" ? todaysAcademySchedules() : [];
 
   if (!plans.length && !academyTasks.length) {
@@ -1210,15 +1213,82 @@ function renderLearning() {
 
 const renderToday = renderLearning;
 
-function createStudyCard(plan) {
+function parsePlanDate(plan) {
+  const value = String(plan.studyDate || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { valid: false, value };
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime()) || toDateInput(date) !== value) return { valid: false, value };
+  return { valid: true, value, date, weekday: date.getDay() };
+}
+
+function formatUpcomingDate(dateInfo) {
+  if (!dateInfo.valid) return "날짜 미지정";
+  const options = dateInfo.date.getFullYear() === new Date().getFullYear()
+    ? { month: "long", day: "numeric" }
+    : { year: "numeric", month: "long", day: "numeric" };
+  return new Intl.DateTimeFormat("ko-KR", options).format(dateInfo.date);
+}
+
+function decorateUpcomingPlans(plans, today) {
+  const tomorrow = toDateInput(addDays(new Date(`${today}T12:00:00`), 1));
+  return plans.map((plan) => {
+    const dateInfo = parsePlanDate(plan);
+    let relativeLabel = "";
+    if (dateInfo.valid && dateInfo.value === today) relativeLabel = "오늘";
+    else if (dateInfo.valid && dateInfo.value === tomorrow) relativeLabel = "내일";
+    else if (dateInfo.valid && dateInfo.value < today) relativeLabel = "지연";
+    return { plan, dateInfo, relativeLabel };
+  });
+}
+
+function compareUpcomingItems(a, b) {
+  if (a.dateInfo.valid !== b.dateInfo.valid) return a.dateInfo.valid ? -1 : 1;
+  const dateOrder = a.dateInfo.value.localeCompare(b.dateInfo.value);
+  if (dateOrder) return dateOrder;
+  const aNumber = Number(a.plan.id), bNumber = Number(b.plan.id);
+  if (Number.isFinite(aNumber) && Number.isFinite(bNumber)) return aNumber - bNumber;
+  return String(a.plan.id).localeCompare(String(b.plan.id));
+}
+
+function renderUpcomingByWeekday(plans, today) {
+  const root = $("#todayList");
+  const groups = new Map([...UPCOMING_WEEKDAY_ORDER, "invalid"].map((key) => [key, []]));
+  for (const item of decorateUpcomingPlans(plans, today)) groups.get(item.dateInfo.valid ? item.dateInfo.weekday : "invalid").push(item);
+  for (const items of groups.values()) items.sort(compareUpcomingItems);
+  const keys = [...UPCOMING_WEEKDAY_ORDER, "invalid"].filter((key) => SHOW_EMPTY_UPCOMING_WEEKDAYS || groups.get(key).length);
+
+  if (!keys.length) {
+    root.innerHTML = '<div class="empty"><h3>예정된 학습이 없습니다.</h3></div>';
+    return;
+  }
+
+  root.innerHTML = keys.map((key) => {
+    const items = groups.get(key);
+    const heading = key === "invalid" ? "날짜 미지정" : `${WEEKDAY_LABELS[key]}요일`;
+    const nearest = items.find((item) => item.dateInfo.valid && item.dateInfo.value >= today)
+      || items.find((item) => item.dateInfo.valid);
+    const nextLabel = nearest ? `다음 일정 ${formatUpcomingDate(nearest.dateInfo)}` : "날짜를 확인해 주세요";
+    const groupId = `upcoming-weekday-${key}`;
+    return `<section class="upcoming-weekday-group" aria-labelledby="${groupId}">
+      <header class="upcoming-weekday-head"><h3 id="${groupId}">${heading} · ${items.length}개 계획</h3><p>${nextLabel}</p></header>
+      <div class="upcoming-weekday-grid">${items.map((item) => createStudyCard(item.plan, { dateInfo: item.dateInfo, relativeLabel: item.relativeLabel })).join("")}</div>
+    </section>`;
+  }).join("");
+}
+
+function createStudyCard(plan, options = {}) {
   const done = isDoneStatus(plan.status);
   const normalizedStatus = statusClass(plan.status);
   const isOverdue = !done && plan.studyDate < toDateInput(new Date());
   const displayStatus = isOverdue ? "\uC9C0\uC5F0" : statusLabels[plan.status] || statusLabels[normalizedStatus];
-  const completeButtonHtml = `<button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}">완료했어요!</button>`;
+  const dateInfo = options.dateInfo || parsePlanDate(plan);
+  const scheduleLabel = options.dateInfo ? `<div class="study-schedule-date"><strong>${escapeHtml(formatUpcomingDate(dateInfo))}</strong>${dateInfo.valid ? `<span>${WEEKDAY_LABELS[dateInfo.weekday]}요일</span>` : ""}${options.relativeLabel ? `<em class="schedule-relative ${options.relativeLabel === "지연" ? "late" : ""}">${options.relativeLabel}</em>` : ""}</div>` : "";
+  const accessibleDate = dateInfo.valid ? `${formatUpcomingDate(dateInfo)} ${WEEKDAY_LABELS[dateInfo.weekday]}요일` : "날짜 미지정";
+  const completeButtonHtml = `<button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}" aria-label="${escapeHtml(`${accessibleDate} ${plan.subject} 학습 완료`)}">완료했어요!</button>`;
   if (!done) console.log("[complete-button-html]", completeButtonHtml);
   return `
     <article class="study-card ${isOverdue ? "late" : normalizedStatus} ${done ? "completed" : ""}">
+      ${scheduleLabel}
       <span class="card-status">${done ? "⭐" : "📘"} ${displayStatus}</span>
       <h3>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)}</h3>
       <p>${escapeHtml(plan.unit)} / ${escapeHtml(plan.lessonNo)}</p>
