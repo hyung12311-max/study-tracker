@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v34";
+const BUILD_VERSION = "v35";
 const CACHE_VERSION = 2;
 const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
 const USER_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -23,8 +23,7 @@ const DEFAULT_REWARD_MILESTONES = [
   { id: "default-50", stars: 50, name: "수영장 쿠폰" },
 ];
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
-const UPCOMING_WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
-const SHOW_EMPTY_UPCOMING_WEEKDAYS = false;
+const CALENDAR_VISIBLE_CARD_LIMIT = 3;
 const statusLabels = {
   planned: "예정",
   done: "완료",
@@ -790,6 +789,69 @@ function comparePlans(a, b) {
   return a.studyDate.localeCompare(b.studyDate) || a.subject.localeCompare(b.subject, "ko");
 }
 
+function parseLocalDate(dateString) {
+  const value = String(dateString || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+}
+
+function formatDateKey(date) {
+  return toDateInput(date);
+}
+
+function getWeekStartSunday(date) {
+  return addDays(new Date(date.getFullYear(), date.getMonth(), date.getDate()), -date.getDay());
+}
+
+function getWeekEndSaturday(date) {
+  return addDays(getWeekStartSunday(date), 6);
+}
+
+function compareCalendarPlans(a, b) {
+  const groupOrder = String(a.planGroupId || a.plan_group_id || a.bookPlanId || "")
+    .localeCompare(String(b.planGroupId || b.plan_group_id || b.bookPlanId || ""), "ko", { numeric: true });
+  if (groupOrder) return groupOrder;
+  const dayOrder = String(a.dayNo || "").localeCompare(String(b.dayNo || ""), "ko", { numeric: true });
+  if (dayOrder) return dayOrder;
+  const pageOrder = Number(a.startPage || 0) - Number(b.startPage || 0);
+  if (pageOrder) return pageOrder;
+  return String(a.id).localeCompare(String(b.id), "ko", { numeric: true });
+}
+
+function groupPlansByDate(plans) {
+  const dates = new Map();
+  const undated = [];
+  plans.forEach((plan) => {
+    const date = parseLocalDate(plan.studyDate);
+    if (!date) {
+      undated.push(plan);
+      return;
+    }
+    const key = formatDateKey(date);
+    if (!dates.has(key)) dates.set(key, []);
+    dates.get(key).push(plan);
+  });
+  dates.forEach((items) => items.sort(compareCalendarPlans));
+  undated.sort(compareCalendarPlans);
+  return { dates, undated };
+}
+
+function groupPlansByWeek(plans) {
+  const { dates, undated } = groupPlansByDate(plans);
+  const weeks = new Map();
+  dates.forEach((items, dateKey) => {
+    const date = parseLocalDate(dateKey);
+    const weekStart = formatDateKey(getWeekStartSunday(date));
+    if (!weeks.has(weekStart)) {
+      weeks.set(weekStart, { weekStart, weekEnd: formatDateKey(getWeekEndSaturday(date)), dates: new Map() });
+    }
+    weeks.get(weekStart).dates.set(dateKey, items);
+  });
+  return { weeks: [...weeks.values()].sort((a, b) => a.weekStart.localeCompare(b.weekStart)), undated };
+}
+
 function isDoneStatus(status) {
   return status === "done" || status === "완료";
 }
@@ -1178,7 +1240,9 @@ function renderRoleControls() {
 function renderLearning() {
   $("#todayList").setAttribute("aria-busy", "false");
   const today = toDateInput(new Date());
-  const weekEnd = toDateInput(addDays(new Date(), 6));
+  const currentWeekStart = getWeekStartSunday(new Date());
+  const weekStart = formatDateKey(currentWeekStart);
+  const weekEnd = formatDateKey(getWeekEndSaturday(currentWeekStart));
   $("#todayDate").textContent = formatDate(today);
   $$(".today-filter").forEach((button) => {
     button.classList.toggle("active", button.dataset.learningFilter === learningFilter);
@@ -1188,14 +1252,25 @@ function renderLearning() {
     .filter((plan) => !isDoneStatus(plan.status) && plan.studyDate <= today)
     .sort(comparePlans);
   const weekPlans = state.plans
-    .filter((plan) => !isDoneStatus(plan.status) && plan.studyDate >= today && plan.studyDate <= weekEnd)
+    .filter((plan) => !isDoneStatus(plan.status) && plan.studyDate >= weekStart && plan.studyDate <= weekEnd)
     .sort(comparePlans);
   const upcomingPlans = state.plans.filter((plan) => !isDoneStatus(plan.status));
   let plans = duePlans;
 
-  if (learningFilter === "week") plans = weekPlans;
+  if (learningFilter === "week") {
+    if (!weekPlans.length) {
+      $("#todayList").innerHTML = '<div class="empty"><h3>이번 주 예정된 학습이 없습니다.</h3></div>';
+      return;
+    }
+    renderWeeklyCalendar([{
+      weekStart,
+      weekEnd,
+      dates: groupPlansByDate(weekPlans).dates,
+    }], { showPeriod: false });
+    return;
+  }
   if (learningFilter === "upcoming") {
-    renderUpcomingByWeekday(upcomingPlans, today);
+    renderUpcomingCalendar(upcomingPlans);
     return;
   }
   const academyTasks = learningFilter === "due" ? todaysAcademySchedules() : [];
@@ -1215,9 +1290,8 @@ const renderToday = renderLearning;
 
 function parsePlanDate(plan) {
   const value = String(plan.studyDate || "");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { valid: false, value };
-  const date = new Date(`${value}T12:00:00`);
-  if (Number.isNaN(date.getTime()) || toDateInput(date) !== value) return { valid: false, value };
+  const date = parseLocalDate(value);
+  if (!date) return { valid: false, value };
   return { valid: true, value, date, weekday: date.getDay() };
 }
 
@@ -1229,51 +1303,70 @@ function formatUpcomingDate(dateInfo) {
   return new Intl.DateTimeFormat("ko-KR", options).format(dateInfo.date);
 }
 
-function decorateUpcomingPlans(plans, today) {
-  const tomorrow = toDateInput(addDays(new Date(`${today}T12:00:00`), 1));
-  return plans.map((plan) => {
-    const dateInfo = parsePlanDate(plan);
-    let relativeLabel = "";
-    if (dateInfo.valid && dateInfo.value === today) relativeLabel = "오늘";
-    else if (dateInfo.valid && dateInfo.value === tomorrow) relativeLabel = "내일";
-    else if (dateInfo.valid && dateInfo.value < today) relativeLabel = "지연";
-    return { plan, dateInfo, relativeLabel };
-  });
+function formatCalendarPeriod(startKey, endKey) {
+  const formatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric" });
+  return `${formatter.format(parseLocalDate(startKey))} ~ ${formatter.format(parseLocalDate(endKey))}`;
 }
 
-function compareUpcomingItems(a, b) {
-  if (a.dateInfo.valid !== b.dateInfo.valid) return a.dateInfo.valid ? -1 : 1;
-  const dateOrder = a.dateInfo.value.localeCompare(b.dateInfo.value);
-  if (dateOrder) return dateOrder;
-  const aNumber = Number(a.plan.id), bNumber = Number(b.plan.id);
-  if (Number.isFinite(aNumber) && Number.isFinite(bNumber)) return aNumber - bNumber;
-  return String(a.plan.id).localeCompare(String(b.plan.id));
+function createCalendarStudyCard(plan) {
+  const dateInfo = parsePlanDate(plan);
+  const accessibleDate = dateInfo.valid ? `${formatUpcomingDate(dateInfo)} ${WEEKDAY_LABELS[dateInfo.weekday]}요일` : "날짜 미지정";
+  const pageRange = plan.startPage != null && plan.endPage != null ? `${plan.startPage}~${plan.endPage}쪽` : plan.target || "";
+  const title = `${plan.subject || ""} · ${plan.book || ""} / ${plan.unit || ""} / ${plan.lessonNo || ""} / ${plan.content || ""} / ${pageRange} / ${plan.dayNo || ""}`;
+  return `<article class="study-card calendar-study-card ${isLateStatus(plan.status) ? "late" : "planned"}" title="${escapeHtml(title)}">
+    <span class="card-status">${isLateStatus(plan.status) ? "지연" : "예정"}</span>
+    <h3>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)}</h3>
+    <p>${escapeHtml(plan.unit)}${plan.lessonNo ? ` / ${escapeHtml(plan.lessonNo)}` : ""}</p>
+    <div class="card-meta"><span>${escapeHtml(plan.content || "")}</span><span>${escapeHtml(pageRange)}</span><span>${escapeHtml(plan.dayNo || "")}</span></div>
+    <button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}" aria-label="${escapeHtml(`${accessibleDate} ${plan.subject} ${plan.book} 완료`)}">완료</button>
+  </article>`;
 }
 
-function renderUpcomingByWeekday(plans, today) {
+function renderCalendarDay(date, plans) {
+  const dateKey = formatDateKey(date);
+  const todayKey = formatDateKey(new Date());
+  const overdue = dateKey < todayKey && plans.some((plan) => !isDoneStatus(plan.status));
+  const hiddenCount = Math.max(plans.length - CALENDAR_VISIBLE_CARD_LIMIT, 0);
+  const weekday = WEEKDAY_LABELS[date.getDay()];
+  const label = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 ${weekday}요일, 학습계획 ${plans.length}개`;
+  return `<section class="calendar-day ${plans.length ? "" : "is-empty"} ${dateKey === todayKey ? "is-today" : ""} ${overdue ? "has-overdue" : ""}" data-calendar-date="${dateKey}" aria-label="${label}">
+    <header class="calendar-day-head"><strong>${date.getMonth() + 1}/${date.getDate()}</strong><span class="calendar-count">${plans.length}개</span>${dateKey === todayKey ? '<em class="calendar-badge today">오늘</em>' : ""}${overdue ? '<em class="calendar-badge late">지연</em>' : ""}</header>
+    <div class="calendar-day-cards">${plans.map((plan, index) => `<div class="calendar-card-slot${index >= CALENDAR_VISIBLE_CARD_LIMIT ? " is-extra" : ""}">${createCalendarStudyCard(plan)}</div>`).join("")}</div>
+    ${hiddenCount ? `<button type="button" class="calendar-more" data-action="toggle-calendar-day" aria-expanded="false">외 ${hiddenCount}개 더보기</button>` : ""}
+  </section>`;
+}
+
+function renderWeeklyCalendar(weeks, options = {}) {
   const root = $("#todayList");
-  const groups = new Map([...UPCOMING_WEEKDAY_ORDER, "invalid"].map((key) => [key, []]));
-  for (const item of decorateUpcomingPlans(plans, today)) groups.get(item.dateInfo.valid ? item.dateInfo.weekday : "invalid").push(item);
-  for (const items of groups.values()) items.sort(compareUpcomingItems);
-  const keys = [...UPCOMING_WEEKDAY_ORDER, "invalid"].filter((key) => SHOW_EMPTY_UPCOMING_WEEKDAYS || groups.get(key).length);
-
-  if (!keys.length) {
-    root.innerHTML = '<div class="empty"><h3>예정된 학습이 없습니다.</h3></div>';
-    return;
-  }
-
-  root.innerHTML = keys.map((key) => {
-    const items = groups.get(key);
-    const heading = key === "invalid" ? "날짜 미지정" : `${WEEKDAY_LABELS[key]}요일`;
-    const nearest = items.find((item) => item.dateInfo.valid && item.dateInfo.value >= today)
-      || items.find((item) => item.dateInfo.valid);
-    const nextLabel = nearest ? `다음 일정 ${formatUpcomingDate(nearest.dateInfo)}` : "날짜를 확인해 주세요";
-    const groupId = `upcoming-weekday-${key}`;
-    return `<section class="upcoming-weekday-group" aria-labelledby="${groupId}">
-      <header class="upcoming-weekday-head"><h3 id="${groupId}">${heading} · ${items.length}개 계획</h3><p>${nextLabel}</p></header>
-      <div class="upcoming-weekday-grid">${items.map((item) => createStudyCard(item.plan, { dateInfo: item.dateInfo, relativeLabel: item.relativeLabel })).join("")}</div>
+  const fragment = document.createDocumentFragment();
+  const wrapper = document.createElement("div");
+  wrapper.className = "weekly-calendar-list";
+  wrapper.innerHTML = weeks.map((week, weekIndex) => {
+    const start = parseLocalDate(week.weekStart);
+    const days = Array.from({ length: 7 }, (_, index) => addDays(start, index));
+    const headingId = `calendar-week-${week.weekStart}-${weekIndex}`;
+    return `<section class="weekly-calendar" ${options.showPeriod === false ? 'aria-label="이번 주 학습 캘린더"' : `aria-labelledby="${headingId}"`}>
+      ${options.showPeriod === false ? "" : `<h3 class="calendar-period" id="${headingId}">${formatCalendarPeriod(week.weekStart, week.weekEnd)}</h3>`}
+      <div class="calendar-scroll"><div class="calendar-board">
+        <div class="calendar-weekdays" role="row">${WEEKDAY_LABELS.map((label, index) => `<div role="columnheader" class="weekday weekday-${index}">${label}</div>`).join("")}</div>
+        <div class="calendar-days">${days.map((date) => renderCalendarDay(date, week.dates.get(formatDateKey(date)) || [])).join("")}</div>
+      </div></div>
     </section>`;
   }).join("");
+  fragment.appendChild(wrapper);
+  root.replaceChildren(fragment);
+}
+
+function renderUpcomingCalendar(plans) {
+  const { weeks, undated } = groupPlansByWeek(plans);
+  if (!weeks.length && !undated.length) {
+    $("#todayList").innerHTML = '<div class="empty"><h3>예정된 학습이 없습니다.</h3></div>';
+    return;
+  }
+  renderWeeklyCalendar(weeks, { showPeriod: true });
+  if (undated.length) {
+    $("#todayList").insertAdjacentHTML("beforeend", `<section class="undated-plans"><h3>날짜 미지정</h3><div>${undated.map(createStudyCard).join("")}</div></section>`);
+  }
 }
 
 function createStudyCard(plan, options = {}) {
@@ -1322,7 +1415,9 @@ async function handleCompletePlan(id, button) {
     state = await repository.load();
     await markOverduePlans();
     writeLocalData(state);
-    renderApp();
+    renderHeader();
+    renderLearning();
+    renderProgress();
     setConnectionStatus("");
     console.log("[complete-refresh-success]", id);
     if (!completion.alreadyCompleted) launchCelebration();
@@ -1340,7 +1435,9 @@ async function handleCompletePlan(id, button) {
   } catch (error) {
     if (isNetworkFallbackError(error)) {
       const completedPlan = markPlanCompleteLocally(id) || planBeforeComplete;
-      renderApp();
+      renderHeader();
+      renderLearning();
+      renderProgress();
       setConnectionStatus("");
       launchCelebration();
       if (completedPlan) await notifyParentOfCompletion(completedPlan);
@@ -2287,6 +2384,16 @@ function bindEvents() {
   });
 
   document.addEventListener("click", async (event) => {
+    const calendarMoreButton = event.target.closest('[data-action="toggle-calendar-day"]');
+    if (calendarMoreButton) {
+      const day = calendarMoreButton.closest(".calendar-day");
+      const expanded = day.classList.toggle("is-expanded");
+      calendarMoreButton.setAttribute("aria-expanded", String(expanded));
+      const hiddenCount = day.querySelectorAll(".calendar-card-slot.is-extra").length;
+      calendarMoreButton.textContent = expanded ? "접기" : `외 ${hiddenCount}개 더보기`;
+      return;
+    }
+
     const editRewardButton = event.target.closest('[data-action="edit-reward"]');
     if (editRewardButton) {
       event.stopPropagation();
