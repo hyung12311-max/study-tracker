@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v26";
+const BUILD_VERSION = "v27";
 const CACHE_VERSION = 2;
 const LEGACY_LOCAL_DATA_KEY = "study-tracker-local-data-v1";
 const CACHE_PREFIX = "study_tracker_cache";
@@ -746,6 +746,9 @@ let parentPushState = { status: "idle", message: "", registered: false };
 let parentNotificationPreferences = [];
 let familyChatController = null;
 let rewardStoreController = null;
+let appReady = false;
+let authenticationTransition = null;
+let realtimeUnsubscribe = null;
 
 function addDays(date, amount) {
   const next = new Date(date);
@@ -2303,35 +2306,58 @@ async function init() {
   resetForm();
   resetBookPlanForm();
   resetAcademyForm();
-  state = readLocalData();
-  ensureFormMode();
-  render();
-  const hasCachedData = state.plans.length || state.academySchedules.length || state.stickerCount;
-  setConnectionStatus(hasCachedData ? "최신 정보 확인 중..." : "학습 정보를 불러오는 중...");
-  Promise.allSettled([
-    initFamilyChat().then((controller) => { familyChatController = controller; }),
-    initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") })
-      .then((controller) => { rewardStoreController = controller; }),
-  ]).then(() => render());
-  try {
-    await reloadFromRemote();
-    repository.subscribe(reloadFromRemote, handleRepositoryError);
-  } catch (error) {
-    setConnectionStatus(hasCachedData ? "저장된 정보를 표시하고 있습니다. 연결되면 자동으로 최신화됩니다." : "인터넷 연결을 확인해 주세요.");
-    console.warn("[startup] background refresh failed", error);
-  }
+  familyChatController = await initFamilyChat();
+  if (!familyChatController.isAuthenticated()) await familyChatController.requireAuthentication();
+  await enterAuthenticatedApp();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
   if (["today", "progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);
 }
 
-window.addEventListener("online", () => reloadFromRemote());
+async function enterAuthenticatedApp() {
+  if (authenticationTransition) return authenticationTransition;
+  authenticationTransition = (async () => {
+    const shell = $("#appShell");
+    shell.hidden = true;
+    activeCacheKey = localDataKey();
+    state = readLocalData();
+    ensureFormMode();
+    const hasCachedData = state.plans.length || state.academySchedules.length || state.stickerCount;
+    setConnectionStatus(hasCachedData ? "최신 사용자 정보를 확인하고 있어요..." : "사용자 정보를 불러오고 있어요...");
+    try {
+      const rewardTask = rewardStoreController
+        ? rewardStoreController.refresh({ silent: true })
+        : initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") })
+            .then((controller) => { rewardStoreController = controller; });
+      await Promise.allSettled([reloadFromRemote(), rewardTask]);
+      render();
+      shell.hidden = false;
+      appReady = true;
+      realtimeUnsubscribe?.();
+      realtimeUnsubscribe = repository.subscribe(reloadFromRemote, handleRepositoryError);
+    } catch (error) {
+      console.warn("[startup] authenticated data load failed", error);
+      render();
+      shell.hidden = false;
+      appReady = true;
+      setConnectionStatus(hasCachedData ? "저장된 정보를 표시하고 있습니다. 연결되면 자동으로 최신화됩니다." : "인터넷 연결을 확인해 주세요.");
+    }
+  })().finally(() => { authenticationTransition = null; });
+  return authenticationTransition;
+}
+
+window.addEventListener("online", () => { if (appReady) reloadFromRemote(); });
 window.addEventListener("offline", () => setConnectionStatus("오프라인입니다. 저장된 정보를 표시합니다."));
-window.addEventListener("family-auth-changed", (event) => {
-  if (event.detail?.authenticated === false) localStorage.removeItem(activeCacheKey);
-  activeCacheKey = localDataKey();
-  state = readLocalData();
-  render();
-  reloadFromRemote();
+window.addEventListener("family-auth-changed", async (event) => {
+  if (!appReady) return;
+  if (event.detail?.authenticated === false) {
+    localStorage.removeItem(activeCacheKey);
+    appReady = false;
+    realtimeUnsubscribe?.();
+    realtimeUnsubscribe = null;
+    $("#appShell").hidden = true;
+    await familyChatController?.requireAuthentication();
+  }
+  if (familyChatController?.isAuthenticated()) await enterAuthenticatedApp();
 });
 
 init();

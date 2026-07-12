@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <div class="app-shell" id="appShell" hidden>
       <header class="topbar">
         <div>
           <p class="eyebrow">Study Sticker</p>
@@ -316,7 +316,7 @@
         <p id="familyMemberSelectionStatus" class="family-member-selection-status" aria-live="polite">가족 구성원을 불러오고 있어요.</p>
         <label>4자리 PIN<input id="familyPinInput" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required /></label>
         <p class="password-error" id="familyLoginError" aria-live="polite"></p>
-        <button type="submit" class="primary" id="familyLoginButton">가족방 들어가기</button>
+        <button type="submit" class="primary" id="familyLoginButton">이 사용자로 시작하기</button>
       </form>
     </dialog>
 
