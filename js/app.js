@@ -318,7 +318,7 @@ function createSupabaseRepository(config) {
       id: row.id,
       scheduleId: row.academy_schedule_id,
       completedDate: row.completed_date,
-      stars: Number.isFinite(value) && value > 0 ? value : 1,
+      stars: Number.isFinite(value) && value >= 0 ? value : 1,
     };
   }
 
@@ -414,7 +414,7 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "스티커 이력 불러오기 실패",
-        client.from("sticker_history").select("sticker_count"),
+        client.from("sticker_history").select("study_plan_id,sticker_count,reward_type,reward_reason"),
         []
       ),
       requestOrFallback(
@@ -453,7 +453,7 @@ function createSupabaseRepository(config) {
       stickerCount: safeStickers.length || safeAcademyCompletions.length
         ? loadedStickerCount
         : Number(localData.stickerCount || 0),
-      plans: safePlans.map(normalizeLoadedPlan),
+      plans: safePlans.map(normalizeLoadedPlan).map(plan=>{const rewardRow=safeStickers.find(item=>String(item.study_plan_id)===String(plan.id));return rewardRow?{...plan,stickerRewardCount:Number(rewardRow.sticker_count||0),stickerRewardType:rewardRow.reward_type,stickerRewardReason:rewardRow.reward_reason}:plan}),
       bookPlans: (Array.isArray(bookPlans) ? bookPlans : []).map(normalizeLoadedBookPlan),
       academySchedules: safeAcademySchedules.map(normalizeLoadedAcademySchedule),
       academyCompletions: safeAcademyCompletions.map(normalizeLoadedAcademyCompletion),
@@ -494,10 +494,6 @@ function createSupabaseRepository(config) {
   async function deletePlan(id) {
     assertConfigured();
     const planId = /^\d+$/.test(String(id)) ? Number(id) : id;
-    await request(
-      "연결된 스티커 기록 삭제 실패",
-      client.from("sticker_history").delete().eq("study_plan_id", planId)
-    );
     await request("학습계획 삭제 실패", client.from("study_plans").delete().eq("id", planId));
   }
 
@@ -557,18 +553,19 @@ function createSupabaseRepository(config) {
   }
 
   async function completePlan(id) {
-    assertConfigured();
-    const { data } = await request("학습 완료 및 일정 조정 실패", client.rpc("complete_study_plan_and_reschedule", {
-      p_plan_id: /^\d+$/.test(String(id)) ? Number(id) : id,
-      p_completed_date: toDateInput(new Date()),
-    }));
-    const result = Array.isArray(data) ? data[0] : data;
+    const authHeaders = familyAuthHeaders();
+    if (!authHeaders) throw new Error("가족 사용자 인증이 필요해요.");
+    const data = await requestJson("/api/rewards/study-complete", { method:"POST", headers:authHeaders, body:JSON.stringify({ planId:id }) });
+    const result = data.completion;
     return {
-      plan: result?.completed_plan ? planFromRow(result.completed_plan) : null,
-      adjustmentType: result?.adjustment_type || "normal",
-      rescheduledCount: Number(result?.rescheduled_count || 0),
-      stickerAwarded: result?.sticker_awarded === true,
-      alreadyCompleted: result?.already_completed === true,
+      plan: result?.plan ? planFromRow(result.plan) : null,
+      adjustmentType: result?.adjustmentType || "normal",
+      rescheduledCount: Number(result?.rescheduledCount || 0),
+      stickerCount: Number(result?.stickerCount || 0),
+      rewardType: result?.rewardType || null,
+      rewardReason: result?.rewardReason || "완료했어요!",
+      balance: Number(result?.balance || 0),
+      alreadyCompleted: result?.alreadyCompleted === true,
     };
   }
 
@@ -584,38 +581,10 @@ function createSupabaseRepository(config) {
         .single()
     );
 
-    if (isDoneStatus(status)) {
-      await request(
-        "스티커 저장 실패",
-        client
-          .from("sticker_history")
-          .upsert(sanitizePayload({ study_plan_id: id, sticker_count: 1 }), { onConflict: "study_plan_id" })
-      );
-    } else {
-      await request(
-        "스티커 상태 정리 실패",
-        client.from("sticker_history").delete().eq("study_plan_id", id)
-      );
-    }
-
     return planFromRow(data);
   }
 
-  async function syncStickerForPlan(planId, status) {
-    if (isDoneStatus(status)) {
-      await request(
-        "스티커 저장 실패",
-        client
-          .from("sticker_history")
-          .upsert(sanitizePayload({ study_plan_id: planId, sticker_count: 1 }), { onConflict: "study_plan_id" })
-      );
-      return;
-    }
-    await request(
-      "스티커 상태 정리 실패",
-      client.from("sticker_history").delete().eq("study_plan_id", planId)
-    );
-  }
+  async function syncStickerForPlan(){/* Sticker awards are written only by the authenticated completion API. */}
 
   async function saveReward(reward) {
     assertConfigured();
@@ -679,7 +648,7 @@ function createSupabaseRepository(config) {
       headers: authHeaders,
       body: JSON.stringify({ scheduleId: schedule.id, completedDate }),
     });
-    return academyCompletionFromRow(data.completion);
+    return {completion:academyCompletionFromRow(data.completion),stickerCount:Number(data.stickerCount||0),balance:Number(data.balance||0)};
   }
 
   async function recordCompletionNotification(entry) {
@@ -773,6 +742,7 @@ let installPrompt = null;
 const PWA_INSTALLED_KEY = "study-sticker-pwa-installed-v1";
 let parentPushState = { status: "idle", message: "", registered: false };
 let parentNotificationPreferences = [];
+const DEFAULT_STICKER_REWARDS={early_complete_count:3,on_time_complete_count:2,delayed_complete_count:1,no_date_complete_count:1,academy_complete_count:1};
 let familyChatController = null;
 let rewardStoreController = null;
 let appReady = false;
@@ -1406,7 +1376,7 @@ function createStudyCard(plan, options = {}) {
         <span>${escapeHtml(plan.dayNo)}</span>
       </div>
       ${done
-        ? `<div class="complete-done">참 잘했어요!</div>`
+        ? `<div class="complete-done">${escapeHtml(plan.stickerRewardReason||"완료했어요!")} ${Number(plan.stickerRewardCount||0)>0?`스티커 ${Number(plan.stickerRewardCount)}개를 받았어요.`:"이번 일정에는 지급되는 스티커가 없어요."}</div>`
         : completeButtonHtml}
     </article>
   `;
@@ -1440,12 +1410,8 @@ async function handleCompletePlan(id, button) {
     if (!completion.alreadyCompleted && completedPlan) await Promise.allSettled([notifyParentOfCompletion(completedPlan), createFamilyStudyMessage(completedPlan)]);
     if (completion.alreadyCompleted) {
       showToast("이미 완료된 학습이에요.");
-    } else if (completion.adjustmentType === "early") {
-      showToast(`예정보다 일찍 완료했어요! 다음 학습 일정 ${completion.rescheduledCount}건을 앞당겼습니다.`);
-    } else if (completion.adjustmentType === "late") {
-      showToast(`학습을 완료했어요. 남은 일정 ${completion.rescheduledCount}건을 뒤로 조정했습니다.`);
     } else {
-      showToast("GOOD!! 너무 잘했어!");
+      showToast(`${completion.rewardReason} ${completion.stickerCount>0?`스티커 ${completion.stickerCount}개를 받았어요.`:"이번 일정에는 지급되는 스티커가 없어요."}`);
     }
   } catch (error) {
     if (isNetworkFallbackError(error)) {
@@ -1495,7 +1461,8 @@ function renderRewards() {
 function createAcademyCard(schedule) {
   const today = toDateInput(new Date());
   const done = isAcademyCompleted(schedule.id, today);
-  const stars = Number(schedule.stars || 1);
+  const saved=(state.academyCompletions||[]).find(item=>String(item.scheduleId||item.academy_schedule_id)===String(schedule.id)&&(item.completedDate||item.completed_date)===today);
+  const stars = done?Number(saved?.stars??saved?.star_count??0):Number(schedule.stars || 1);
   const title = `${schedule.name || "\uD559\uC6D0"} \uB2E4\uB140\uC624\uAE30`;
   return `
     <article class="study-card academy ${done ? "completed" : ""}">
@@ -1507,7 +1474,7 @@ function createAcademyCard(schedule) {
         ${schedule.memo ? `<span>${escapeHtml(schedule.memo)}</span>` : ""}
       </div>
       ${done
-        ? `<div class="complete-done">\uC798 \uB2E4\uB140\uC654\uC5B4\uC694! \uBCC4 ${stars}\uAC1C\uAC00 \uC313\uC600\uC5B4\uC694.</div>`
+        ? `<div class="complete-done">학원을 잘 다녀왔어요! ${stars>0?`스티커 ${stars}개를 받았어요.`:"이번 일정에는 지급되는 스티커가 없어요."}</div>`
         : `<button type="button" class="complete-btn" data-action="complete-academy" data-id="${schedule.id}">\uC798 \uB2E4\uB140\uC654\uC5B4\uC694</button>`}
     </article>
   `;
@@ -1581,6 +1548,10 @@ function renderParent() {
   $("#planList").innerHTML = `${projects}${standalone ? `<section class="standalone-plan-list"><h3>하루 계획</h3>${standalone}</section>` : ""}${!projects && !standalone ? '<div class="empty">등록된 학습 계획이 없습니다.</div>' : ""}`;
 }
 
+function fillStickerRewardSettings(settings=DEFAULT_STICKER_REWARDS){const form=$("#stickerRewardSettingsForm");if(!form)return;for(const [key,value] of Object.entries(settings))if(form.elements[key])form.elements[key].value=String(value)}
+async function loadStickerRewardSettings(){const headers=familyAuthHeaders();if(!headers||familyChatController?.currentMember()?.role!=="parent")return;try{const data=await requestJson("/api/rewards/sticker-settings",{headers});fillStickerRewardSettings(data.settings);$("#stickerRewardSettingsError").textContent=""}catch(error){$("#stickerRewardSettingsError").textContent=error.message}}
+async function saveStickerRewardSettings(event){event.preventDefault();const form=event.currentTarget,button=$("#saveStickerRewardSettings"),error=$("#stickerRewardSettingsError"),payload={};error.textContent="";for(const key of Object.keys(DEFAULT_STICKER_REWARDS)){const value=Number(form.elements[key].value);if(!Number.isInteger(value)||value<0||value>20){error.textContent="스티커 개수는 0개부터 20개까지 입력해 주세요.";return}payload[key]=value}button.disabled=true;button.textContent="저장 중…";try{const data=await requestJson("/api/rewards/sticker-settings",{method:"PUT",headers:familyAuthHeaders(),body:JSON.stringify(payload)});fillStickerRewardSettings(data.settings);showToast("스티커 지급 설정이 저장되었습니다.")}catch(e){error.textContent=e.message}finally{button.disabled=false;button.textContent="저장"}}
+
 function renderRewardMilestoneAdmin() {
   const list = $("#rewardMilestoneList");
   if (!list) return;
@@ -1631,7 +1602,7 @@ function resetAcademyForm() {
   if (!form) return;
   form.reset();
   $("#academyScheduleId").value = "";
-  $("#academyStars").value = "1";
+  if($("#academyStars")) $("#academyStars").value = "1";
   const button = $("#academySubmitButton");
   if (button) button.textContent = "\uD559\uC6D0 \uC77C\uC815 \uCD94\uAC00";
 }
@@ -1854,11 +1825,11 @@ async function handleCompleteAcademy(id, button) {
     return;
   }
 
-  completeAcademyLocally(schedule, today, savedCompletion);
+  completeAcademyLocally(schedule, today, savedCompletion.completion);
   renderApp();
   setConnectionStatus("");
   launchCelebration();
-  showToast(`\uC798 \uB2E4\uB140\uC654\uC5B4\uC694! \uBCC4 ${stars}\uAC1C\uAC00 \uC313\uC600\uC5B4\uC694.`);
+  showToast(`학원을 잘 다녀왔어요! ${savedCompletion.stickerCount>0?`스티커 ${savedCompletion.stickerCount}개를 받았어요.`:"이번 일정에는 지급되는 스티커가 없어요."}`);
 
   await notifyParentOfAcademyCompletion(schedule, today);
   await rewardStoreController?.refresh({ silent: true });
@@ -2119,7 +2090,7 @@ async function handleAcademySubmit(event) {
     dayOfWeek: Number($("#academyDayOfWeek").value),
     time: $("#academyTime").value,
     memo: $("#academyMemo").value.trim(),
-    stars: Number($("#academyStars").value || 1),
+    stars: 1,
   };
   if (!schedule.name || !schedule.time || Number.isNaN(schedule.dayOfWeek)) return;
 
@@ -2146,7 +2117,7 @@ function handleEditAcademySchedule(id) {
   $("#academyDayOfWeek").value = String(schedule.dayOfWeek ?? new Date().getDay());
   $("#academyTime").value = schedule.time || "";
   $("#academyMemo").value = schedule.memo || "";
-  $("#academyStars").value = String(schedule.stars || 1);
+  if($("#academyStars")) $("#academyStars").value = String(schedule.stars || 1);
   const button = $("#academySubmitButton");
   if (button) button.textContent = "\uD559\uC6D0 \uC77C\uC815 \uC218\uC815";
   $("#academyForm").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2347,6 +2318,7 @@ function enterParentMode() {
   render();
   switchView("parent");
   loadNotificationPreferences();
+  loadStickerRewardSettings();
   showToast("부모 모드로 전환했어요.");
 }
 
@@ -2538,6 +2510,8 @@ function bindEvents() {
   $("#resetBookPlanButton")?.addEventListener("click", resetBookPlanForm);
   $$('[data-plan-mode]').forEach((button) => button.addEventListener("click", () => selectPlanRegistrationMode(button.dataset.planMode)));
   $("#academyForm")?.addEventListener("submit", handleAcademySubmit);
+  $("#stickerRewardSettingsForm")?.addEventListener("submit",saveStickerRewardSettings);
+  $("#resetStickerRewardSettings")?.addEventListener("click",()=>fillStickerRewardSettings());
   $("#rewardForm")?.addEventListener("submit", handleRewardSubmit);
   $("#enableParentNotificationButton")?.addEventListener("click", handleEnableParentNotifications);
   $("#testParentNotificationButton")?.addEventListener("click", handleTestParentNotification);

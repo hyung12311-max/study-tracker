@@ -25,6 +25,8 @@ module.exports = async function handler(request, response) {
       .map((member) => member.member_key);
     const sender = (members || []).find((member) => member.member_key === claims.key);
     const subject = plan.subject || plan.workbook || "학습";
+    const reward=(await u.supabaseFetch(`sticker_history?select=sticker_count,reward_type&study_plan_id=eq.${encodeURIComponent(plan.id)}&member_id=eq.${claims.sub}&limit=1`))?.[0];
+    const count=Number(reward?.sticker_count||0),rewardLabel=reward?.reward_type==="study_early"?"미리 완료":reward?.reward_type==="study_on_time"?"계획한 날짜에 완료":reward?.reward_type==="study_delayed"?"지연된 학습 완료":"학습 완료";
     const result = await u.sendToFamily({
       familyId: claims.family,
       memberKeys: parentKeys,
@@ -32,7 +34,7 @@ module.exports = async function handler(request, response) {
       event: "study_complete",
       payload: {
         title: "⭐ 학습 완료",
-        body: `${sender?.display_name || "아이가"} ${subject} 학습을 완료했어요.`,
+        body: `${sender?.display_name || "아이가"} ${subject} 학습을 완료했어요. ${rewardLabel}${count>0?`로 스티커 ${count}개를 받았습니다.`:"했으며 지급된 스티커는 없습니다."}`,
         icon: "/icons/icon-192.png",
         badge: "/icons/icon-192.png",
         url: "/?tab=today",
