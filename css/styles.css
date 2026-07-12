@@ -1167,6 +1167,8 @@ select {
 .parent-pin-change-button { width: fit-content; }
 .sticker-setting-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; grid-column: 1/-1; }
 .sticker-setting-grid label:last-child { grid-column: 1/-1; }
+.sticker-reward-settings > h4 { grid-column: 1/-1; margin: 8px 0 0; }
+.sticker-setting-grid-academy label:last-child { grid-column: 1/-1; }
 .pin-input-wrap { position: relative; display: block; margin-top: 6px; }
 .pin-input-wrap input { width: 100%; padding-right: 50px; }
 .pin-visibility-button { position: absolute; top: 50%; right: 7px; width: 38px; height: 38px; padding: 0; transform: translateY(-50%); border-radius: 50%; background: transparent; color: var(--muted); box-shadow: none; }

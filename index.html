@@ -259,6 +259,23 @@
           </section>
 
           <section id="parentPanelRewards" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabRewards" data-parent-tab="rewards" hidden>
+          <form id="stickerRewardSettingsForm" class="reward-form sticker-reward-settings">
+            <h3>스티커 지급 설정</h3>
+            <p>학습 완료 시점과 학원 일정 완료에 따라 지급할 스티커 개수를 설정합니다.</p>
+            <h4>학습 완료 보상</h4>
+            <div class="sticker-setting-grid">
+              <label>계획보다 먼저 완료<input name="early_complete_count" type="number" min="0" max="20" value="3" required /></label>
+              <label>계획한 날짜에 완료<input name="on_time_complete_count" type="number" min="0" max="20" value="2" required /></label>
+              <label>계획일이 지나서 완료<input name="delayed_complete_count" type="number" min="0" max="20" value="1" required /></label>
+              <label>계획일이 없는 학습<input name="no_date_complete_count" type="number" min="0" max="20" value="1" required /></label>
+            </div>
+            <h4>학원 일정 보상</h4>
+            <div class="sticker-setting-grid sticker-setting-grid-academy">
+              <label>학원을 잘 다녀왔어요 완료<input name="academy_complete_count" type="number" min="0" max="20" value="1" required /></label>
+            </div>
+            <p class="password-error" id="stickerRewardSettingsError" aria-live="polite"></p>
+            <div class="form-actions"><button type="button" id="resetStickerRewardSettings">기본값으로 초기화</button><button type="submit" class="primary" id="saveStickerRewardSettings">설정 저장</button></div>
+          </form>
           <form id="rewardProductForm" class="reward-form reward-product-form">
             <h3>보상 상품 관리</h3><input type="hidden" id="rewardProductId" />
             <div class="reward-product-fields">
@@ -281,19 +298,6 @@
           </section>
 
           <section id="parentPanelFamily" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabFamily" data-parent-tab="family" hidden>
-          <form id="stickerRewardSettingsForm" class="reward-form sticker-reward-settings">
-            <h3>스티커 지급 설정</h3>
-            <p>학습 완료 시점과 학원 일정 완료에 따라 지급할 스티커 개수를 설정합니다.</p>
-            <div class="sticker-setting-grid">
-              <label>계획일보다 먼저 완료<input name="early_complete_count" type="number" min="0" max="20" value="3" required /></label>
-              <label>계획한 날짜에 완료<input name="on_time_complete_count" type="number" min="0" max="20" value="2" required /></label>
-              <label>계획일이 지나서 완료<input name="delayed_complete_count" type="number" min="0" max="20" value="1" required /></label>
-              <label>계획일이 없는 학습 완료<input name="no_date_complete_count" type="number" min="0" max="20" value="1" required /></label>
-              <label>학원 일정 완료<input name="academy_complete_count" type="number" min="0" max="20" value="1" required /></label>
-            </div>
-            <p class="password-error" id="stickerRewardSettingsError" aria-live="polite"></p>
-            <div class="form-actions"><button type="button" id="resetStickerRewardSettings">기본값으로 초기화</button><button type="submit" class="primary" id="saveStickerRewardSettings">저장</button></div>
-          </form>
           <section class="reward-form" id="parentNotificationPanel">
             <h3>부모 알림</h3>
             <p id="parentNotificationStatus">알림 상태를 확인하고 있어요.</p>
