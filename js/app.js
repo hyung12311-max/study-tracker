@@ -1,13 +1,15 @@
 import { createClient } from "./vendor/supabase-js.js";
 import { SUPABASE_CONFIG } from "./config.js";
-import { TOKEN_KEY as FAMILY_TOKEN_KEY } from "./family-auth.js";
+import { AUTH_KEY as FAMILY_AUTH_KEY, TOKEN_KEY as FAMILY_TOKEN_KEY } from "./family-auth.js";
 import { initFamilyChat } from "./family-chat.js";
 import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v24";
-const LOCAL_DATA_KEY = "study-tracker-local-data-v1";
+const BUILD_VERSION = "v26";
+const CACHE_VERSION = 2;
+const LEGACY_LOCAL_DATA_KEY = "study-tracker-local-data-v1";
+const CACHE_PREFIX = "study_tracker_cache";
 const LOCAL_NOTIFICATION_KEY = "study-tracker-parent-notifications-v1";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const DEFAULT_REWARD_MILESTONES = [
@@ -52,31 +54,55 @@ function normalizeRewardMilestones(milestones, legacyReward) {
   return normalized.length ? normalized : [...DEFAULT_REWARD_MILESTONES];
 }
 
+function cacheIdentity() {
+  try {
+    const member = JSON.parse(localStorage.getItem(FAMILY_AUTH_KEY) || "null")?.member || {};
+    return { familyId: member.family_id || "default", memberKey: member.member_key || localStorage.getItem("study-tracker-family-member-v1") || "default" };
+  } catch { return { familyId: "default", memberKey: "default" }; }
+}
+
+function localDataKey() {
+  const { familyId, memberKey } = cacheIdentity();
+  return `${CACHE_PREFIX}_${familyId}_${memberKey}`;
+}
+
+function emptyLocalData() {
+  return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
+}
+
 function readLocalData() {
   try {
-    const raw = localStorage.getItem(LOCAL_DATA_KEY);
-    if (!raw) return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
+    const key = localDataKey();
+    const raw = localStorage.getItem(key) || (cacheIdentity().memberKey === "default" ? localStorage.getItem(LEGACY_LOCAL_DATA_KEY) : null);
+    if (!raw) return emptyLocalData();
     const parsed = JSON.parse(raw);
+    const cached = parsed?.version ? parsed.data : parsed;
+    if (parsed?.version && parsed.version !== CACHE_VERSION) { localStorage.removeItem(key); return emptyLocalData(); }
     return {
-      reward: parsed.reward || { ...DEFAULT_REWARD },
-      rewardMilestones: normalizeRewardMilestones(parsed.rewardMilestones || parsed.rewards, parsed.reward),
-      stickerCount: Number(parsed.stickerCount || 0),
-      plans: Array.isArray(parsed.plans) ? parsed.plans : [],
-      bookPlans: Array.isArray(parsed.bookPlans) ? parsed.bookPlans : [],
-      academySchedules: Array.isArray(parsed.academySchedules) ? parsed.academySchedules : [],
-      academyCompletions: Array.isArray(parsed.academyCompletions) ? parsed.academyCompletions : [],
+      reward: cached.reward || { ...DEFAULT_REWARD },
+      rewardMilestones: normalizeRewardMilestones(cached.rewardMilestones || cached.rewards, cached.reward),
+      stickerCount: Number(cached.stickerCount || 0),
+      plans: Array.isArray(cached.plans) ? cached.plans : [],
+      bookPlans: Array.isArray(cached.bookPlans) ? cached.bookPlans : [],
+      academySchedules: Array.isArray(cached.academySchedules) ? cached.academySchedules : [],
+      academyCompletions: Array.isArray(cached.academyCompletions) ? cached.academyCompletions : [],
     };
   } catch (error) {
     console.warn("[local fallback] read failed", error);
-    return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
+    localStorage.removeItem(localDataKey());
+    return emptyLocalData();
   }
 }
 
 function writeLocalData(data) {
   try {
     localStorage.setItem(
-      LOCAL_DATA_KEY,
+      localDataKey(),
       JSON.stringify({
+        version: CACHE_VERSION,
+        savedAt: new Date().toISOString(),
+        identity: cacheIdentity(),
+        data: {
         reward: data.reward || { ...DEFAULT_REWARD },
         rewardMilestones: normalizeRewardMilestones(data.rewardMilestones, data.reward),
         stickerCount: Number(data.stickerCount || 0),
@@ -84,7 +110,7 @@ function writeLocalData(data) {
         bookPlans: Array.isArray(data.bookPlans) ? data.bookPlans : [],
         academySchedules: Array.isArray(data.academySchedules) ? data.academySchedules : [],
         academyCompletions: Array.isArray(data.academyCompletions) ? data.academyCompletions : [],
-        updatedAt: new Date().toISOString(),
+        },
       })
     );
   } catch (error) {
@@ -232,6 +258,11 @@ function createSupabaseRepository(config) {
     return item;
   }
 
+  function normalizeLoadedBookPlan(item) {
+    if (item && "start_date" in item) return bookPlanFromRow(item);
+    return item;
+  }
+
   function academyScheduleFromRow(row) {
     return {
       id: row.id,
@@ -326,22 +357,22 @@ function createSupabaseRepository(config) {
     ] = await Promise.all([
       requestOrFallback(
         "학습계획 불러오기 실패",
-        client.from("study_plans").select("*").order("study_date", { ascending: true }),
+        client.from("study_plans").select("id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status,book_plan_id,sequence_no,start_page,end_page,task_type,note").order("study_date", { ascending: true }),
         localData.plans
       ),
       requestOrFallback(
         "교재 계획 불러오기 실패",
-        client.from("book_plans").select("*").order("updated_at", { ascending: false }),
+        client.from("book_plans").select("id,subject,workbook,chapter,lesson,content,start_date,study_weekdays,start_page,end_page,pages_per_day,goal,memo,expected_end_date,updated_at").order("updated_at", { ascending: false }),
         localData.bookPlans || []
       ),
       requestOrFallback(
         "보상 설정 불러오기 실패",
-        client.from("reward_settings").select("*").limit(1).maybeSingle(),
+        client.from("reward_settings").select("id,target_stickers,reward_name").limit(1).maybeSingle(),
         localData.reward
       ),
       requestOrFallback(
         "보상 마일스톤 불러오기 실패",
-        client.from("reward_milestones").select("*").order("required_stickers", { ascending: true }),
+        client.from("reward_milestones").select("id,required_stickers,reward_name,sort_order").order("required_stickers", { ascending: true }),
         localData.rewardMilestones
       ),
       requestOrFallback(
@@ -351,7 +382,7 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "학원 일정 불러오기 실패",
-        client.from("academy_schedules").select("*").order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
+        client.from("academy_schedules").select("id,academy_name,day_of_week,start_time,memo,star_count").order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
         localData.academySchedules
       ),
       requestOrFallback(
@@ -386,23 +417,13 @@ function createSupabaseRepository(config) {
         ? loadedStickerCount
         : Number(localData.stickerCount || 0),
       plans: safePlans.map(normalizeLoadedPlan),
-      bookPlans: (Array.isArray(bookPlans) ? bookPlans : []).map(bookPlanFromRow),
+      bookPlans: (Array.isArray(bookPlans) ? bookPlans : []).map(normalizeLoadedBookPlan),
       academySchedules: safeAcademySchedules.map(normalizeLoadedAcademySchedule),
       academyCompletions: safeAcademyCompletions.map(normalizeLoadedAcademyCompletion),
     };
     })();
 
-    const result = await Promise.race([
-      remoteLoad,
-      new Promise((resolve) => window.setTimeout(() => resolve(null), requestTimeoutMs)),
-    ]);
-
-    if (!result) {
-      warnReadFallback(`Supabase load timed out after ${requestTimeoutMs}ms. Rendering local fallback data.`);
-      return localData;
-    }
-
-    return result;
+    return remoteLoad;
   }
 
   async function save(data) {
@@ -665,7 +686,10 @@ function createSupabaseRepository(config) {
       .channel("study-tracker-single-user")
       .on("postgres_changes", { event: "*", schema: "public", table: "study_plans" }, onChange)
       .on("postgres_changes", { event: "*", schema: "public", table: "reward_settings" }, onChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "reward_milestones" }, onChange)
       .on("postgres_changes", { event: "*", schema: "public", table: "sticker_history" }, onChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "academy_schedules" }, onChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "academy_completion_history" }, onChange)
       .subscribe((status, error) => {
         if (status === "SUBSCRIBED") {
           console.log("[Supabase realtime] subscribed");
@@ -714,6 +738,8 @@ state.formMode = "create";
 let isParentMode = false;
 let learningFilter = "due";
 let isRemoteRefreshPending = false;
+let remoteLoadPromise = null;
+let activeCacheKey = localDataKey();
 let installPrompt = null;
 const PWA_INSTALLED_KEY = "study-sticker-pwa-installed-v1";
 let parentPushState = { status: "idle", message: "", registered: false };
@@ -2247,22 +2273,25 @@ function bindEvents() {
 }
 
 async function reloadFromRemote() {
-  if (isRemoteRefreshPending) return;
+  if (isRemoteRefreshPending) return remoteLoadPromise;
   isRemoteRefreshPending = true;
-  window.setTimeout(async () => {
+  remoteLoadPromise = (async () => {
     try {
+      const previous = JSON.stringify(state);
       state = await repository.load();
       ensureFormMode();
       await markOverduePlans();
       writeLocalData(state);
-      render();
-      setConnectionStatus("");
+      if (JSON.stringify(state) !== previous) render();
+      setConnectionStatus(navigator.onLine ? "" : "오프라인입니다. 저장된 정보를 표시합니다.");
     } catch (error) {
       handleRepositoryError(error);
     } finally {
       isRemoteRefreshPending = false;
+      remoteLoadPromise = null;
     }
-  }, 250);
+  })();
+  return remoteLoadPromise;
 }
 
 async function init() {
@@ -2270,28 +2299,40 @@ async function init() {
   initParentDashboard();
   console.log(`[build] Data source: Supabase / Build: ${BUILD_VERSION}`);
   registerServiceWorker();
-  familyChatController = await initFamilyChat();
-  rewardStoreController = await initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") });
   updateInstallUI();
   resetForm();
   resetBookPlanForm();
   resetAcademyForm();
-  $("#todayList").innerHTML = `<div class="empty"><h3>학습계획을 불러오는 중이에요</h3><p>Supabase에서 데이터를 가져오고 있어요.</p></div>`;
+  state = readLocalData();
+  ensureFormMode();
+  render();
+  const hasCachedData = state.plans.length || state.academySchedules.length || state.stickerCount;
+  setConnectionStatus(hasCachedData ? "최신 정보 확인 중..." : "학습 정보를 불러오는 중...");
+  Promise.allSettled([
+    initFamilyChat().then((controller) => { familyChatController = controller; }),
+    initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") })
+      .then((controller) => { rewardStoreController = controller; }),
+  ]).then(() => render());
   try {
-    state = await repository.load();
-    ensureFormMode();
-    await markOverduePlans();
-    writeLocalData(state);
-    render();
-    setConnectionStatus("");
+    await reloadFromRemote();
     repository.subscribe(reloadFromRemote, handleRepositoryError);
   } catch (error) {
-    render();
-    handleRepositoryError(error);
+    setConnectionStatus(hasCachedData ? "저장된 정보를 표시하고 있습니다. 연결되면 자동으로 최신화됩니다." : "인터넷 연결을 확인해 주세요.");
+    console.warn("[startup] background refresh failed", error);
   }
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
   if (["today", "progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);
 }
+
+window.addEventListener("online", () => reloadFromRemote());
+window.addEventListener("offline", () => setConnectionStatus("오프라인입니다. 저장된 정보를 표시합니다."));
+window.addEventListener("family-auth-changed", (event) => {
+  if (event.detail?.authenticated === false) localStorage.removeItem(activeCacheKey);
+  activeCacheKey = localDataKey();
+  state = readLocalData();
+  render();
+  reloadFromRemote();
+});
 
 init();
 
