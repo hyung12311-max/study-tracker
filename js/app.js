@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v29";
+const BUILD_VERSION = "v30";
 const CACHE_VERSION = 2;
 const LEGACY_LOCAL_DATA_KEY = "study-tracker-local-data-v1";
 const CACHE_PREFIX = "study_tracker_cache";
@@ -344,6 +344,12 @@ function createSupabaseRepository(config) {
     }
 
     const remoteLoad = (async () => {
+    console.info("[study_plans query]", {
+      select: "id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status",
+      where: {},
+      order: { study_date: "asc" },
+      cacheKey: localDataKey(),
+    });
     ensureRewardSettings();
 
     const [
@@ -357,7 +363,7 @@ function createSupabaseRepository(config) {
     ] = await Promise.all([
       requestOrFallback(
         "학습계획 불러오기 실패",
-        client.from("study_plans").select("id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status,book_plan_id,sequence_no,start_page,end_page,task_type,note").order("study_date", { ascending: true }),
+        client.from("study_plans").select("id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status").order("study_date", { ascending: true }),
         localData.plans
       ),
       requestOrFallback(
@@ -2331,6 +2337,13 @@ async function enterAuthenticatedApp() {
     const shell = $("#appShell");
     shell.hidden = true;
     activeCacheKey = localDataKey();
+    const currentMember = familyChatController?.currentMember();
+    console.info("[startup auth]", {
+      member_key: currentMember?.member_key || null,
+      family_id: currentMember?.family_id || null,
+      role: currentMember?.role || null,
+      cacheKey: activeCacheKey,
+    });
     state = readLocalData();
     ensureFormMode();
     const hasCachedData = state.plans.length || state.academySchedules.length || state.stickerCount;

@@ -1,4 +1,4 @@
-const CACHE_NAME = "hagyeom-study-sticker-v29";
+const CACHE_NAME = "hagyeom-study-sticker-v30";
 const ASSETS = [
   "/",
   "/index.html",
