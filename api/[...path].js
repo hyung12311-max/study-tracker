@@ -28,6 +28,7 @@ const rewardsStickerSettings = require("../server/api/rewards/sticker-settings")
 const rewardsStudyComplete = require("../server/api/rewards/study-complete");
 const rewardMilestones = require("../server/api/reward-milestones");
 const completionNotifications = require("../server/api/completion-notifications");
+const studyReadingPlans = require("../server/api/study/reading-plans");
 
 const routes = Object.freeze({
   "family/members": familyMembers,
@@ -61,6 +62,7 @@ const routes = Object.freeze({
   "rewards/study-complete": rewardsStudyComplete,
   reward_milestones: rewardMilestones,
   completion_notifications: completionNotifications,
+  "study/reading-plans": studyReadingPlans,
 });
 
 function routeKey(request) {

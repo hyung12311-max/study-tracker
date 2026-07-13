@@ -87,3 +87,26 @@ test("missing Supabase completion RPC is reported as server configuration error,
     restore();
   }
 });
+
+test("a reading plan from another family cannot be completed", async () => {
+  let completed = false;
+  const restore = replaceUtils({
+    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    readJson: async () => ({ planId: "36" }),
+    memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
+    supabaseFetch: async (path) => {
+      if (path.startsWith("study_plans?select=")) return [{ id: 36, subject: "독서", status: "예정", reading_plan_id: "reading-id", reading_plans: { family_id: "other-family" } }];
+      completed = true;
+      return [];
+    },
+  });
+  try {
+    const response = responseCapture();
+    await handler({ method: "POST", headers: {} }, response);
+    assert.equal(response.statusCode, 404);
+    assert.equal(response.body.code, "STUDY_PLAN_NOT_FOUND");
+    assert.equal(completed, false);
+  } finally {
+    restore();
+  }
+});

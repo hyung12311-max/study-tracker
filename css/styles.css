@@ -833,10 +833,31 @@ h2 {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.plan-registration-switch { display: flex; gap: 8px; width: fit-content; margin: 0 0 14px; padding: 5px; border-radius: 16px; background: #f1f2f5; }
-.plan-registration-switch button { min-height: 40px; border-radius: 12px; background: transparent; color: var(--muted); box-shadow: none; }
-.plan-registration-switch button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 5px 16px rgba(43,42,53,.1); }
+.plan-registration-switch { display: flex; gap: 8px; width: fit-content; margin: 0 0 14px; padding: 5px; border: 0; border-radius: 16px; background: #f1f2f5; }
+.plan-registration-switch legend { padding: 0 4px; font-weight: 900; }
+.plan-registration-switch label { cursor: pointer; }
+.plan-registration-switch input { position: absolute; opacity: 0; pointer-events: none; }
+.plan-registration-switch span { display: grid; place-items: center; min-width: 92px; min-height: 40px; padding: 0 14px; border-radius: 12px; color: var(--muted); font-weight: 900; }
+.plan-registration-switch input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 5px 16px rgba(43,42,53,.1); }
 .book-plan-form { display: grid; gap: 16px; margin-bottom: 18px; padding: 18px; border-radius: 18px; background: rgba(255,255,255,.86); box-shadow: var(--shadow); }
+.reading-plan-form { display: grid; gap: 18px; margin-bottom: 18px; padding: 20px; border-radius: 20px; background: linear-gradient(145deg,#fffdf7,#f3fbf4); box-shadow: var(--shadow); }
+.reading-plan-intro { display: flex; gap: 13px; align-items: center; }
+.reading-plan-intro > span { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: #daf0dc; font-size: 1.7rem; }
+.reading-plan-intro h3,.reading-plan-intro p { margin: 0; }
+.reading-plan-intro p { margin-top: 4px; color: var(--muted); }
+.reading-mode-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; padding: 0; border: 0; }
+.reading-mode-picker legend { margin-bottom: 8px; font-weight: 900; }
+.reading-mode-picker label { cursor: pointer; }
+.reading-mode-picker input { position: absolute; opacity: 0; pointer-events: none; }
+.reading-mode-picker label > span { display: grid; gap: 3px; min-height: 78px; padding: 14px; border: 2px solid transparent; border-radius: 15px; background: #fff; box-shadow: 0 4px 14px rgba(43,42,53,.07); }
+.reading-mode-picker input:checked + span { border-color: #67ad70; background: #eef9ef; }
+.reading-mode-picker small,.reading-page-fields small { color: var(--muted); }
+.reading-page-fields { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+.reading-plan-preview { padding: 14px 16px; border-radius: 15px; background: #eef7ff; color: #35506e; }
+.reading-plan-preview strong { color: var(--ink); }
+.reading-plan-actions { justify-content: flex-end; }
+.study-card.reading { border-color: rgba(67,137,78,.28); background: linear-gradient(145deg,#fff,#f2fbf3); }
+.reading-card-icon { color: #2f7740; }
 .book-plan-fields { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
 .book-plan-fields label { min-width: 0; }
 .book-plan-fields small { color: var(--muted); font-weight: 700; }
@@ -877,10 +898,12 @@ h2 {
 .standalone-plan-list { margin-top: 22px; }
 
 @media (max-width: 760px) {
-  .plan-registration-switch { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
-  .plan-registration-switch button { padding: 0 8px; }
+  .plan-registration-switch { display: grid; grid-template-columns: repeat(3,1fr); width: 100%; }
+  .plan-registration-switch legend { grid-column: 1/-1; }
+  .plan-registration-switch span { min-width: 0; padding: 0 8px; }
   .book-plan-fields { grid-template-columns: 1fr; }
   .book-plan-wide { grid-column: auto; }
+  .reading-mode-picker,.reading-page-fields { grid-template-columns: 1fr; }
   .book-project-card summary { grid-template-columns: 1fr; }
   .book-project-progress small { text-align: left; }
   .book-project-toolbar { justify-content: stretch; flex-wrap: wrap; }

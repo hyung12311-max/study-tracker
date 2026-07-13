@@ -166,10 +166,12 @@
             </article>
           </div>
 
-          <div class="plan-registration-switch" role="tablist" aria-label="학습 계획 등록 방식">
-            <button type="button" role="tab" aria-selected="false" data-plan-mode="daily">하루 계획 등록</button>
-            <button type="button" role="tab" aria-selected="true" data-plan-mode="book">교재 계획 자동 생성</button>
-          </div>
+          <fieldset class="plan-registration-switch" aria-label="학습 유형">
+            <legend>학습 유형</legend>
+            <label><input type="radio" name="learningType" value="book" data-plan-mode="book" checked /><span>문제집</span></label>
+            <label><input type="radio" name="learningType" value="reading" data-plan-mode="reading" /><span>독서</span></label>
+            <label><input type="radio" name="learningType" value="daily" data-plan-mode="daily" /><span>기타</span></label>
+          </fieldset>
 
           <form id="planForm" class="planner-form plan-registration-panel" data-plan-form="daily" hidden>
             <input type="hidden" id="planId" />
@@ -227,6 +229,39 @@
             <div class="form-actions book-plan-actions">
               <button type="reset" id="resetBookPlanButton">새 교재 계획</button>
               <button type="submit" class="primary" id="createBookPlanButton">전체 계획 생성</button>
+            </div>
+          </form>
+          <form id="readingPlanForm" class="reading-plan-form plan-registration-panel" data-plan-form="reading" hidden>
+            <header class="reading-plan-intro">
+              <span aria-hidden="true">📚</span>
+              <div><h3>독서 습관 계획</h3><p>요일만 고르면 오늘부터 4주 동안 같은 독서 일정이 만들어져요.</p></div>
+            </header>
+            <fieldset class="reading-mode-picker">
+              <legend>독서 방식</legend>
+              <label><input type="radio" name="readingMode" value="free" checked /><span><strong>자유 독서</strong><small>그날 읽고 싶은 책을 자유롭게 읽어요.</small></span></label>
+              <label><input type="radio" name="readingMode" value="pages" /><span><strong>페이지 지정</strong><small>같은 페이지 범위를 읽는 일정이에요.</small></span></label>
+            </fieldset>
+            <fieldset class="book-plan-weekdays reading-weekdays">
+              <legend>독서 요일</legend>
+              <div>
+                <label><input type="checkbox" name="readingWeekday" value="1" checked /><span>월</span></label>
+                <label><input type="checkbox" name="readingWeekday" value="2" /><span>화</span></label>
+                <label><input type="checkbox" name="readingWeekday" value="3" checked /><span>수</span></label>
+                <label><input type="checkbox" name="readingWeekday" value="4" /><span>목</span></label>
+                <label><input type="checkbox" name="readingWeekday" value="5" checked /><span>금</span></label>
+                <label><input type="checkbox" name="readingWeekday" value="6" /><span>토</span></label>
+                <label><input type="checkbox" name="readingWeekday" value="0" /><span>일</span></label>
+              </div>
+            </fieldset>
+            <div id="readingPageFields" class="reading-page-fields" hidden>
+              <label class="reading-book-title">책 이름 <small>선택</small><input id="readingBookTitle" maxlength="120" placeholder="비워도 괜찮아요" /></label>
+              <label>시작 페이지<input id="readingStartPage" type="number" min="1" placeholder="20" /></label>
+              <label>마지막 페이지<input id="readingEndPage" type="number" min="1" placeholder="40" /></label>
+            </div>
+            <section id="readingPlanPreview" class="reading-plan-preview" aria-live="polite"></section>
+            <div class="form-actions reading-plan-actions">
+              <button type="reset" id="resetReadingPlanButton">초기화</button>
+              <button type="submit" class="primary" id="createReadingPlanButton">4주 독서 계획 만들기</button>
             </div>
           </form>
           <div id="planList" class="plan-list"></div>

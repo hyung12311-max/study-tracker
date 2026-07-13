@@ -29,8 +29,11 @@ module.exports = async function handler(request, response) {
 
     const member = await u.memberInFamily(claims.sub, claims.family);
     if (member?.role !== "child" || member.is_active === false) throw u.err("권한이 없습니다.", 403, "CHILD_PERMISSION_REQUIRED");
-    const plan = (await u.supabaseFetch(`study_plans?select=id,subject,workbook,status&id=eq.${encodeURIComponent(planId)}&limit=1`))?.[0];
+    const plan = (await u.supabaseFetch(`study_plans?select=id,subject,workbook,status,reading_plan_id,reading_plans(family_id)&id=eq.${encodeURIComponent(planId)}&limit=1`))?.[0];
     if (!plan) throw u.err("학습 계획을 찾을 수 없습니다.", 404, "STUDY_PLAN_NOT_FOUND");
+    if (plan.reading_plan_id && plan.reading_plans?.family_id !== claims.family) {
+      throw u.err("학습 계획을 찾을 수 없습니다.", 404, "STUDY_PLAN_NOT_FOUND");
+    }
 
     const rows = await u.supabaseFetch("rpc/complete_study_plan_with_reward", {
       method: "POST",

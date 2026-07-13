@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v37";
+const BUILD_VERSION = "v38";
 const CACHE_VERSION = 2;
 const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
 const USER_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -252,6 +252,7 @@ function createSupabaseRepository(config) {
       target: row.goal,
       status: row.status,
       bookPlanId: row.book_plan_id || null,
+      readingPlanId: row.reading_plan_id || null,
       sequenceNo: Number(row.sequence_no || 0),
       startPage: row.start_page == null ? null : Number(row.start_page),
       endPage: row.end_page == null ? null : Number(row.end_page),
@@ -371,12 +372,13 @@ function createSupabaseRepository(config) {
 
     const remoteLoad = (async () => {
     const weekEnd = toDateInput(addDays(new Date(), 6));
+    const planSelect = "id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status,book_plan_id,reading_plan_id,sequence_no,start_page,end_page,task_type,note,study_weekdays";
     let plansQuery = client.from("study_plans")
-      .select("id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status")
+      .select(planSelect)
       .order("study_date", { ascending: true });
     if (essentialOnly) plansQuery = plansQuery.lte("study_date", weekEnd).not("status", "in", "(완료,done)");
     console.info("[study_plans query]", {
-      select: "id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status",
+      select: planSelect,
       where: essentialOnly ? { study_date: `<=${weekEnd}`, status: "not in (완료,done)" } : {},
       order: { study_date: "asc" },
       cacheKey: localDataKey(),
@@ -523,6 +525,20 @@ function createSupabaseRepository(config) {
       firstStudyDate: result?.first_study_date || null,
       lastStudyDate: result?.last_study_date || null,
       rows: Array.isArray(result?.generated_rows) ? result.generated_rows : [],
+    };
+  }
+
+  async function createReadingPlan(input) {
+    const data = await requestJson("/api/study/reading-plans", {
+      method: "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify(input),
+    });
+    return {
+      readingPlanId: data.readingPlanId,
+      generatedCount: Number(data.generatedCount || 0),
+      firstStudyDate: data.firstStudyDate || null,
+      lastStudyDate: data.lastStudyDate || null,
     };
   }
 
@@ -703,6 +719,7 @@ function createSupabaseRepository(config) {
     upsertPlan,
     deletePlan,
     createBookPlan,
+    createReadingPlan,
     addBookPlanReview,
     updateBookPlanPages,
     deleteBookPlanTask,
@@ -1280,6 +1297,15 @@ function formatCalendarPeriod(startKey, endKey) {
   return `${formatter.format(parseLocalDate(startKey))} ~ ${formatter.format(parseLocalDate(endKey))}`;
 }
 
+function isReadingPlan(plan) {
+  return plan?.taskType === "reading_free" || plan?.taskType === "reading_pages";
+}
+
+function readingPageLabel(plan, suffix = "") {
+  if (plan.startPage == null || plan.endPage == null) return "";
+  return `${plan.startPage}~${plan.endPage}P${suffix}`;
+}
+
 function createCalendarStudyCard(plan) {
   const dateInfo = parsePlanDate(plan);
   const accessibleDate = dateInfo.valid ? `${formatUpcomingDate(dateInfo)} ${WEEKDAY_LABELS[dateInfo.weekday]}요일` : "날짜 미지정";
@@ -1287,6 +1313,16 @@ function createCalendarStudyCard(plan) {
   const title = `${plan.subject || ""} · ${plan.book || ""} / ${plan.unit || ""} / ${plan.lessonNo || ""} / ${plan.content || ""} / ${pageRange} / ${plan.dayNo || ""}`;
   const isToday = dateInfo.valid && dateInfo.value === formatDateKey(new Date());
   const status = isLateStatus(plan.status) || (dateInfo.valid && dateInfo.value < formatDateKey(new Date())) ? "지연" : isToday ? "오늘" : "예정";
+  if (isReadingPlan(plan)) {
+    const readingText = plan.taskType === "reading_free" ? "자유 독서" : readingPageLabel(plan, plan.book ? "" : " 읽기");
+    return `<article class="study-card reading calendar-study-card calendar-plan-card ${status === "지연" ? "late" : "planned"}" title="${escapeHtml(`독서 / ${plan.book || readingText}`)}">
+      <div class="calendar-plan-card__top"><span class="card-status calendar-plan-card__status status-${status === "지연" ? "late" : status === "오늘" ? "today" : "planned"}">${status}</span></div>
+      <div class="calendar-plan-card__title"><strong class="calendar-plan-card__subject">📚 독서</strong></div>
+      ${plan.book ? `<div class="calendar-plan-card__lesson">${escapeHtml(plan.book)}</div>` : ""}
+      <div class="calendar-plan-card__task"><span class="calendar-plan-card__task-label">오늘 할 일</span><span class="calendar-plan-card__task-text">${escapeHtml(readingText)}</span></div>
+      <button type="button" class="complete-btn calendar-plan-card__complete" data-action="complete" data-id="${plan.id}" aria-label="${escapeHtml(`${accessibleDate} 독서 완료`)}">완료</button>
+    </article>`;
+  }
   const lesson = [plan.unit, plan.lessonNo].filter(Boolean).join(" · ");
   return `<article class="study-card calendar-study-card calendar-plan-card ${status === "지연" ? "late" : "planned"}" title="${escapeHtml(title)}">
     <div class="calendar-plan-card__top">
@@ -1366,6 +1402,20 @@ function createStudyCard(plan, options = {}) {
   const accessibleDate = dateInfo.valid ? `${formatUpcomingDate(dateInfo)} ${WEEKDAY_LABELS[dateInfo.weekday]}요일` : "날짜 미지정";
   const completeButtonHtml = `<button type="button" class="complete-btn" data-action="complete" data-id="${plan.id}" aria-label="${escapeHtml(`${accessibleDate} ${plan.subject} 학습 완료`)}">완료했어요!</button>`;
   if (!done) console.log("[complete-button-html]", completeButtonHtml);
+  if (isReadingPlan(plan)) {
+    const pageText = readingPageLabel(plan, plan.book ? "" : " 읽기");
+    return `
+      <article class="study-card reading ${isOverdue ? "late" : normalizedStatus} ${done ? "completed" : ""}">
+        ${scheduleLabel}
+        <span class="card-status reading-card-icon">${done ? "⭐" : "📚"} ${displayStatus}</span>
+        <h3>📚 독서</h3>
+        ${plan.book ? `<p>${escapeHtml(plan.book)}</p>` : ""}
+        <div class="card-meta"><span>${plan.taskType === "reading_free" ? "오늘은 자유 독서하는 날이에요." : escapeHtml(pageText)}</span></div>
+        ${done
+          ? `<div class="complete-done">${escapeHtml(plan.stickerRewardReason||"독서 완료!")} ${Number(plan.stickerRewardCount||0)>0?`스티커 ${Number(plan.stickerRewardCount)}개를 받았어요.`:"이번 일정에는 지급되는 스티커가 없어요."}</div>`
+          : completeButtonHtml}
+      </article>`;
+  }
   return `
     <article class="study-card ${isOverdue ? "late" : normalizedStatus} ${done ? "completed" : ""}">
       ${scheduleLabel}
@@ -1519,6 +1569,24 @@ function renderBookProjectCard(project) {
   </details>`;
 }
 
+function renderStandalonePlanItem(plan) {
+  const reading = isReadingPlan(plan);
+  const title = reading ? `📚 독서${plan.book ? ` · ${plan.book}` : ""}` : `${plan.subject} · ${plan.book}`;
+  const detail = reading
+    ? plan.taskType === "reading_free" ? "자유 독서" : readingPageLabel(plan, plan.book ? "" : " 읽기")
+    : `${plan.unit} · ${plan.target}`;
+  return `<article class="plan-item ${reading ? "reading" : ""}">
+    <div>
+      <h4>${escapeHtml(title)} <span class="status-badge status-${statusClass(plan.status)}">${statusLabels[plan.status] || statusLabels[statusClass(plan.status)]}</span></h4>
+      <p>${escapeHtml(formatDate(plan.studyDate))} · ${escapeHtml(detail)}</p>
+    </div>
+    <div class="plan-actions">
+      ${reading ? "" : `<button type="button" class="copy-btn" data-action="copy" data-id="${plan.id}">복사</button><button type="button" class="edit-btn" data-action="edit" data-id="${plan.id}">수정</button>`}
+      <button type="button" class="delete-btn" data-action="delete" data-id="${plan.id}">삭제</button>
+    </div>
+  </article>`;
+}
+
 function renderParent() {
   $$(".startup-metric-skeleton").forEach((element) => element.classList.remove("startup-metric-skeleton"));
   const total = state.plans.length;
@@ -1534,20 +1602,8 @@ function renderParent() {
   const projects = (state.bookPlans || []).map(renderBookProjectCard).join("");
   const standalone = [...state.plans].filter((plan) => !plan.bookPlanId)
     .sort((a, b) => b.studyDate.localeCompare(a.studyDate))
-    .map((plan) => `
-      <article class="plan-item">
-        <div>
-          <h4>${escapeHtml(plan.subject)} · ${escapeHtml(plan.book)} <span class="status-badge status-${statusClass(plan.status)}">${statusLabels[plan.status] || statusLabels[statusClass(plan.status)]}</span></h4>
-          <p>${escapeHtml(formatDate(plan.studyDate))} · ${escapeHtml(plan.unit)} · ${escapeHtml(plan.target)}</p>
-        </div>
-        <div class="plan-actions">
-          <button type="button" class="copy-btn" data-action="copy" data-id="${plan.id}">복사</button>
-          <button type="button" class="edit-btn" data-action="edit" data-id="${plan.id}">수정</button>
-          <button type="button" class="delete-btn" data-action="delete" data-id="${plan.id}">삭제</button>
-        </div>
-      </article>
-    `).join("");
-  $("#planList").innerHTML = `${projects}${standalone ? `<section class="standalone-plan-list"><h3>하루 계획</h3>${standalone}</section>` : ""}${!projects && !standalone ? '<div class="empty">등록된 학습 계획이 없습니다.</div>' : ""}`;
+    .map(renderStandalonePlanItem).join("");
+  $("#planList").innerHTML = `${projects}${standalone ? `<section class="standalone-plan-list"><h3>독서 및 하루 계획</h3>${standalone}</section>` : ""}${!projects && !standalone ? '<div class="empty">등록된 학습 계획이 없습니다.</div>' : ""}`;
 }
 
 function fillStickerRewardSettings(settings=DEFAULT_STICKER_REWARDS){const form=$("#stickerRewardSettingsForm");if(!form)return;for(const [key,value] of Object.entries(settings))if(form.elements[key])form.elements[key].value=String(value)}
@@ -2008,7 +2064,7 @@ function resetBookPlanForm() {
 }
 
 function selectPlanRegistrationMode(mode) {
-  $$('[data-plan-mode]').forEach((button) => button.setAttribute("aria-selected", String(button.dataset.planMode === mode)));
+  $$('[data-plan-mode]').forEach((input) => { input.checked = input.dataset.planMode === mode; });
   $$('[data-plan-form]').forEach((panel) => { panel.hidden = panel.dataset.planForm !== mode; });
 }
 
@@ -2044,6 +2100,97 @@ async function handleBookPlanSubmit(event) {
   } finally {
     button.textContent = "전체 계획 생성";
     renderBookPlanPreview();
+  }
+}
+
+function selectedReadingWeekdays() {
+  return $$('input[name="readingWeekday"]:checked').map((input) => Number(input.value));
+}
+
+function readReadingPlanForm() {
+  const mode = $('input[name="readingMode"]:checked')?.value || "free";
+  return {
+    mode,
+    weekdays: selectedReadingWeekdays(),
+    bookTitle: mode === "pages" ? $("#readingBookTitle").value.trim() : "",
+    startPage: mode === "pages" ? Number($("#readingStartPage").value) : null,
+    endPage: mode === "pages" ? Number($("#readingEndPage").value) : null,
+  };
+}
+
+function calculateReadingDates(weekdays) {
+  if (!weekdays.length) return [];
+  const dates = [];
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  for (let offset = 0; offset < 28; offset += 1) {
+    if (weekdays.includes(date.getDay())) dates.push(toDateInput(date));
+    date.setDate(date.getDate() + 1);
+  }
+  return dates;
+}
+
+function renderReadingPlanPreview() {
+  const input = readReadingPlanForm();
+  const pages = input.mode === "pages";
+  const pageFields = $("#readingPageFields");
+  pageFields.hidden = !pages;
+  $("#readingStartPage").required = pages;
+  $("#readingEndPage").required = pages;
+  const dates = calculateReadingDates(input.weekdays);
+  const pagesValid = !pages || (Number.isInteger(input.startPage) && Number.isInteger(input.endPage) && input.startPage > 0 && input.endPage >= input.startPage);
+  const preview = $("#readingPlanPreview");
+  const button = $("#createReadingPlanButton");
+  if (!dates.length) {
+    preview.innerHTML = "<span>독서 요일을 하나 이상 선택해 주세요.</span>";
+    button.disabled = true;
+    return;
+  }
+  if (!pagesValid) {
+    preview.innerHTML = "<span>읽을 페이지 범위를 입력해 주세요.</span>";
+    button.disabled = true;
+    return;
+  }
+  const description = pages
+    ? `${input.bookTitle ? `${escapeHtml(input.bookTitle)} · ` : ""}${input.startPage}~${input.endPage}P`
+    : "오늘은 자유 독서하는 날이에요.";
+  preview.innerHTML = `<strong>앞으로 4주 · 총 ${dates.length}회</strong><span> ${description}</span><small> ${escapeHtml(formatDate(dates[0]))} ~ ${escapeHtml(formatDate(dates.at(-1)))}</small>`;
+  button.disabled = false;
+}
+
+function resetReadingPlanForm() {
+  window.setTimeout(() => {
+    $("#readingPlanForm").reset();
+    renderReadingPlanPreview();
+  });
+}
+
+async function handleReadingPlanSubmit(event) {
+  event.preventDefault();
+  if (!isParentMode) return;
+  const input = readReadingPlanForm();
+  if (!input.weekdays.length) {
+    showToast("독서 요일을 하나 이상 선택해 주세요.");
+    return;
+  }
+  const button = $("#createReadingPlanButton");
+  button.disabled = true;
+  button.textContent = "독서 계획 만드는 중...";
+  try {
+    const result = await repository.createReadingPlan(input);
+    state = await repository.load();
+    await markOverduePlans();
+    writeLocalData(state);
+    render();
+    setConnectionStatus("");
+    showToast(`독서 계획 ${result.generatedCount}건을 만들었습니다.`);
+    resetReadingPlanForm();
+  } catch (error) {
+    console.error("[create reading plan failed]", { status: error.status || 0, code: error.code || null, message: error.message });
+    showToast(error.message || "독서 계획을 만들지 못했습니다.");
+  } finally {
+    button.textContent = "4주 독서 계획 만들기";
+    renderReadingPlanPreview();
   }
 }
 
@@ -2510,7 +2657,11 @@ function bindEvents() {
   $("#bookPlanForm")?.addEventListener("input", renderBookPlanPreview);
   $("#bookPlanForm")?.addEventListener("change", renderBookPlanPreview);
   $("#resetBookPlanButton")?.addEventListener("click", resetBookPlanForm);
-  $$('[data-plan-mode]').forEach((button) => button.addEventListener("click", () => selectPlanRegistrationMode(button.dataset.planMode)));
+  $("#readingPlanForm")?.addEventListener("submit", handleReadingPlanSubmit);
+  $("#readingPlanForm")?.addEventListener("input", renderReadingPlanPreview);
+  $("#readingPlanForm")?.addEventListener("change", renderReadingPlanPreview);
+  $("#resetReadingPlanButton")?.addEventListener("click", resetReadingPlanForm);
+  $$('[data-plan-mode]').forEach((input) => input.addEventListener("change", () => selectPlanRegistrationMode(input.dataset.planMode)));
   $("#academyForm")?.addEventListener("submit", handleAcademySubmit);
   $("#stickerRewardSettingsForm")?.addEventListener("submit",saveStickerRewardSettings);
   $("#resetStickerRewardSettings")?.addEventListener("click",()=>fillStickerRewardSettings());
@@ -2566,6 +2717,7 @@ async function initApp() {
   updateInstallUI();
   resetForm();
   resetBookPlanForm();
+  resetReadingPlanForm();
   resetAcademyForm();
   setConnectionStatus("로그인 정보를 확인하고 있어요...");
   const authStartedAt = performance.now();
