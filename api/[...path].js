@@ -75,7 +75,7 @@ module.exports = async function apiRouter(request, response) {
   if (!handler) {
     response.statusCode = 404;
     response.setHeader("Content-Type", "application/json; charset=utf-8");
-    response.end(JSON.stringify({ error: "API route not found." }));
+    response.end(JSON.stringify({ error: "요청한 API를 찾을 수 없습니다.", code: "API_NOT_FOUND" }));
     return;
   }
   return handler(request, response);

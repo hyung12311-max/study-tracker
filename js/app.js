@@ -990,7 +990,12 @@ async function requestJson(url, options = {}) {
   const text = await response.text();
   const data = text ? JSON.parse(text) : {};
   if (!response.ok) {
-    const error=new Error(data.error || `${url} failed with ${response.status}`);error.status=response.status;error.code=data.code;error.supabaseCode=data.supabaseCode;throw error;
+    let message=data.error||data.message||`${url} failed with ${response.status}`;
+    if(response.status===401)message="로그인이 만료되었습니다. 다시 로그인해 주세요.";
+    else if(response.status===403)message="권한이 없습니다.";
+    else if(response.status===404&&data.code==="API_NOT_FOUND")message="학습 완료 API를 찾을 수 없습니다.";
+    else if(response.status>=500)message="서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    const error=new Error(message);error.status=response.status;error.code=data.code;error.details=data.details||null;error.serverMessage=data.message||data.error||null;error.supabaseCode=data.supabaseCode||null;throw error;
   }
   return data;
 }

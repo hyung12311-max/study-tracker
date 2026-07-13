@@ -57,7 +57,7 @@ async function insertSystemMessage(familyId, type, id, content) {
   }
 }
 
-async function sendTargetedPush({ familyId, target = "parent", memberId, title, body, tag }) {
+async function sendTargetedPush({ familyId, target = "parent", memberId, title, body, tag, event = "reward_request", url = "/?tab=rewards" }) {
   try {
     const notifications = require("../notifications/_utils");
     let memberKeys = [];
@@ -72,16 +72,18 @@ async function sendTargetedPush({ familyId, target = "parent", memberId, title, 
       ))?.[0];
       if (member?.member_key) memberKeys = [member.member_key];
     }
-    if (!memberKeys.length) return;
+    if (!memberKeys.length) return { success: 0, failure: 0, subscriptionCount: 0 };
     const result = await notifications.sendToFamily({
       familyId,
       memberKeys,
-      event: "reward_request",
-      payload: { title, body, icon: "/icons/icon-192.png", badge: "/icons/icon-192.png", url: "/?tab=rewards", tag },
+      event,
+      payload: { title, body, icon: "/icons/icon-192.png", badge: "/icons/icon-192.png", url, tag },
     });
     console.log("[reward push]", { tag, success: result.success, failure: result.failure });
+    return result;
   } catch (error) {
     console.warn("[reward push] failed", { tag, statusCode: error.statusCode || 500 });
+    return { success: 0, failure: 1, subscriptionCount: 0, error: true };
   }
 }
 

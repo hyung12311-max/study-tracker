@@ -25,7 +25,7 @@ module.exports = async function handler(request, response) {
       .map((member) => member.member_key);
     const sender = (members || []).find((member) => member.member_key === claims.key);
     const subject = plan.subject || plan.workbook || "학습";
-    const reward=(await u.supabaseFetch(`sticker_history?select=sticker_count,reward_type&study_plan_id=eq.${encodeURIComponent(plan.id)}&member_id=eq.${claims.sub}&limit=1`))?.[0];
+    const reward=(await u.supabaseFetch(`sticker_history?select=sticker_count,reward_type&study_plan_id=eq.${encodeURIComponent(plan.id)}&member_id=eq.${encodeURIComponent(claims.sub)}&limit=1`))?.[0];
     const count=Number(reward?.sticker_count||0),rewardLabel=reward?.reward_type==="study_early"?"미리 완료":reward?.reward_type==="study_on_time"?"계획한 날짜에 완료":reward?.reward_type==="study_delayed"?"지연된 학습 완료":"학습 완료";
     const result = await u.sendToFamily({
       familyId: claims.family,
@@ -45,15 +45,18 @@ module.exports = async function handler(request, response) {
     await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(plan.id)}`, {
       method: "PATCH",
       body: JSON.stringify({
-        parent_notified_at: new Date().toISOString(),
+        parent_notified_at: result.success > 0 ? new Date().toISOString() : null,
         parent_notification_delivered: result.success > 0,
       }),
     });
     return u.json(response, 200, { ok: true, ...result });
   } catch (error) {
-    return u.json(response, error.statusCode || 500, {
+    const status=error.supabaseCode?500:(error.statusCode||500);
+    console.error("[study complete notification failed]",{status,code:error.supabaseCode||error.code||null,message:error.supabaseMessage||error.message,details:error.supabaseDetails||null});
+    return u.json(response, status, {
       ok: false,
-      error: error.statusCode ? error.message : "학습 완료 알림을 보내지 못했습니다.",
+      error: status===401?"로그인이 만료되었습니다.":status===403?"권한이 없습니다.":"서버 오류가 발생했습니다.",
+      code:error.supabaseCode||error.code||"STUDY_NOTIFICATION_FAILED",
     });
   }
 };
