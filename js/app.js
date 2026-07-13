@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v38";
+const BUILD_VERSION = "v39";
 const CACHE_VERSION = 2;
 const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
 const USER_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -86,7 +86,7 @@ function renderStoredUserHint() {
 }
 
 function emptyLocalData() {
-  return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], stickerCount: 0, plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
+  return { reward: { ...DEFAULT_REWARD }, rewardMilestones: [...DEFAULT_REWARD_MILESTONES], plans: [], bookPlans: [], academySchedules: [], academyCompletions: [] };
 }
 
 function readLocalData() {
@@ -100,7 +100,6 @@ function readLocalData() {
     const result = {
       reward: cached.reward || { ...DEFAULT_REWARD },
       rewardMilestones: normalizeRewardMilestones(cached.rewardMilestones || cached.rewards, cached.reward),
-      stickerCount: Number(cached.stickerCount || 0),
       plans: Array.isArray(cached.plans) ? cached.plans : [],
       bookPlans: Array.isArray(cached.bookPlans) ? cached.bookPlans : [],
       academySchedules: Array.isArray(cached.academySchedules) ? cached.academySchedules : [],
@@ -127,7 +126,6 @@ function writeLocalData(data) {
         data: {
         reward: data.reward || { ...DEFAULT_REWARD },
         rewardMilestones: normalizeRewardMilestones(data.rewardMilestones, data.reward),
-        stickerCount: Number(data.stickerCount || 0),
         plans: Array.isArray(data.plans) ? data.plans : [],
         bookPlans: Array.isArray(data.bookPlans) ? data.bookPlans : [],
         academySchedules: Array.isArray(data.academySchedules) ? data.academySchedules : [],
@@ -390,7 +388,6 @@ function createSupabaseRepository(config) {
       { data: bookPlans },
       { data: reward },
       { data: rewardMilestones },
-      { data: stickers },
       { data: academySchedules },
       { data: academyCompletions },
     ] = await Promise.all([
@@ -419,11 +416,6 @@ function createSupabaseRepository(config) {
         localData.rewardMilestones
       ),
       requestOrFallback(
-        "스티커 이력 불러오기 실패",
-        client.from("sticker_history").select("study_plan_id,sticker_count,reward_type,reward_reason"),
-        []
-      ),
-      requestOrFallback(
         "학원 일정 불러오기 실패",
         essentialOnly ? Promise.resolve({ data: localData.academySchedules, error: null }) : client.from("academy_schedules").select("id,academy_name,day_of_week,start_time,memo,star_count").order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
         localData.academySchedules
@@ -440,11 +432,8 @@ function createSupabaseRepository(config) {
     ]);
 
     const safePlans = Array.isArray(plans) ? plans : [];
-    const safeStickers = Array.isArray(stickers) ? stickers : [];
     const safeAcademySchedules = Array.isArray(academySchedules) ? academySchedules : [];
     const safeAcademyCompletions = Array.isArray(academyCompletions) ? academyCompletions : [];
-    const academyStars = safeAcademyCompletions.reduce((sum, item) => sum + Number(item.star_count || item.stars || 0), 0);
-    const loadedStickerCount = safeStickers.reduce((sum, sticker) => sum + Number(sticker.sticker_count || 0), 0) + academyStars;
 
     console.log("Supabase study_plans count:", safePlans.length);
     console.log("Supabase study_plans rows:", safePlans);
@@ -456,10 +445,7 @@ function createSupabaseRepository(config) {
           ? reward
           : { ...DEFAULT_REWARD },
       rewardMilestones: normalizeRewardMilestones(rewardMilestones, reward),
-      stickerCount: safeStickers.length || safeAcademyCompletions.length
-        ? loadedStickerCount
-        : Number(localData.stickerCount || 0),
-      plans: safePlans.map(normalizeLoadedPlan).map(plan=>{const rewardRow=safeStickers.find(item=>String(item.study_plan_id)===String(plan.id));return rewardRow?{...plan,stickerRewardCount:Number(rewardRow.sticker_count||0),stickerRewardType:rewardRow.reward_type,stickerRewardReason:rewardRow.reward_reason}:plan}),
+      plans: safePlans.map(normalizeLoadedPlan),
       bookPlans: (Array.isArray(bookPlans) ? bookPlans : []).map(normalizeLoadedBookPlan),
       academySchedules: safeAcademySchedules.map(normalizeLoadedAcademySchedule),
       academyCompletions: safeAcademyCompletions.map(normalizeLoadedAcademyCompletion),
@@ -740,7 +726,7 @@ const repository = createSupabaseRepository(SUPABASE_CONFIG);
 let state = {
   reward: { ...DEFAULT_REWARD },
   rewardMilestones: [...DEFAULT_REWARD_MILESTONES],
-  stickerCount: 0,
+  stickerCount: null,
   plans: [],
   bookPlans: [],
   academySchedules: [],
@@ -762,6 +748,37 @@ let rewardStoreController = null;
 let appReady = false;
 let authenticationTransition = null;
 let realtimeUnsubscribe = null;
+let stickerWalletSnapshot = null;
+
+function applyStickerWalletData(nextState = state) {
+  if (!stickerWalletSnapshot) return { ...nextState, stickerCount: null };
+  const rewardsByPlan = new Map(
+    stickerWalletSnapshot.history.map((row) => [String(row.study_plan_id), row])
+  );
+  return {
+    ...nextState,
+    stickerCount: stickerWalletSnapshot.balance,
+    plans: (nextState.plans || []).map((plan) => {
+      const rewardRow = rewardsByPlan.get(String(plan.id));
+      return rewardRow ? {
+        ...plan,
+        stickerRewardCount: Number(rewardRow.sticker_count || 0),
+        stickerRewardType: rewardRow.reward_type,
+        stickerRewardReason: rewardRow.reward_reason,
+      } : plan;
+    }),
+  };
+}
+
+function handleStickerWalletLoaded(wallet) {
+  stickerWalletSnapshot = {
+    balance: Number(wallet.balance || 0),
+    history: Array.isArray(wallet.stickerHistory) ? wallet.stickerHistory : [],
+  };
+  state = applyStickerWalletData(state);
+  renderLearning();
+  renderProgress();
+}
 
 function addDays(date, amount) {
   const next = new Date(date);
@@ -870,7 +887,7 @@ function formatDate(dateString) {
 async function saveAndRender(message, operation) {
   try {
     if (operation) await operation();
-    state = await repository.load();
+    state = applyStickerWalletData(await repository.load());
     ensureFormMode();
     await markOverduePlans();
     writeLocalData(state);
@@ -887,7 +904,7 @@ function ensureFormMode() {
 }
 
 function completedCount() {
-  return state.stickerCount || state.plans.filter((plan) => isDoneStatus(plan.status)).length + academyCompletedStars();
+  return Number.isFinite(Number(state.stickerCount)) ? Number(state.stickerCount) : 0;
 }
 
 function academyCompletedStars() {
@@ -1207,8 +1224,6 @@ async function markOverduePlans() {
 }
 
 function renderHeader() {
-  $("#stickerCount").textContent = completedCount();
-  if (state.cacheSavedAt) $("#stickerSummary").classList.remove("startup-skeleton");
   const member = familyChatController?.currentMember();
   if (!member) return;
   $("#currentUserCard").classList.remove("startup-skeleton");
@@ -1449,12 +1464,13 @@ async function handleCompletePlan(id, button) {
 
   try {
     const completion = await repository.completePlan(id);
-    state = await repository.load();
+    state = applyStickerWalletData(await repository.load());
     await markOverduePlans();
     writeLocalData(state);
     renderHeader();
     renderLearning();
     renderProgress();
+    rewardStoreController?.scheduleRefresh();
     setConnectionStatus("");
     console.log("[complete-refresh-success]", id);
     if (!completion.alreadyCompleted) launchCelebration();
@@ -1884,6 +1900,7 @@ async function handleCompleteAcademy(id, button) {
   }
 
   completeAcademyLocally(schedule, today, savedCompletion.completion);
+  rewardStoreController?.scheduleRefresh();
   renderApp();
   setConnectionStatus("");
   launchCelebration();
@@ -2082,7 +2099,7 @@ async function handleBookPlanSubmit(event) {
   button.textContent = "계획 생성 중...";
   try {
     const result = await repository.createBookPlan(input);
-    state = await repository.load();
+    state = applyStickerWalletData(await repository.load());
     ensureFormMode();
     await markOverduePlans();
     writeLocalData(state);
@@ -2178,7 +2195,7 @@ async function handleReadingPlanSubmit(event) {
   button.textContent = "독서 계획 만드는 중...";
   try {
     const result = await repository.createReadingPlan(input);
-    state = await repository.load();
+    state = applyStickerWalletData(await repository.load());
     await markOverduePlans();
     writeLocalData(state);
     render();
@@ -2679,7 +2696,7 @@ async function reloadFromRemote(options = {}) {
   remoteLoadPromise = (async () => {
     try {
       const previous = JSON.stringify(state);
-      state = await repository.load(options);
+      state = applyStickerWalletData(await repository.load(options));
       ensureFormMode();
       if (!options.essentialOnly) await markOverduePlans();
       writeLocalData(state);
@@ -2734,6 +2751,7 @@ async function enterAuthenticatedApp() {
   authenticationTransition = (async () => {
     activeCacheKey = localDataKey();
     const currentMember = familyChatController?.currentMember();
+    stickerWalletSnapshot = null;
     console.info("[startup auth]", {
       member_key: currentMember?.member_key || null,
       family_id: currentMember?.family_id || null,
@@ -2742,7 +2760,7 @@ async function enterAuthenticatedApp() {
     });
     state = readLocalData();
     ensureFormMode();
-    const hasCachedData = state.plans.length || state.academySchedules.length || state.stickerCount;
+    const hasCachedData = state.plans.length || state.academySchedules.length;
     renderHeader();
     renderRoleControls();
     if (hasCachedData) {
@@ -2758,7 +2776,11 @@ async function enterAuthenticatedApp() {
       }, 10000);
       const rewardTask = rewardStoreController
         ? rewardStoreController.refresh({ silent: true })
-        : initRewardStore({ openFamily: () => switchView("family-chat"), returnToRewards: () => switchView("rewards") })
+        : initRewardStore({
+            openFamily: () => switchView("family-chat"),
+            returnToRewards: () => switchView("rewards"),
+            onStickerData: handleStickerWalletLoaded,
+          })
             .then((controller) => { rewardStoreController = controller; });
       await reloadFromRemote({ essentialOnly: true });
       render();
@@ -2771,7 +2793,10 @@ async function enterAuthenticatedApp() {
       startupMetrics.essentialDataMs = Math.round(performance.now() - startupStartedAt);
       appReady = true;
       realtimeUnsubscribe?.();
-      realtimeUnsubscribe = repository.subscribe(reloadFromRemote, handleRepositoryError);
+      realtimeUnsubscribe = repository.subscribe(() => {
+        reloadFromRemote();
+        rewardStoreController?.scheduleRefresh();
+      }, handleRepositoryError);
       deferStartupTask(async () => {
         await reloadFromRemote({ essentialOnly: false });
         startupMetrics.deferredDataMs = Math.round(performance.now() - startupStartedAt);

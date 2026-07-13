@@ -89,7 +89,7 @@ async function sendTargetedPush({ familyId, target = "parent", memberId, title, 
 
 async function memberInFamily(memberId, familyId) {
   return (await family.supabaseFetch(
-    `family_members?select=id,display_name,avatar_emoji,role,is_active&id=eq.${memberId}&family_id=eq.${familyId}&limit=1`
+    `family_members?select=id,member_key,display_name,avatar_emoji,role,is_active&id=eq.${memberId}&family_id=eq.${familyId}&limit=1`
   ))?.[0] || null;
 }
 
