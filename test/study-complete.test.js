@@ -47,6 +47,10 @@ test("POST study-complete returns 200 after plan completion, sticker award, and 
       calls.push({ push: options });
       return { success: 2, failure: 0, subscriptionCount: 2 };
     },
+    insertSystemMessage: async (...args) => {
+      calls.push({ systemMessage: args });
+      return { created: true, skipped: false };
+    },
   });
   try {
     const response = responseCapture();
@@ -54,10 +58,110 @@ test("POST study-complete returns 200 after plan completion, sticker award, and 
     assert.equal(response.statusCode, 200);
     assert.equal(response.body.ok, true);
     assert.equal(response.body.completion.plan.status, "done");
+    assert.equal(response.body.completion.awardedStickerCount, 2);
     assert.equal(response.body.completion.stickerCount, 2);
     assert.equal(response.body.parentNotification.success, 2);
     assert.ok(calls.some((call) => call.path === "rpc/complete_study_plan_with_reward"));
-    assert.ok(calls.some((call) => call.push?.target === "parent" && call.push?.event === "study_complete"));
+    const push = calls.find((call) => call.push)?.push;
+    const familyMessage = calls.find((call) => call.systemMessage)?.systemMessage;
+    assert.equal(push.target, "parent");
+    assert.equal(push.event, "study_complete");
+    assert.match(push.body, /스티커 2개/);
+    assert.match(familyMessage[3], /스티커 2개/);
+    assert.equal(push.body, familyMessage[3]);
+  } finally {
+    restore();
+  }
+});
+
+test("delayed completion uses the same one-sticker result in chat and parent push", async () => {
+  let chatBody = "";
+  let pushBody = "";
+  const restore = replaceUtils({
+    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    readJson: async () => ({ planId: "37" }),
+    memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
+    supabaseFetch: async (path) => {
+      if (path.startsWith("study_plans?select=")) return [{ id: 37, subject: "한자 준 5급", status: "planned" }];
+      if (path === "rpc/complete_study_plan_with_reward") return [{
+        completed_plan: { id: 37, status: "done" },
+        adjustment_type: "late",
+        rescheduled_count: 0,
+        sticker_count: 1,
+        reward_type: "study_delayed",
+        reward_reason: "지연 학습 완료",
+        already_completed: false,
+        balance: 8,
+      }];
+      return [];
+    },
+    insertSystemMessage: async (_familyId, _type, _id, content) => {
+      chatBody = content;
+      return { created: true, skipped: false };
+    },
+    sendTargetedPush: async (options) => {
+      pushBody = options.body;
+      return { success: 1, failure: 0, subscriptionCount: 1 };
+    },
+  });
+
+  try {
+    const response = responseCapture();
+    await handler({ method: "POST", headers: {} }, response);
+    assert.equal(response.body.completion.adjustmentType, "late");
+    assert.equal(response.body.completion.awardedStickerCount, 1);
+    assert.match(chatBody, /스티커 1개/);
+    assert.equal(pushBody, chatBody);
+  } finally {
+    restore();
+  }
+});
+
+test("repeated completion does not award or notify twice", async () => {
+  let completionCalls = 0;
+  let chatCalls = 0;
+  let pushCalls = 0;
+  const restore = replaceUtils({
+    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    readJson: async () => ({ planId: "38" }),
+    memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
+    supabaseFetch: async (path) => {
+      if (path.startsWith("study_plans?select=")) return [{ id: 38, subject: "수학", status: completionCalls ? "done" : "planned" }];
+      if (path === "rpc/complete_study_plan_with_reward") {
+        completionCalls += 1;
+        return [{
+          completed_plan: { id: 38, status: "done" },
+          adjustment_type: "normal",
+          rescheduled_count: 0,
+          sticker_count: 2,
+          reward_type: "study_on_time",
+          reward_reason: completionCalls === 1 ? "계획한 날짜에 완료" : "이미 완료된 학습이에요.",
+          already_completed: completionCalls > 1,
+          balance: 2,
+        }];
+      }
+      return [];
+    },
+    insertSystemMessage: async () => {
+      chatCalls += 1;
+      return { created: true, skipped: false };
+    },
+    sendTargetedPush: async () => {
+      pushCalls += 1;
+      return { success: 1, failure: 0, subscriptionCount: 1 };
+    },
+  });
+
+  try {
+    const first = responseCapture();
+    const second = responseCapture();
+    await handler({ method: "POST", headers: {} }, first);
+    await handler({ method: "POST", headers: {} }, second);
+    assert.equal(first.body.completion.alreadyCompleted, false);
+    assert.equal(second.body.completion.alreadyCompleted, true);
+    assert.equal(completionCalls, 2);
+    assert.equal(chatCalls, 1);
+    assert.equal(pushCalls, 1);
   } finally {
     restore();
   }

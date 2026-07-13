@@ -1227,17 +1227,17 @@ select {
 .family-message-row.mine { justify-content: flex-end; }
 .family-message-stack { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: min(72%, 720px); }
 .mine .family-message-stack { align-items: flex-end; margin-right: 4px; }
-.family-message-sender { display: flex; align-items: center; gap: 6px; width: min(100%, 360px); min-width: 0; min-height: 36px; margin: 0 0 5px; }
+.family-message-sender { display: flex; align-items: center; gap: 6px; width: max-content; max-width: 100%; min-width: 0; min-height: 36px; margin: 0 0 5px; }
 .mine .family-message-sender { flex-direction: row-reverse; text-align: right; }
 .family-message-avatar { display: flex; align-items: center; justify-content: center; flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid rgba(43,42,53,.07); border-radius: 50%; background: #f0f2f5; font-size: 24px; line-height: 1; box-shadow: 0 2px 6px rgba(43,42,53,.08); }
 .family-message-row[data-member-key="mother"] .family-message-avatar { background: #fbdde8; }
 .family-message-row[data-member-key="father"] .family-message-avatar { background: #dcecff; }
 .family-message-row[data-member-key="hagyeom"] .family-message-avatar { background: #dff4e5; }
 .family-message-row[data-member-key="dayul"] .family-message-avatar { background: #eee2ff; }
-.family-message-author-info { display: flex; align-items: baseline; gap: 6px; min-width: 0; max-width: calc(100% - 42px); }
+.family-message-author-info { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; min-width: 0; max-width: none; }
 .mine .family-message-author-info { flex-direction: row-reverse; }
-.family-message-name { min-width: 0; overflow: hidden; color: #29313d; font-size: 15px; font-weight: 800; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
-.family-message-bubble { padding: 9px 12px; border-radius: 6px 16px 16px 16px; background: white; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; box-shadow: 0 3px 10px rgba(43,42,53,.08); }
+.family-message-name { min-width: 0; overflow: visible; color: #29313d; font-size: 15px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; text-overflow: clip; white-space: normal; }
+.family-message-bubble { max-width: 100%; padding: 9px 12px; border-radius: 6px 16px 16px 16px; background: white; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; box-shadow: 0 3px 10px rgba(43,42,53,.08); }
 .mine .family-message-bubble { border-radius: 16px 6px 16px 16px; background: #ffe05f; }
 .family-message-bubble a { color: #1769aa; text-decoration: underline; }
 .family-message-time { flex: 0 0 auto; color: #68717e; font-size: 11px; font-weight: 600; line-height: 1.2; white-space: nowrap; }

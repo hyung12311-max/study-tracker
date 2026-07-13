@@ -35,12 +35,16 @@ async function buildStudyPayload(body) {
   if (!plan) return { skipped: true, reason: "plan-not-found" };
   if (!isDone(plan.status)) return { skipped: true, reason: "plan-not-completed" };
   if (plan.parent_notified_at) return { skipped: true, reason: "already-notified" };
+  const reward = (await supabaseFetch(
+    `sticker_history?select=sticker_count&study_plan_id=eq.${encodeURIComponent(plan.id)}&limit=1`
+  ))?.[0];
+  const awardedStickerCount = Number(reward?.sticker_count || 0);
 
   return {
     tag: `study-complete-${plan.id}`,
     url: "/?tab=progress",
     title: "하겸이 학습 완료 ⭐",
-    body: `하겸이가 ${plan.subject} · ${plan.book} 학습을 완료했어요. 스티커 1개를 받았습니다.`,
+    body: `하겸이가 ${plan.subject} · ${plan.book} 학습을 완료했어요. ${awardedStickerCount > 0 ? `스티커 ${awardedStickerCount}개를 받았습니다.` : "지급된 스티커는 없습니다."}`,
     afterSend: async (delivered) => {
       await supabaseFetch(`study_plans?id=eq.${encodeURIComponent(plan.id)}`, {
         method: "PATCH",

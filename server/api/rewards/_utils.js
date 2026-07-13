@@ -39,9 +39,9 @@ function requestSafe(row) {
 
 async function insertSystemMessage(familyId, type, id, content) {
   try {
-    await family.supabaseFetch("family_messages?on_conflict=family_id,related_type,related_id", {
+    const rows = await family.supabaseFetch("family_messages?on_conflict=family_id,related_type,related_id", {
       method: "POST",
-      headers: { Prefer: "resolution=ignore-duplicates" },
+      headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
       body: JSON.stringify({
         family_id: familyId,
         sender_id: null,
@@ -52,8 +52,10 @@ async function insertSystemMessage(familyId, type, id, content) {
         push_sent_at: new Date().toISOString(),
       }),
     });
+    return { created: Boolean(rows?.[0]), message: rows?.[0] || null, skipped: !rows?.[0] };
   } catch (error) {
     console.warn("[reward system message] failed", { requestId: id, statusCode: error.statusCode || 500 });
+    return { created: false, message: null, skipped: true, error: true };
   }
 }
 

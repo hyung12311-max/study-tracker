@@ -47,14 +47,31 @@ module.exports = async function handler(request, response) {
     const row = rows?.[0];
     if (!row) throw u.err("학습 완료 결과를 확인할 수 없습니다.", 409, "COMPLETION_FAILED");
 
+    const awardedStickerCount = Number(row.sticker_count || 0);
+    const completion = {
+      plan: row.completed_plan,
+      adjustmentType: row.adjustment_type,
+      rescheduledCount: Number(row.rescheduled_count || 0),
+      awardedStickerCount,
+      stickerCount: awardedStickerCount,
+      rewardType: row.reward_type,
+      rewardReason: row.reward_reason,
+      alreadyCompleted: Boolean(row.already_completed),
+      balance: Number(row.balance || 0),
+    };
+    const subject = plan.subject || plan.workbook || "학습";
+    const completionMessage = `${member.display_name || "자녀"}님이 ${subject} 학습을 완료했습니다. ${awardedStickerCount > 0 ? `스티커 ${awardedStickerCount}개를 받았습니다.` : "지급된 스티커는 없습니다."}`;
+
     let parentNotification = { success: 0, failure: 0, subscriptionCount: 0, skipped: true };
-    if (!row.already_completed) {
+    let familyMessage = { created: false, skipped: true };
+    if (!completion.alreadyCompleted) {
+      familyMessage = await u.insertSystemMessage(claims.family, "study_complete", planId, completionMessage);
       parentNotification = await u.sendTargetedPush({
         familyId: claims.family,
         target: "parent",
         event: "study_complete",
         title: "⭐ 학습 완료",
-        body: `${member.display_name || "자녀"}님이 ${plan.subject || plan.workbook || "학습"}을 완료했습니다. 스티커 ${Number(row.sticker_count || 0)}개를 받았습니다.`,
+        body: completionMessage,
         tag: `study-complete-${planId}`,
         url: "/?tab=today",
       });
@@ -69,16 +86,8 @@ module.exports = async function handler(request, response) {
 
     return u.json(response, 200, {
       ok: true,
-      completion: {
-        plan: row.completed_plan,
-        adjustmentType: row.adjustment_type,
-        rescheduledCount: Number(row.rescheduled_count || 0),
-        stickerCount: Number(row.sticker_count || 0),
-        rewardType: row.reward_type,
-        rewardReason: row.reward_reason,
-        alreadyCompleted: Boolean(row.already_completed),
-        balance: Number(row.balance || 0),
-      },
+      completion,
+      familyMessage,
       parentNotification,
     });
   } catch (error) {

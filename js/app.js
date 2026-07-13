@@ -567,7 +567,8 @@ function createSupabaseRepository(config) {
       plan: result?.plan ? planFromRow(result.plan) : null,
       adjustmentType: result?.adjustmentType || "normal",
       rescheduledCount: Number(result?.rescheduledCount || 0),
-      stickerCount: Number(result?.stickerCount || 0),
+      awardedStickerCount: Number(result?.awardedStickerCount ?? result?.stickerCount ?? 0),
+      stickerCount: Number(result?.awardedStickerCount ?? result?.stickerCount ?? 0),
       rewardType: result?.rewardType || null,
       rewardReason: result?.rewardReason || "완료했어요!",
       balance: Number(result?.balance || 0),
@@ -994,15 +995,6 @@ function replaceAcademyScheduleId(localId, savedSchedule) {
   writeLocalData(state);
 }
 
-function parentNotificationMessage(plan) {
-  return {
-    title: "하겸이 학습 완료 ⭐",
-    body: `하겸이가 ${plan.subject} · ${plan.book} 학습을 완료했어요. 스티커 1개를 받았습니다.`,
-    url: "/?tab=progress",
-    tag: `study-complete-${plan.id}`,
-  };
-}
-
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -1059,51 +1051,8 @@ async function getParentPushSubscription(publicKey) {
   });
 }
 
-async function notifyParentOfCompletion(plan) {
-  const authHeaders = familyAuthHeaders();
-  if (!authHeaders) return;
-  const message = parentNotificationMessage(plan);
-  const entry = {
-    planId: plan.id,
-    title: message.title,
-    body: message.body,
-    sentAt: new Date().toISOString(),
-    delivered: false,
-  };
-
-  try {
-    const result = await requestJson("/api/notifications/study-complete", {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({ type: "study-complete", planId: plan.id }),
-    });
-    entry.delivered = Number(result.success || 0) > 0;
-    entry.result = result;
-  } catch (error) {
-    console.warn("[parent notification] push failed", error);
-    entry.errorMessage = error?.message || String(error);
-    showToast("학습 완료는 저장됐지만 부모 알림 전송은 실패했어요.");
-  } finally {
-    writeLocalNotification(entry);
-    repository.recordCompletionNotification(entry).catch((error) => {
-      console.warn("[parent notification] remote log skipped", error);
-    });
-  }
-}
-
 async function notifyParentOfAcademyCompletion(schedule, completedDate) {
   return;
-}
-
-async function createFamilyStudyMessage(plan) {
-  try {
-    await requestJson("/api/family/messages", {
-      method: "POST",
-      body: JSON.stringify({ messageType: "system", relatedType: "study_complete", relatedId: plan.id }),
-    });
-  } catch (error) {
-    console.warn("[family chat] study message skipped", error?.message || error);
-  }
 }
 
 function render() {
@@ -1474,12 +1423,10 @@ async function handleCompletePlan(id, button) {
     setConnectionStatus("");
     console.log("[complete-refresh-success]", id);
     if (!completion.alreadyCompleted) launchCelebration();
-    const completedPlan = state.plans.find((plan) => String(plan.id) === String(id)) || planBeforeComplete;
-    if (!completion.alreadyCompleted && completedPlan) await Promise.allSettled([notifyParentOfCompletion(completedPlan), createFamilyStudyMessage(completedPlan)]);
     if (completion.alreadyCompleted) {
       showToast("이미 완료된 학습이에요.");
     } else {
-      showToast(`${completion.rewardReason} ${completion.stickerCount>0?`스티커 ${completion.stickerCount}개를 받았어요.`:"이번 일정에는 지급되는 스티커가 없어요."}`);
+      showToast(`${completion.rewardReason} ${completion.awardedStickerCount>0?`스티커 ${completion.awardedStickerCount}개를 받았어요.`:"이번 일정에는 지급되는 스티커가 없어요."}`);
     }
   } catch (error) {
     if (isNetworkFallbackError(error)) {
@@ -1489,7 +1436,6 @@ async function handleCompletePlan(id, button) {
       renderProgress();
       setConnectionStatus("");
       launchCelebration();
-      if (completedPlan) await notifyParentOfCompletion(completedPlan);
       showToast("GOOD!! \uB108\uBB34 \uC798\uD588\uC5B4!");
       console.warn("[local fallback] completed plan locally", error);
       if (button) {

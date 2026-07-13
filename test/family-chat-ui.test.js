@@ -30,6 +30,9 @@ test("family chat author styles keep accessible mobile sizes and participant col
   assert.match(styles, /\.mine \.family-message-sender \{ flex-direction: row-reverse; text-align: right; \}/);
   assert.match(styles, /@media \(max-width:760px\)[\s\S]*\.family-message-stack \{ max-width: 84%; \}/);
   assert.match(styles, /\.family-message-delivery\.failed[^}]*cursor: pointer/s);
+  assert.match(styles, /\.family-message-sender[^}]*width: max-content[^}]*max-width: 100%/s);
+  assert.match(styles, /\.family-message-name[^}]*overflow: visible[^}]*text-overflow: clip[^}]*white-space: normal/s);
+  assert.doesNotMatch(styles, /\.family-message-name[^}]*text-overflow: ellipsis/s);
 });
 
 test("family chat sends optimistically before starting the API request", () => {

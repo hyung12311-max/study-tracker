@@ -15,7 +15,8 @@ module.exports=async function(req,res){
    const plan=(await u.supabaseFetch(`study_plans?select=id,subject,workbook,status&id=eq.${encodeURIComponent(body.relatedId)}&limit=1`))?.[0];
    if(!plan||!["done","완료"].includes(plan.status))throw u.err("Completed study record was not found.",409);
    const family=(await u.supabaseFetch("families?select=id&family_key=eq.default&limit=1"))?.[0];if(!family)throw u.err("Family is not configured.",500);
-   const content=`하겸이가 ${plan.subject}${plan.workbook?` · ${plan.workbook}`:""} 학습을 완료했습니다. 스티커 1개를 받았어요. ⭐`;
+   const reward=(await u.supabaseFetch(`sticker_history?select=sticker_count&family_id=eq.${family.id}&study_plan_id=eq.${encodeURIComponent(plan.id)}&limit=1`))?.[0],awardedStickerCount=Number(reward?.sticker_count||0);
+   const content=`하겸이가 ${plan.subject}${plan.workbook?` · ${plan.workbook}`:""} 학습을 완료했습니다. ${awardedStickerCount>0?`스티커 ${awardedStickerCount}개를 받았어요.`:"지급된 스티커는 없어요."} ⭐`;
    const inserted=await u.supabaseFetch("family_messages?on_conflict=family_id,related_type,related_id",{method:"POST",headers:{Prefer:"resolution=ignore-duplicates,return=representation"},body:JSON.stringify({family_id:family.id,sender_id:null,message_type:"system",content,related_type:"study_complete",related_id:String(plan.id)})});
    const row=inserted?.[0];return u.json(res,200,{ok:true,created:Boolean(row),message:row?u.safe(row):null});
   }
