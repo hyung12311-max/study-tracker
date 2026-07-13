@@ -990,7 +990,7 @@ async function requestJson(url, options = {}) {
   const text = await response.text();
   const data = text ? JSON.parse(text) : {};
   if (!response.ok) {
-    throw new Error(data.error || `${url} failed with ${response.status}`);
+    const error=new Error(data.error || `${url} failed with ${response.status}`);error.status=response.status;error.code=data.code;error.supabaseCode=data.supabaseCode;throw error;
   }
   return data;
 }
