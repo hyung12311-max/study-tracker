@@ -6,6 +6,7 @@ const familyRead = require("../server/api/family/read");
 const familyVerifyPin = require("../server/api/family/verify-pin");
 const familyChildLogin = require("../server/api/family/child-login");
 const familySession = require("../server/api/family/session");
+const familySessionRestore = require("../server/api/family/session-restore");
 const familyLogout = require("../server/api/family/logout");
 const familyLogoutAll = require("../server/api/family/logout-all");
 const notificationsPublicKey = require("../server/api/notifications/public-key");
@@ -38,6 +39,7 @@ const routes = Object.freeze({
   "family/verify-pin": familyVerifyPin,
   "family/child-login": familyChildLogin,
   "family/session": familySession,
+  "family/session/restore": familySessionRestore,
   "family/logout": familyLogout,
   "family/logout-all": familyLogoutAll,
   "notifications/public-key": notificationsPublicKey,

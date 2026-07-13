@@ -6,7 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 
 const PARENT_PASSWORD = "1234";
-const BUILD_VERSION = "v36";
+const BUILD_VERSION = "v37";
 const CACHE_VERSION = 2;
 const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
 const USER_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -2567,6 +2567,7 @@ async function initApp() {
   resetForm();
   resetBookPlanForm();
   resetAcademyForm();
+  setConnectionStatus("로그인 정보를 확인하고 있어요...");
   const authStartedAt = performance.now();
   familyChatController = await initFamilyChat();
   if (!familyChatController.isAuthenticated()) await familyChatController.requireAuthentication();

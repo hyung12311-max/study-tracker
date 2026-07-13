@@ -8,8 +8,18 @@ module.exports = async function childLogin(request, response) {
     const rows = await u.supabaseFetch(`family_members?select=id,family_id,member_key,display_name,role,avatar_emoji,is_active&id=eq.${encodeURIComponent(body.memberId)}&role=eq.child&is_active=eq.true&limit=1`);
     const member = rows?.[0];
     if (!member) throw u.err("Active child member not found.", 404);
+    let deviceSession = null;
+    if (body.rememberDevice !== false) {
+      deviceSession = await u.createDeviceSession(request, response, member, body.deviceSessionToken);
+    } else {
+      await u.revokeDeviceSession(body.deviceSessionToken, "remember_device_disabled");
+      u.clearDeviceCookie(request, response);
+    }
     return u.json(response, 200, {
       token: u.signToken(member), realtimeToken: u.signRealtimeToken(member), expiresIn: 28800,
+      expires_at: deviceSession?.expiresAt || null,
+      rememberDevice: Boolean(deviceSession),
+      ...(deviceSession ? { deviceSessionToken: deviceSession.token } : {}),
       member: { id: member.id, family_id: member.family_id, member_key: member.member_key, display_name: member.display_name, role: member.role, avatar_emoji: member.avatar_emoji },
     });
   } catch (error) {

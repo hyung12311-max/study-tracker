@@ -75,9 +75,12 @@ module.exports = async function verifyFamilyPin(request, response) {
 
     let expiresAt = null;
     let sessionWarning = null;
-    if (body.rememberDevice === true && member.role === "parent") {
+    let deviceSessionToken = null;
+    if (body.rememberDevice === true) {
       try {
-        expiresAt = await u.createDeviceSession(request, response, member);
+        const deviceSession = await u.createDeviceSession(request, response, member, body.deviceSessionToken);
+        expiresAt = deviceSession.expiresAt;
+        deviceSessionToken = deviceSession.token;
       } catch (sessionError) {
         // Persistent login is optional. A missing/unavailable session table must not
         // turn a successfully verified PIN into a failed parent login.
@@ -86,6 +89,7 @@ module.exports = async function verifyFamilyPin(request, response) {
         console.error("[family verify-pin] device session save failed", errorDetails(sessionError));
       }
     } else {
+      await u.revokeDeviceSession(body.deviceSessionToken, "remember_device_disabled");
       u.clearDeviceCookie(request, response);
     }
 
@@ -96,6 +100,7 @@ module.exports = async function verifyFamilyPin(request, response) {
       expiresIn: 28800,
       expires_at: expiresAt,
       rememberDevice: Boolean(expiresAt),
+      ...(deviceSessionToken ? { deviceSessionToken } : {}),
       ...(sessionWarning ? { warningCode: sessionWarning } : {}),
       member: {
         id: member.member_id,
