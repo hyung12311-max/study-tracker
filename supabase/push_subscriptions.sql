@@ -32,15 +32,7 @@ for each row execute function public.set_push_subscriptions_updated_at();
 alter table public.push_subscriptions enable row level security;
 
 drop policy if exists "allow parent push subscription insert" on public.push_subscriptions;
-create policy "allow parent push subscription insert"
-on public.push_subscriptions for insert
-to anon, authenticated
-with check (
-  user_role = 'parent'
-  and endpoint is not null
-  and p256dh is not null
-  and auth is not null
-);
+revoke all on table public.push_subscriptions from anon, authenticated;
+grant all on table public.push_subscriptions to service_role;
 
--- Do not add anon SELECT policies for this table.
--- Vercel server functions must read active subscriptions with SUPABASE_SERVICE_ROLE_KEY.
+-- Legacy table: new registrations use family_push_subscriptions through the API.

@@ -47,6 +47,12 @@ function subscriptionLogInfo(row) {
 
 async function upsertSubscription({ request, claims, subscription, body }) {
   const { endpoint, p256dh, auth } = push.validateSubscriptionPayload(subscription);
+  const member = (await family.supabaseFetch(
+    `family_members?select=id,family_id,member_key,display_name,role,is_active&id=eq.${encodeURIComponent(claims.sub)}&family_id=eq.${encodeURIComponent(claims.family)}&member_key=eq.${encodeURIComponent(claims.key)}&is_active=eq.true&limit=1`
+  ))?.[0];
+  if (!member || member.role !== claims.role) {
+    throw family.err("로그인한 활성 가족 구성원을 확인할 수 없습니다.", 403, "ACTIVE_MEMBER_REQUIRED");
+  }
   const rows = await family.supabaseFetch("family_push_subscriptions?on_conflict=endpoint", {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates,return=representation" },
@@ -54,6 +60,7 @@ async function upsertSubscription({ request, claims, subscription, body }) {
       family_id: claims.family,
       member_id: claims.sub,
       member_key: claims.key,
+      role: claims.role,
       endpoint,
       p256dh,
       auth,

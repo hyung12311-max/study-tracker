@@ -15,6 +15,7 @@ module.exports=async function handler(req,res){
   const rows=await u.supabaseFetch("rpc/complete_academy_schedule",{method:"POST",body:JSON.stringify({p_family_id:c.family,p_member_id:c.sub,p_schedule_id:body.scheduleId,p_completed_date:seoulDate()})});
   const row=rows?.[0]||rows,starCount=Number(row?.star_count),completion=row?{id:row.id,academy_schedule_id:row.academy_schedule_id,completed_date:row.completed_date,star_count:Number.isFinite(starCount)&&starCount>=0?starCount:1,created_at:row.created_at}:null;
   if(!completion?.id)throw u.err("Unable to complete academy schedule.",409);
+  void u.sendTargetedPush({familyId:c.family,target:"parent",title:"🏫 학원 일정 완료",body:`${member.display_name||"자녀"}님이 학원 일정을 완료했습니다.`,tag:`academy-complete-${completion.id}`});
   const transactions=await u.supabaseFetch(`sticker_transactions?select=amount&family_id=eq.${c.family}&member_id=eq.${c.sub}`);
   return u.json(res,200,{completion,stickerCount:completion.star_count,balance:(transactions||[]).reduce((sum,item)=>sum+Number(item.amount||0),0)});
  }catch(e){

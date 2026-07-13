@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "esbuild @supabase/supabase-js --bundle --format=esm --target=es2020 --outfile=js/vendor/supabase-js.js"
+    "build": "esbuild @supabase/supabase-js --bundle --format=esm --target=es2020 --outfile=js/vendor/supabase-js.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.110.1",
