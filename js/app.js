@@ -409,7 +409,11 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "보상 마일스톤 불러오기 실패",
-        essentialOnly ? Promise.resolve({ data: localData.rewardMilestones, error: null }) : client.from("reward_milestones").select("id,required_stickers,reward_name,sort_order").order("required_stickers", { ascending: true }),
+        !essentialOnly && familyAuthHeaders()
+          ? requestJson("/api/reward_milestones", { headers: familyAuthHeaders() })
+              .then((result) => ({ data: result.milestones, error: null }))
+              .catch((error) => ({ data: null, error }))
+          : Promise.resolve({ data: localData.rewardMilestones, error: null }),
         localData.rewardMilestones
       ),
       requestOrFallback(
@@ -604,17 +608,11 @@ function createSupabaseRepository(config) {
   }
 
   async function saveRewardMilestones(milestones) {
-    assertConfigured();
     const rows = normalizeRewardMilestones(milestones).map((milestone) => ({
-      id: String(milestone.id).startsWith("default-") || String(milestone.id).startsWith("local-") ? undefined : milestone.id,
       required_stickers: milestone.stars,
       reward_name: milestone.name,
     }));
-
-    await request("보상 마일스톤 초기화 실패", client.from("reward_milestones").delete().neq("id", "00000000-0000-0000-0000-000000000000"));
-    if (rows.length) {
-      await request("보상 마일스톤 저장 실패", client.from("reward_milestones").insert(rows));
-    }
+    await requestJson("/api/reward_milestones", { method: "PUT", headers: familyAuthHeaders(), body: JSON.stringify({ milestones: rows }) });
   }
 
   async function upsertAcademySchedule(schedule) {
@@ -652,7 +650,6 @@ function createSupabaseRepository(config) {
   }
 
   async function recordCompletionNotification(entry) {
-    assertConfigured();
     const payload = sanitizePayload({
       study_plan_id: entry.planId,
       title: entry.title,
@@ -661,7 +658,7 @@ function createSupabaseRepository(config) {
       delivery_channel: entry.pushSubscription ? "push" : "browser",
       error_message: entry.errorMessage,
     });
-    await request("완료 알림 기록 저장 실패", client.from("completion_notifications").insert(payload));
+    await requestJson("/api/completion_notifications", { method: "POST", headers: familyAuthHeaders(), body: JSON.stringify(payload) });
   }
 
   async function markLate(planIds) {

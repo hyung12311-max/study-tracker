@@ -6,6 +6,12 @@
     },
     "api/[...path].js": {
       "includeFiles": "server/api/**"
+    },
+    "api/reward_milestones.js": {
+      "includeFiles": "server/api/**"
+    },
+    "api/completion_notifications.js": {
+      "includeFiles": "server/api/**"
     }
   },
   "rewrites": [
