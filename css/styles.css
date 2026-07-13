@@ -1164,6 +1164,12 @@ select {
 }
 
 .family-self-pin-member { margin: -4px 0 2px; color: var(--muted); font-weight: 900; }
+.remember-device { display:flex; align-items:center; gap:8px; }
+.remember-device input { width:auto; min-height:0; }
+.device-session-status { display:grid; gap:8px; grid-column:1/-1; margin:0; }
+.device-session-status div { display:flex; justify-content:space-between; gap:12px; padding:10px; border-radius:12px; background:#f5f6f8; }
+.device-session-status dt { color:var(--muted); font-weight:800; }
+.device-session-status dd { margin:0; font-weight:900; text-align:right; }
 .parent-pin-change-button { width: fit-content; }
 .sticker-setting-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; grid-column: 1/-1; }
 .sticker-setting-grid label:last-child { grid-column: 1/-1; }
@@ -1276,7 +1282,7 @@ select {
  .password-dialog .form-actions button { width: 100%; min-width: 0; }
  .family-chat-mode .app-shell { padding: 10px; }
  .family-chat-mode .tabs { padding: 4px 0 8px; }
- .family-chat-view.active { width: 100%; height: calc(100vh - 86px); height: calc(100dvh - 86px); min-height: 0; border-radius: 16px; }
+ .family-chat-view.active { width: 100%; height: calc(var(--family-viewport-height, 100dvh) - 86px); min-height: 0; border-radius: 16px; }
  .family-chat-head { align-items: flex-start; gap: 10px; min-height: 74px; padding: 13px; }
  .family-chat-head-actions { max-width: 132px; gap: 6px; }
  .family-chat-head-actions button { min-height: 34px; padding: 0 10px; font-size: .8rem; }
@@ -1285,6 +1291,7 @@ select {
  .family-message-avatar { flex-basis: 30px; width: 30px; height: 30px; font-size: 1.1rem; }
  .family-message-form { gap: 8px; padding: 10px 10px max(10px, env(safe-area-inset-bottom)); }
  .family-message-form textarea { min-height: 46px; border-radius: 18px; }
+ .family-message-form textarea,.family-message-form button { touch-action: manipulation; }
  .family-message-form button { width: 50px; min-width: 50px; min-height: 46px; border-radius: 15px; }
  .family-admin-item { grid-template-columns: 1fr auto; }
  .notification-preference-row { grid-template-columns: 1fr 1fr; }

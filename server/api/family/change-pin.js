@@ -52,6 +52,7 @@ module.exports = async function changeFamilyPin(request, response) {
       method: "POST",
       body: JSON.stringify({ p_member_id: claims.sub, p_family_id: claims.family, p_pin: newPin }),
     });
+    try{const currentToken=u.cookieToken(request),currentHash=currentToken?u.tokenHash(currentToken):"";const keepCurrent=currentHash?`&token_hash=neq.${currentHash}`:"";await u.supabaseFetch(`family_device_sessions?family_id=eq.${claims.family}&member_id=eq.${claims.sub}&revoked_at=is.null${keepCurrent}`,{method:"PATCH",body:JSON.stringify({revoked_at:new Date().toISOString(),revoked_reason:"pin_changed"})})}catch(sessionError){console.warn("[change pin] device session cleanup failed",{statusCode:sessionError.statusCode||500,code:sessionError.supabaseCode||sessionError.code||null})}
 
     return u.json(response, 200, { ok: true, message: "PIN 번호가 변경되었습니다." });
   } catch (error) {

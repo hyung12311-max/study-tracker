@@ -1,0 +1,2 @@
+const u=require("./_utils");
+module.exports=async function(req,res){if(req.method!=="POST")return u.allow(res,["POST"]);try{const c=u.authenticate(req,"parent");await u.supabaseFetch(`family_device_sessions?family_id=eq.${c.family}&member_id=eq.${c.sub}&revoked_at=is.null`,{method:"PATCH",body:JSON.stringify({revoked_at:new Date().toISOString(),revoked_reason:"all_devices_logout"})});u.clearDeviceCookie(req,res);return u.json(res,200,{ok:true})}catch(e){return u.json(res,e.statusCode||500,{ok:false,error:e.statusCode?e.message:"Unable to log out all devices."})}};

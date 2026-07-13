@@ -62,7 +62,7 @@ function normalizeRewardMilestones(milestones, legacyReward) {
 
 function cacheIdentity() {
   try {
-    const member = JSON.parse(localStorage.getItem(FAMILY_AUTH_KEY) || "null")?.member || {};
+    const member = JSON.parse(sessionStorage.getItem(FAMILY_AUTH_KEY) || "null")?.member || {};
     return { familyId: member.family_id || "default", memberKey: member.member_key || localStorage.getItem("study-tracker-family-member-v1") || "default" };
   } catch { return { familyId: "default", memberKey: "default" }; }
 }
@@ -74,7 +74,7 @@ function localDataKey() {
 
 function renderStoredUserHint() {
   try {
-    const auth = JSON.parse(localStorage.getItem(FAMILY_AUTH_KEY) || "null");
+    const auth = JSON.parse(sessionStorage.getItem(FAMILY_AUTH_KEY) || "null");
     if (!auth?.member || !auth.savedAt || Date.now() - new Date(auth.savedAt).getTime() > USER_CACHE_TTL_MS) return;
     $("#currentUserAvatar").textContent = auth.member.avatar_emoji || "👤";
     $("#currentUserName").textContent = auth.member.display_name || "가족 사용자";

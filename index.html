@@ -314,6 +314,11 @@
             <label><input id="familySystemNotificationsEnabled" type="checkbox" /> 학습 시스템 메시지 알림</label>
             <div id="familyAdminList" class="family-admin-list"></div>
           </section>
+          <section class="reward-form device-session-panel" id="deviceSessionPanel">
+            <h3>로그인 및 기기 관리</h3>
+            <dl class="device-session-status"><div><dt>현재 로그인 사용자</dt><dd id="deviceSessionMember">-</dd></div><div><dt>자동 로그인 상태</dt><dd id="deviceSessionState">확인 중</dd></div><div><dt>만료 예정일</dt><dd id="deviceSessionExpires">-</dd></div></dl>
+            <div class="form-actions"><button type="button" id="logoutCurrentDeviceButton">이 기기 자동 로그인 해제</button><button type="button" class="delete-btn" id="logoutAllDevicesButton">모든 기기에서 로그아웃</button></div>
+          </section>
           </section>
           </div>
         </section>
@@ -344,6 +349,7 @@
         <div id="familyMemberChoices" class="family-member-choices" aria-label="가족 구성원 선택"></div>
         <p id="familyMemberSelectionStatus" class="family-member-selection-status" aria-live="polite">가족 구성원을 불러오고 있어요.</p>
         <label id="familyPinField">4자리 PIN<input id="familyPinInput" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required /></label>
+        <label id="rememberDeviceField" class="remember-device"><input id="rememberDeviceInput" type="checkbox" checked /> 이 기기에서 자동 로그인</label>
         <p class="password-error" id="familyLoginError" aria-live="polite"></p>
         <button type="submit" class="primary" id="familyLoginButton">이 사용자로 시작하기</button>
       </form>
