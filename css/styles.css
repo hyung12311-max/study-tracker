@@ -292,6 +292,32 @@ h2 {
   background: var(--sun);
 }
 
+.dayul-hangul-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 129, 125, .2);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #fff1ef, #fff9df);
+  box-shadow: 0 10px 25px rgba(111, 72, 52, .1);
+}
+.dayul-hangul-card[hidden] { display: none; }
+.dayul-hangul-card > div { display: flex; align-items: center; gap: 14px; }
+.dayul-hangul-card > div > span { font-size: 42px; }
+.dayul-hangul-card p { display: grid; gap: 3px; margin: 0; }
+.dayul-hangul-card small { color: #c35f68; font-weight: 900; }
+.dayul-hangul-card strong { font-size: 1.1rem; }
+.dayul-hangul-card em { color: var(--muted); font-size: .82rem; font-style: normal; }
+.dayul-hangul-card a { flex: 0 0 auto; padding: 12px 16px; border-radius: 15px; background: #ff817d; color: #fff; font-weight: 1000; text-decoration: none; box-shadow: 0 5px 0 #d96562; }
+
+@media (max-width: 620px) {
+  .dayul-hangul-card { align-items: stretch; flex-direction: column; }
+  .dayul-hangul-card a { text-align: center; }
+}
+
 .today-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

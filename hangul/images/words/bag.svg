@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-labelledby="title desc">
+  <title id="title">분홍색 가방</title><desc id="desc">노란 별 장식과 민트색 주머니가 달린 분홍색 가방</desc>
+  <rect width="600" height="420" rx="55" fill="#fff5df"/>
+  <circle cx="88" cy="82" r="24" fill="#ffd76b" opacity=".7"/><circle cx="518" cy="96" r="34" fill="#bde8df" opacity=".75"/>
+  <path d="M215 146c0-82 170-82 170 0" fill="none" stroke="#9b655f" stroke-width="27" stroke-linecap="round"/>
+  <path d="M145 151c5-26 29-43 55-43h200c26 0 50 17 55 43l33 181c6 34-20 65-55 65H167c-35 0-61-31-55-65z" fill="#ff8f9f" stroke="#704c4d" stroke-width="10"/>
+  <path d="M120 250h360" stroke="#e96f83" stroke-width="9" stroke-dasharray="12 16"/>
+  <rect x="215" y="248" width="170" height="118" rx="33" fill="#75d0c0" stroke="#704c4d" stroke-width="9"/>
+  <path d="m300 270 13 27 30 4-22 21 6 30-27-14-27 14 6-30-22-21 30-4z" fill="#ffe067" stroke="#704c4d" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M177 124v49M423 124v49" stroke="#704c4d" stroke-width="10" stroke-linecap="round"/>
+</svg>

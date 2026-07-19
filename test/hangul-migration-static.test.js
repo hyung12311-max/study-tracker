@@ -1,0 +1,43 @@
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const path = require('node:path')
+const test = require('node:test')
+
+const migration = fs.readFileSync(path.join(__dirname, '../supabase/migrations/202607190001_create_hangul_daily_completion_reward.sql'), 'utf8')
+const verification = fs.readFileSync(path.join(__dirname, '../supabase/verification/202607190001_verify_hangul_daily_completion_reward.sql'), 'utf8')
+const rollback = fs.readFileSync(path.join(__dirname, '../supabase/rollbacks/202607190001_rollback_hangul_daily_completion_reward.sql'), 'utf8')
+const preflight = fs.readFileSync(path.join(__dirname, '../supabase/verification/202607190001_preflight_hangul_daily_completion_reward.sql'), 'utf8')
+
+test('Hangul reward migration is additive, atomic, idempotent, and service-role only', () => {
+  assert.match(migration, /begin;[\s\S]*commit;/i)
+  assert.match(migration, /create table if not exists public\.hangul_daily_completions/i)
+  assert.match(migration, /unique \(member_id, study_date\)/i)
+  assert.match(migration, /unique \(member_id, session_id\)/i)
+  assert.match(migration, /security definer/i)
+  assert.match(migration, /set search_path = public/i)
+  assert.match(migration, /on conflict do nothing/i)
+  assert.match(migration, /hangul_daily_complete/i)
+  assert.match(migration, /revoke all on function[\s\S]*from public, anon, authenticated/i)
+  assert.match(migration, /grant execute on function[\s\S]*to service_role/i)
+  assert.doesNotMatch(migration, /alter table public\.sticker_transactions[\s\S]*drop/i)
+})
+
+test('verification is read-only and rollback refuses to delete earned records', () => {
+  assert.match(verification, /information_schema\.columns/i)
+  assert.doesNotMatch(verification, /\b(insert|update|delete|drop|alter|truncate)\b/i)
+  assert.match(rollback, /raise exception/i)
+  assert.match(rollback, /hangul_daily_complete/i)
+  assert.match(rollback, /drop function if exists/i)
+  assert.match(rollback, /drop table if exists public\.hangul_daily_completions/i)
+  assert.doesNotMatch(rollback, /delete from public\.sticker_transactions/i)
+})
+
+test('preflight inventory contains only read-only query statements and no secret fields', () => {
+  const statements = preflight.split(';').map((statement) => statement.trim()).filter(Boolean)
+  assert.ok(statements.length >= 10)
+  for (const statement of statements) assert.match(statement, /^(select|with)\b/i)
+  assert.doesNotMatch(preflight, /\b(create|alter|drop|insert|update|delete|truncate|grant|revoke|comment|do|call)\b/i)
+  assert.doesNotMatch(preflight, /\b(pin|pin_hash|token|service_role_key|jwt_secret)\b/i)
+  assert.match(preflight, /member_key = 'dayul'/i)
+  assert.match(preflight, /sticker_source_count/i)
+})

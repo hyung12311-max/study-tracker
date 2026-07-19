@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-labelledby="title desc">
+  <title id="title">통통한 마늘</title><desc id="desc">초록 잎이 달린 하얗고 통통한 마늘 여러 쪽</desc>
+  <rect width="600" height="420" rx="55" fill="#f4f0ff"/>
+  <ellipse cx="300" cy="363" rx="205" ry="27" fill="#d5cbe6"/>
+  <path d="M291 194c-15-102 7-151 47-170-4 79 3 122-18 175M299 193c-72-67-87-114-70-155 33 57 73 85 86 151M316 191c44-82 85-111 127-104-53 39-77 77-100 119" fill="#71b978" stroke="#526652" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M306 167c-53 26-56 68-89 86-49 27-71 67-45 103 28 39 85 26 128 4 43 22 100 35 128-4 26-36 4-76-45-103-33-18-36-60-89-86z" fill="#fffcef" stroke="#62575e" stroke-width="11"/>
+  <path d="M300 183v173M300 226c-28 8-48 43-45 92M300 226c28 8 48 43 45 92" fill="none" stroke="#d9c8bb" stroke-width="8" stroke-linecap="round"/>
+  <path d="M249 352q51 22 102 0" fill="none" stroke="#a78d83" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="478" cy="105" r="22" fill="#ffd66e" opacity=".8"/><circle cx="106" cy="93" r="17" fill="#ff9da7" opacity=".8"/>
+</svg>

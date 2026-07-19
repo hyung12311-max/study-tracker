@@ -29,6 +29,7 @@ const rewardsStudyComplete = require("../server/api/rewards/study-complete");
 const rewardMilestones = require("../server/api/reward-milestones");
 const completionNotifications = require("../server/api/completion-notifications");
 const studyReadingPlans = require("../server/api/study/reading-plans");
+const hangulDailyComplete = require("../server/api/hangul/daily-complete");
 
 const routes = Object.freeze({
   "family/members": familyMembers,
@@ -63,6 +64,7 @@ const routes = Object.freeze({
   reward_milestones: rewardMilestones,
   completion_notifications: completionNotifications,
   "study/reading-plans": studyReadingPlans,
+  "hangul/daily-complete": hangulDailyComplete,
 });
 
 function routeKey(request) {

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-labelledby="title desc">
+  <title id="title">민트색 라디오</title><desc id="desc">음표가 흘러나오는 둥근 손잡이의 민트색 라디오</desc>
+  <rect width="600" height="420" rx="55" fill="#fff1e4"/>
+  <path d="M218 136c0-80 164-80 164 0" fill="none" stroke="#574d55" stroke-width="18" stroke-linecap="round"/>
+  <rect x="90" y="120" width="420" height="258" rx="54" fill="#71cabc" stroke="#574d55" stroke-width="11"/>
+  <rect x="129" y="158" width="240" height="58" rx="17" fill="#fff7d6" stroke="#574d55" stroke-width="8"/>
+  <path d="M163 187h161" stroke="#ee796e" stroke-width="8" stroke-linecap="round"/><circle cx="296" cy="187" r="13" fill="#574d55"/>
+  <circle cx="220" cy="293" r="66" fill="#ddf5ee" stroke="#574d55" stroke-width="9"/>
+  <circle cx="220" cy="293" r="42" fill="none" stroke="#7baaa3" stroke-width="7" stroke-dasharray="7 10"/>
+  <circle cx="420" cy="268" r="27" fill="#ffd45c" stroke="#574d55" stroke-width="8"/><circle cx="420" cy="330" r="20" fill="#ff8c91" stroke="#574d55" stroke-width="8"/>
+  <g fill="none" stroke="#9d78d0" stroke-width="10" stroke-linecap="round"><path d="M475 82v-47l39-10v46"/><circle cx="466" cy="84" r="13" fill="#9d78d0"/><circle cx="505" cy="73" r="13" fill="#9d78d0"/></g>
+</svg>

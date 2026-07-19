@@ -1182,7 +1182,10 @@ function renderHeader() {
 }
 
 function renderRoleControls() {
-  const parentAuthenticated = familyChatController?.currentMember()?.role === "parent";
+  const currentMember = familyChatController?.currentMember();
+  const parentAuthenticated = currentMember?.role === "parent";
+  const dayulHangulCard = $("#dayulHangulCard");
+  if (dayulHangulCard) dayulHangulCard.hidden = !(currentMember?.role === "child" && currentMember?.member_key === "dayul");
   if (!parentAuthenticated) isParentMode = false;
   $$("[data-parent-only]").forEach((element) => {
     element.hidden = !isParentMode;

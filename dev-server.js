@@ -29,7 +29,11 @@ http.createServer((request, response) => {
     }
     return;
   }
-  const relativePath = urlPath === "/" ? "index.html" : urlPath.slice(1);
+  const relativePath = urlPath === "/"
+    ? "index.html"
+    : urlPath.endsWith("/")
+      ? `${urlPath.slice(1)}index.html`
+      : urlPath.slice(1);
   const filePath = path.normalize(path.join(root, relativePath));
 
   if (!filePath.startsWith(root)) {

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-labelledby="title desc">
+  <title id="title">알록달록 나비</title><desc id="desc">꽃밭 위를 날아가는 분홍색과 보라색 나비</desc>
+  <rect width="600" height="420" rx="55" fill="#eaf9ef"/>
+  <circle cx="500" cy="74" r="38" fill="#ffd964"/>
+  <path d="M0 333q95-50 190 0t190 0 220 0v87H0z" fill="#a9dc91"/>
+  <g stroke="#5b4b59" stroke-width="9" stroke-linejoin="round">
+    <path d="M286 207C203 75 91 121 139 229c24 54 94 58 152 18" fill="#ff94aa"/>
+    <path d="M309 207c83-132 195-86 147 22-24 54-94 58-152 18" fill="#a68be0"/>
+    <path d="M283 250c-83 81-151 49-124-21 25-64 83-55 130-20" fill="#ffca66"/>
+    <path d="M316 250c83 81 151 49 124-21-25-64-83-55-130-20" fill="#69cbb6"/>
+    <ellipse cx="300" cy="230" rx="22" ry="83" fill="#69505c"/>
+    <path d="M292 151q-34-50-56-15M308 151q34-50 56-15" fill="none" stroke-linecap="round"/>
+  </g>
+  <circle cx="197" cy="195" r="20" fill="#fff1a8"/><circle cx="402" cy="195" r="20" fill="#fff1a8"/>
+  <g fill="#ffef72" stroke="#66835e" stroke-width="6"><circle cx="78" cy="344" r="24"/><circle cx="522" cy="353" r="24"/></g>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-labelledby="title desc">
+  <title id="title">사람의 다리</title><desc id="desc">노란 양말과 빨간 운동화를 신은 두 다리</desc>
+  <rect width="600" height="420" rx="55" fill="#edf8ff"/>
+  <ellipse cx="300" cy="377" rx="225" ry="27" fill="#b8dbe1"/>
+  <path d="M185 25h110l-17 232-101-4zM305 25h110l8 228-101 4z" fill="#79b9df" stroke="#554f5b" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M177 248h101l-4 68h-99zM322 256l101-5 4 66-101 4z" fill="#ffd357" stroke="#554f5b" stroke-width="9"/>
+  <path d="M173 306c-28 16-63 42-52 75 9 25 168 23 176-2 8-26-22-61-29-70z" fill="#f36f67" stroke="#554f5b" stroke-width="10"/>
+  <path d="M331 309c-8 9-38 44-29 70 8 25 167 27 176 2 11-33-25-59-52-75z" fill="#f36f67" stroke="#554f5b" stroke-width="10"/>
+  <path d="M143 359h132M325 359h132" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+  <path d="M210 330h50M340 330h50" stroke="#fff8d9" stroke-width="7" stroke-linecap="round"/>
+</svg>
