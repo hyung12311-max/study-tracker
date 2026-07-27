@@ -697,42 +697,121 @@ check_rows as (
     'legacy_unconditional_policies_intentionally_retained',
     (
       (
-        select count(*) = 3
+        select count(*) = 2
         from pg_catalog.pg_policies policies
         where policies.schemaname = 'public'
           and (
             (
-              policies.tablename = 'study_plans'
-              and policies.policyname = 'single user study plans access'
-            )
-            or (
               policies.tablename = 'book_plans'
               and policies.policyname = 'book_plans_existing_app_access'
             )
             or (
               policies.tablename = 'academy_schedules'
               and policies.policyname
-                = 'single user academy schedules access'
+                = 'academy_schedules_existing_app_access'
             )
           )
           and policies.cmd = 'ALL'
-          and policies.qual = 'true'
-          and policies.with_check = 'true'
+          and cardinality(policies.roles) = 2
+          and policies.roles::text[]
+            @> array['anon', 'authenticated']::text[]
+          and lower(coalesce(policies.qual, '')) in ('true', '(true)')
+          and lower(coalesce(policies.with_check, '')) in ('true', '(true)')
+      )
+      and (
+        select count(*) = 2
+        from pg_catalog.pg_policies policies
+        where policies.schemaname = 'public'
+          and policies.tablename in (
+            'study_plans',
+            'book_plans',
+            'academy_schedules',
+            'reward_settings',
+            'sticker_history'
+          )
+          and lower(coalesce(policies.qual, '')) in ('true', '(true)')
+          and lower(coalesce(policies.with_check, '')) in ('true', '(true)')
+      )
+      and (
+        select count(*) = 2
+        from pg_catalog.pg_class relations
+        where relations.oid in (
+          'public.book_plans'::regclass,
+          'public.academy_schedules'::regclass
+        )
+          and relations.relrowsecurity
       )
       and (
         select count(*) = 3
         from pg_catalog.pg_class relations
         where relations.oid in (
           'public.study_plans'::regclass,
-          'public.book_plans'::regclass,
-          'public.academy_schedules'::regclass
+          'public.reward_settings'::regclass,
+          'public.sticker_history'::regclass
         )
-          and relations.relrowsecurity
+          and not relations.relrowsecurity
       )
     ),
     jsonb_build_object(
-      'expected_retained_policy_count', 3,
-      'phase_3_removal_required', true
+      'actual_policy_count', (
+        select count(*)::bigint
+        from pg_catalog.pg_policies policies
+        where policies.schemaname = 'public'
+          and policies.tablename in (
+            'study_plans',
+            'book_plans',
+            'academy_schedules',
+            'reward_settings',
+            'sticker_history'
+          )
+          and lower(coalesce(policies.qual, '')) in ('true', '(true)')
+          and lower(coalesce(policies.with_check, '')) in ('true', '(true)')
+      ),
+      'expected_policy_count', 2,
+      'actual_policy_names', coalesce(
+        (
+          select jsonb_agg(
+            policies.tablename || '.' || policies.policyname
+            order by policies.tablename, policies.policyname
+          )
+          from pg_catalog.pg_policies policies
+          where policies.schemaname = 'public'
+            and policies.tablename in (
+              'study_plans',
+              'book_plans',
+              'academy_schedules',
+              'reward_settings',
+              'sticker_history'
+            )
+            and lower(coalesce(policies.qual, '')) in ('true', '(true)')
+            and lower(coalesce(policies.with_check, '')) in ('true', '(true)')
+        ),
+        '[]'::jsonb
+      ),
+      'rls_disabled_tables', coalesce(
+        (
+          select jsonb_agg(relations.relname order by relations.relname)
+          from pg_catalog.pg_class relations
+          where relations.oid in (
+            'public.study_plans'::regclass,
+            'public.reward_settings'::regclass,
+            'public.sticker_history'::regclass
+          )
+            and not relations.relrowsecurity
+        ),
+        '[]'::jsonb
+      ),
+      'phase_3_removal_targets', jsonb_build_array(
+        'book_plans.book_plans_existing_app_access',
+        'academy_schedules.academy_schedules_existing_app_access'
+      ),
+      'phase_3_rls_enablement_targets', jsonb_build_array(
+        'study_plans',
+        'reward_settings',
+        'sticker_history'
+      ),
+      'phase_3_removal_required', true,
+      'phase_3_rls_enablement_required', true
     )
 
   union all
