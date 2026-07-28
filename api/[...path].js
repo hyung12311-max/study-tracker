@@ -28,6 +28,8 @@ const rewardsStickerSettings = require("../server/api/rewards/sticker-settings")
 const rewardsStudyComplete = require("../server/api/rewards/study-complete");
 const rewardMilestones = require("../server/api/reward-milestones");
 const completionNotifications = require("../server/api/completion-notifications");
+const studyBookPlans = require("../server/api/study/book-plans");
+const studyPlans = require("../server/api/study/plans");
 const studyReadingPlans = require("../server/api/study/reading-plans");
 const hangulDailyComplete = require("../server/api/hangul/daily-complete");
 
@@ -63,6 +65,8 @@ const routes = Object.freeze({
   "rewards/study-complete": rewardsStudyComplete,
   reward_milestones: rewardMilestones,
   completion_notifications: completionNotifications,
+  "study/book-plans": studyBookPlans,
+  "study/plans": studyPlans,
   "study/reading-plans": studyReadingPlans,
   "hangul/daily-complete": hangulDailyComplete,
 });

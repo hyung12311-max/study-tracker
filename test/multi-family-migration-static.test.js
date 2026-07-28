@@ -14,15 +14,17 @@ const verificationPath = path.join(
 const migration = fs.readFileSync(migrationPath, "utf8");
 const verification = fs.readFileSync(verificationPath, "utf8");
 
-test("multi-family migration is the next additive atomic migration", () => {
+test("multi-family foundation remains additive and precedes the access-hardening migration", () => {
   const migrationNames = fs
     .readdirSync(path.join(__dirname, "../supabase/migrations"))
     .filter((name) => name.endsWith(".sql"))
     .sort();
 
-  assert.equal(
-    migrationNames.at(-1),
-    "202607270001_multi_family_data_foundation.sql",
+  assert.ok(migrationNames.includes("202607270001_multi_family_data_foundation.sql"));
+  assert.ok(migrationNames.includes("202607280001_expand_study_plans_server_wrappers.sql"));
+  assert.ok(
+    migrationNames.indexOf("202607270001_multi_family_data_foundation.sql")
+      < migrationNames.indexOf("202607280001_expand_study_plans_server_wrappers.sql"),
   );
   assert.match(migration, /^\s*--[\s\S]*\bbegin;/i);
   assert.match(migration, /\bcommit;\s*$/i);

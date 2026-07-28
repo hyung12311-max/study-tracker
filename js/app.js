@@ -16,6 +16,7 @@ window.__studyTrackerStartupRequests = startupMetrics.requests;
 const LEGACY_LOCAL_DATA_KEY = "study-tracker-local-data-v1";
 const CACHE_PREFIX = "study_tracker_cache";
 const LOCAL_NOTIFICATION_KEY = "study-tracker-parent-notifications-v1";
+const PLAN_ASSIGNEE_KEY_PREFIX = "study-tracker-plan-assignee-v1";
 const DEFAULT_REWARD = { goal: 10, name: "5,000원 용돈" };
 const DEFAULT_REWARD_MILESTONES = [
   { id: "default-5", stars: 5, name: "아이스크림" },
@@ -63,13 +64,24 @@ function normalizeRewardMilestones(milestones, legacyReward) {
 function cacheIdentity() {
   try {
     const member = JSON.parse(sessionStorage.getItem(FAMILY_AUTH_KEY) || "null")?.member || {};
-    return { familyId: member.family_id || "default", memberKey: member.member_key || localStorage.getItem("study-tracker-family-member-v1") || "default" };
-  } catch { return { familyId: "default", memberKey: "default" }; }
+    const memberId = member.id || member.member_id || "unknown";
+    const role = member.role || "unknown";
+    const assignedMemberId = role === "parent" ? selectedPlanAssignee() || "unselected" : memberId;
+    return {
+      familyId: member.family_id || "default",
+      memberId,
+      memberKey: member.member_key || localStorage.getItem("study-tracker-family-member-v1") || "default",
+      role,
+      assignedMemberId,
+    };
+  } catch {
+    return { familyId: "default", memberId: "unknown", memberKey: "default", role: "unknown", assignedMemberId: "unselected" };
+  }
 }
 
 function localDataKey() {
-  const { familyId, memberKey } = cacheIdentity();
-  return `${CACHE_PREFIX}_${familyId}_${memberKey}`;
+  const { familyId, memberId, assignedMemberId } = cacheIdentity();
+  return `${CACHE_PREFIX}_${familyId}_${memberId}_${assignedMemberId}`;
 }
 
 function renderStoredUserHint() {
@@ -240,6 +252,7 @@ function createSupabaseRepository(config) {
   function planFromRow(row) {
     return {
       id: row.id,
+      assignedMemberId: row.assigned_member_id || null,
       subject: row.subject,
       book: row.workbook,
       unit: row.chapter,
@@ -370,13 +383,30 @@ function createSupabaseRepository(config) {
 
     const remoteLoad = (async () => {
     const weekEnd = toDateInput(addDays(new Date(), 6));
-    const planSelect = "id,subject,workbook,chapter,lesson,study_date,day_label,content,goal,status,book_plan_id,reading_plan_id,sequence_no,start_page,end_page,task_type,note,study_weekdays";
-    let plansQuery = client.from("study_plans")
-      .select(planSelect)
-      .order("study_date", { ascending: true });
-    if (essentialOnly) plansQuery = plansQuery.lte("study_date", weekEnd).not("status", "in", "(완료,done)");
-    console.info("[study_plans query]", {
-      select: planSelect,
+    const currentMember = familyChatController?.currentMember();
+    const assignedMemberId = currentMember?.role === "parent" ? selectedPlanAssignee() : "";
+    const planParams = new URLSearchParams();
+    if (assignedMemberId) planParams.set("assignedMemberId", assignedMemberId);
+    if (essentialOnly) {
+      planParams.set("through", weekEnd);
+      planParams.set("excludeCompleted", "true");
+    }
+    const planQuery = planParams.toString();
+    const planUrl = `/api/study/plans${planQuery ? `?${planQuery}` : ""}`;
+    const plansQuery = currentMember?.role === "parent" && !assignedMemberId
+      ? Promise.resolve({ data: [], error: null })
+      : requestJson(planUrl, { headers: familyAuthHeaders() })
+          .then((result) => ({ data: result.plans, error: null }))
+          .catch((error) => ({ data: null, error }));
+    const bookPlansQuery = currentMember?.role === "parent" && assignedMemberId
+      ? requestJson(`/api/study/book-plans?assignedMemberId=${encodeURIComponent(assignedMemberId)}`, {
+          headers: familyAuthHeaders(),
+        })
+          .then((result) => ({ data: result.bookPlans, error: null }))
+          .catch((error) => ({ data: null, error }))
+      : Promise.resolve({ data: [], error: null });
+    console.info("[study_plans API query]", {
+      assignedMemberId: assignedMemberId || (currentMember?.role === "child" ? "session-member" : null),
       where: essentialOnly ? { study_date: `<=${weekEnd}`, status: "not in (완료,done)" } : {},
       order: { study_date: "asc" },
       cacheKey: localDataKey(),
@@ -398,7 +428,7 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "교재 계획 불러오기 실패",
-        essentialOnly ? Promise.resolve({ data: localData.bookPlans || [], error: null }) : client.from("book_plans").select("id,subject,workbook,chapter,lesson,content,start_date,study_weekdays,start_page,end_page,pages_per_day,goal,memo,expected_end_date,updated_at").order("updated_at", { ascending: false }),
+        essentialOnly ? Promise.resolve({ data: localData.bookPlans || [], error: null }) : bookPlansQuery,
         localData.bookPlans || []
       ),
       requestOrFallback(
@@ -435,8 +465,7 @@ function createSupabaseRepository(config) {
     const safeAcademySchedules = Array.isArray(academySchedules) ? academySchedules : [];
     const safeAcademyCompletions = Array.isArray(academyCompletions) ? academyCompletions : [];
 
-    console.log("Supabase study_plans count:", safePlans.length);
-    console.log("Supabase study_plans rows:", safePlans);
+    console.log("Study plans API count:", safePlans.length);
 
     return {
       reward: reward?.target_stickers
@@ -465,60 +494,76 @@ function createSupabaseRepository(config) {
 
   async function upsertPlan(plan) {
     assertConfigured();
-    const payload = rowFromPlan(plan);
+    const assignedMemberId = requireSelectedPlanAssignee();
+    const payload = {
+      assignedMemberId,
+      subject: plan.subject,
+      book: plan.book,
+      unit: plan.unit,
+      lessonNo: plan.lessonNo,
+      studyDate: plan.studyDate,
+      dayNo: plan.dayNo,
+      content: plan.content,
+      target: plan.target,
+      status: plan.status,
+    };
     if (plan.id) {
-      const { data } = await request(
-        "학습계획 수정 실패",
-        client.from("study_plans").update(payload).eq("id", plan.id).select("*").single()
-      );
+      const result = await requestJson("/api/study/plans", {
+        method: "PATCH",
+        headers: familyAuthHeaders(),
+        body: JSON.stringify({ id: String(plan.id), ...payload }),
+      });
+      const data = result.plan;
       await syncStickerForPlan(data.id, data.status);
       return planFromRow(data);
     }
 
-    const { data } = await request(
-      "학습계획 저장 실패",
-      client.from("study_plans").insert(payload).select("*").single()
-    );
+    const result = await requestJson("/api/study/plans", {
+      method: "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const data = result.plan;
     await syncStickerForPlan(data.id, data.status);
     return planFromRow(data);
   }
 
   async function deletePlan(id) {
     assertConfigured();
-    const planId = /^\d+$/.test(String(id)) ? Number(id) : id;
-    await request("학습계획 삭제 실패", client.from("study_plans").delete().eq("id", planId));
+    const assignedMemberId = requireSelectedPlanAssignee();
+    await requestJson("/api/study/plans", {
+      method: "DELETE",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ id: String(id), assignedMemberId }),
+    });
   }
 
   async function createBookPlan(input) {
     assertConfigured();
-    const { data } = await request("교재 계획 생성 실패", client.rpc("create_book_plan", {
-      p_subject: input.subject,
-      p_workbook: input.book,
-      p_lesson: input.unit,
-      p_chapter: input.lessonNo,
-      p_content: input.content || "",
-      p_start_date: input.startDate,
-      p_start_page: input.startPage,
-      p_end_page: input.endPage,
-      p_pages_per_day: input.pagesPerDay,
-      p_study_weekdays: input.weekdays,
-      p_goal: input.target || "",
-      p_memo: input.memo || "",
-    }));
-    const result = Array.isArray(data) ? data[0] : data;
+    const assignedMemberId = requireSelectedPlanAssignee();
+    const result = await requestJson("/api/study/book-plans", {
+      method: "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({
+        action: "create",
+        assignedMemberId,
+        ...input,
+      }),
+    });
     return {
-      generatedCount: Number(result?.generated_count || 0),
-      firstStudyDate: result?.first_study_date || null,
-      lastStudyDate: result?.last_study_date || null,
-      rows: Array.isArray(result?.generated_rows) ? result.generated_rows : [],
+      generatedCount: Number(result.generatedCount || 0),
+      firstStudyDate: result.firstStudyDate || null,
+      lastStudyDate: result.lastStudyDate || null,
+      rows: Array.isArray(result.rows) ? result.rows : [],
     };
   }
 
   async function createReadingPlan(input) {
+    const assignedMemberId = requireSelectedPlanAssignee();
     const data = await requestJson("/api/study/reading-plans", {
       method: "POST",
       headers: familyAuthHeaders(),
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, assignedMemberId }),
     });
     return {
       readingPlanId: data.readingPlanId,
@@ -530,32 +575,42 @@ function createSupabaseRepository(config) {
 
   async function addBookPlanReview(bookPlanId, afterSequence, content) {
     assertConfigured();
-    await request("복습 일정 추가 실패", client.rpc("add_book_plan_review", {
-      p_book_plan_id: bookPlanId,
-      p_after_sequence: Number(afterSequence || 0),
-      p_content: content || "복습",
-    }));
+    const assignedMemberId = requireSelectedPlanAssignee();
+    await requestJson("/api/study/book-plans", {
+      method: "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ action: "addReview", assignedMemberId, bookPlanId, afterSequence, content }),
+    });
   }
 
   async function updateBookPlanPages(bookPlanId, pagesPerDay) {
     assertConfigured();
-    await request("하루 학습량 변경 실패", client.rpc("update_book_plan_pages", {
-      p_book_plan_id: bookPlanId,
-      p_pages_per_day: Number(pagesPerDay),
-    }));
+    const assignedMemberId = requireSelectedPlanAssignee();
+    await requestJson("/api/study/book-plans", {
+      method: "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ action: "updatePages", assignedMemberId, bookPlanId, pagesPerDay }),
+    });
   }
 
   async function deleteBookPlanTask(id) {
     assertConfigured();
-    await request("교재 일정 삭제 실패", client.rpc("delete_book_plan_task", { p_study_plan_id: String(id) }));
+    const assignedMemberId = requireSelectedPlanAssignee();
+    await requestJson("/api/study/book-plans", {
+      method: "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ action: "deleteTask", assignedMemberId, studyPlanId: String(id) }),
+    });
   }
 
   async function moveBookPlanForward(bookPlanId) {
     assertConfigured();
-    await request("지연 일정 이동 실패", client.rpc("reflow_book_plan", {
-      p_book_plan_id: bookPlanId,
-      p_from_date: toDateInput(new Date()),
-    }));
+    const assignedMemberId = requireSelectedPlanAssignee();
+    await requestJson("/api/study/book-plans", {
+      method: "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ action: "reflow", assignedMemberId, bookPlanId, fromDate: toDateInput(new Date()) }),
+    });
   }
 
   async function completePlan(id) {
@@ -577,18 +632,13 @@ function createSupabaseRepository(config) {
   }
 
   async function updatePlanStatus(id, status) {
-    assertConfigured();
-    const { data } = await request(
-      "완료 상태 저장 실패",
-      client
-        .from("study_plans")
-        .update(sanitizePayload({ status }))
-        .eq("id", id)
-        .select("*")
-        .single()
-    );
-
-    return planFromRow(data);
+    const assignedMemberId = requireSelectedPlanAssignee();
+    const result = await requestJson("/api/study/plans", {
+      method: "PATCH",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ id: String(id), status, assignedMemberId }),
+    });
+    return planFromRow(result.plan);
   }
 
   async function syncStickerForPlan(){/* Sticker awards are written only by the authenticated completion API. */}
@@ -665,12 +715,13 @@ function createSupabaseRepository(config) {
   }
 
   async function markLate(planIds) {
-    assertConfigured();
     if (!planIds.length) return;
-    await request(
-      "지연 상태 저장 실패",
-      client.from("study_plans").update({ status: "지연" }).in("id", planIds)
-    );
+    const assignedMemberId = requireSelectedPlanAssignee();
+    await requestJson("/api/study/plans", {
+      method: "PATCH",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ ids: planIds.map(String), status: "지연", assignedMemberId }),
+    });
   }
 
   function subscribe(onChange, onError) {
@@ -736,8 +787,8 @@ let state = {
 state.formMode = "create";
 let isParentMode = false;
 let learningFilter = "due";
-let isRemoteRefreshPending = false;
 let remoteLoadPromise = null;
+let remoteLoadGeneration = 0;
 let activeCacheKey = localDataKey();
 let installPrompt = null;
 const PWA_INSTALLED_KEY = "study-sticker-pwa-installed-v1";
@@ -750,6 +801,134 @@ let appReady = false;
 let authenticationTransition = null;
 let realtimeUnsubscribe = null;
 let stickerWalletSnapshot = null;
+let planAssignees = [];
+
+function planAssigneeStorageKey() {
+  const familyId = familyChatController?.currentMember()?.family_id;
+  return familyId ? `${PLAN_ASSIGNEE_KEY_PREFIX}:${familyId}` : null;
+}
+
+function selectedPlanAssignee() {
+  return $("#planAssignedMember")?.value || "";
+}
+
+function requireSelectedPlanAssignee() {
+  const memberId = selectedPlanAssignee();
+  if (!memberId || !planAssignees.some((member) => member.id === memberId)) {
+    const error = new Error("계획을 등록할 담당 자녀를 먼저 선택해 주세요.");
+    error.code = "ASSIGNED_MEMBER_REQUIRED";
+    throw error;
+  }
+  return memberId;
+}
+
+function updatePlanAssigneeSummary() {
+  const summary = $("#planAssigneeSummary");
+  if (!summary) return;
+  const selected = planAssignees.find((member) => member.id === selectedPlanAssignee());
+  summary.textContent = selected
+    ? `현재 모든 계획은 ${selected.display_name} 자녀에게 등록됩니다.`
+    : "계획을 등록할 자녀를 선택해 주세요.";
+}
+
+function setPlanAssignee(memberId) {
+  const select = $("#planAssignedMember");
+  const value = String(memberId || "");
+  if (!select || !value || !planAssignees.some((member) => member.id === value)) return false;
+  select.value = value;
+  const storageKey = planAssigneeStorageKey();
+  if (storageKey) sessionStorage.setItem(storageKey, value);
+  updatePlanAssigneeSummary();
+  return true;
+}
+
+function renderPlanAssignees(preferredMemberId = "") {
+  const select = $("#planAssignedMember");
+  if (!select) return;
+  const storageKey = planAssigneeStorageKey();
+  const storedMemberId = storageKey ? sessionStorage.getItem(storageKey) : "";
+  const selected = [preferredMemberId, select.value, storedMemberId]
+    .map((value) => String(value || ""))
+    .find((value) => planAssignees.some((member) => member.id === value));
+  select.replaceChildren();
+  if (!planAssignees.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "선택 가능한 활성 자녀가 없습니다";
+    select.append(option);
+    select.disabled = true;
+    updatePlanAssigneeSummary();
+    return;
+  }
+  select.disabled = false;
+  const prompt = document.createElement("option");
+  prompt.value = "";
+  prompt.textContent = "담당 자녀를 선택해 주세요";
+  select.append(prompt);
+  for (const member of planAssignees) {
+    const option = document.createElement("option");
+    option.value = member.id;
+    option.textContent = `${member.avatar_emoji || "👤"} ${member.display_name}`;
+    select.append(option);
+  }
+  select.value = selected || "";
+  if (select.value && storageKey) sessionStorage.setItem(storageKey, select.value);
+  updatePlanAssigneeSummary();
+}
+
+async function loadPlanAssignees() {
+  const currentMember = familyChatController?.currentMember();
+  planAssignees = [];
+  if (currentMember?.role !== "parent") {
+    renderPlanAssignees();
+    return;
+  }
+  try {
+    const data = await requestJson("/api/family/members", { headers: familyAuthHeaders() });
+    planAssignees = (data.members || [])
+      .filter((member) => (
+        member.family_id === currentMember.family_id
+        && member.role === "child"
+        && member.is_active === true
+      ))
+      .map((member) => ({
+        id: String(member.id),
+        display_name: member.display_name,
+        avatar_emoji: member.avatar_emoji,
+      }));
+    renderPlanAssignees();
+  } catch (error) {
+    renderPlanAssignees();
+    console.warn("[study plan assignees] load failed", { status: error.status || null, code: error.code || null });
+  }
+}
+
+async function handlePlanAssigneeChange() {
+  const assignedMemberId = selectedPlanAssignee();
+  const storageKey = planAssigneeStorageKey();
+  if (!setPlanAssignee(assignedMemberId)) {
+    if (storageKey) sessionStorage.removeItem(storageKey);
+    remoteLoadGeneration += 1;
+    state = { ...state, plans: [], bookPlans: [] };
+    state.formMode = "create";
+    activeCacheKey = localDataKey();
+    resetForm();
+    resetBookPlanForm();
+    resetReadingPlanForm();
+    render();
+    return;
+  }
+  state = { ...state, plans: [], bookPlans: [] };
+  state.formMode = "create";
+  activeCacheKey = localDataKey();
+  resetForm();
+  resetBookPlanForm();
+  resetReadingPlanForm();
+  $("#todayList").setAttribute("aria-busy", "true");
+  setConnectionStatus("선택한 자녀의 학습계획을 불러오는 중입니다...");
+  render();
+  await reloadFromRemote({ essentialOnly: false });
+}
 
 function applyStickerWalletData(nextState = state) {
   if (!stickerWalletSnapshot) return { ...nextState, stickerCount: null };
@@ -885,10 +1064,18 @@ function formatDate(dateString) {
   }).format(new Date(`${dateString}T00:00:00`));
 }
 
+async function loadRepositoryForCurrentContext(options = {}) {
+  const requestCacheKey = localDataKey();
+  const loadedState = await repository.load(options);
+  return requestCacheKey === localDataKey() ? loadedState : null;
+}
+
 async function saveAndRender(message, operation) {
   try {
     if (operation) await operation();
-    state = applyStickerWalletData(await repository.load());
+    const loadedState = await loadRepositoryForCurrentContext();
+    if (!loadedState) return;
+    state = applyStickerWalletData(loadedState);
     ensureFormMode();
     await markOverduePlans();
     writeLocalData(state);
@@ -1167,7 +1354,7 @@ async function markOverduePlans() {
     }
     return plan;
   });
-  if (changedIds.length) {
+  if (changedIds.length && familyChatController?.currentMember()?.role === "parent") {
     await repository.markLate(changedIds);
   }
 }
@@ -1416,7 +1603,9 @@ async function handleCompletePlan(id, button) {
 
   try {
     const completion = await repository.completePlan(id);
-    state = applyStickerWalletData(await repository.load());
+    const loadedState = await loadRepositoryForCurrentContext();
+    if (!loadedState) return;
+    state = applyStickerWalletData(loadedState);
     await markOverduePlans();
     writeLocalData(state);
     renderHeader();
@@ -1871,13 +2060,14 @@ function calculateWeeklyRate() {
 async function handleEditPlan(id) {
   if (!isParentMode) return;
   selectPlanRegistrationMode("daily");
-  const plan = state.plans.find((item) => Number(item.id) === Number(id));
+  const plan = state.plans.find((item) => String(item.id) === String(id));
   if (!plan) {
     handleRepositoryError(new Error("수정할 학습계획을 찾지 못했습니다."));
     return;
   }
   state.formMode = "edit";
   $("#planId").value = plan.id;
+  setPlanAssignee(plan.assignedMemberId);
   $("#subject").value = plan.subject;
   $("#book").value = plan.book;
   $("#unit").value = plan.unit;
@@ -1898,13 +2088,14 @@ async function handleCopyPlan(id) {
   selectPlanRegistrationMode("daily");
   console.log("[copy-click]", id);
   console.log("[copy-plans]", state.plans.map((plan) => plan.id));
-  const plan = state.plans.find((item) => Number(item.id) === Number(id));
+  const plan = state.plans.find((item) => String(item.id) === String(id));
   if (!plan) {
     handleRepositoryError(new Error("복사할 학습계획을 찾지 못했습니다."));
     return;
   }
   state.formMode = "copy";
   $("#planId").value = "";
+  setPlanAssignee(plan.assignedMemberId);
   $("#subject").value = plan.subject;
   $("#book").value = plan.book;
   $("#unit").value = plan.unit;
@@ -1957,7 +2148,9 @@ async function handleMoveBookTask(bookPlanId) {
 }
 
 function resetForm() {
+  const assignedMemberId = selectedPlanAssignee();
   $("#planForm").reset();
+  renderPlanAssignees(assignedMemberId);
   $("#planId").value = "";
   $("#studyDate").value = toDateInput(new Date());
   $("#status").value = "planned";
@@ -2048,7 +2241,9 @@ async function handleBookPlanSubmit(event) {
   button.textContent = "계획 생성 중...";
   try {
     const result = await repository.createBookPlan(input);
-    state = applyStickerWalletData(await repository.load());
+    const loadedState = await loadRepositoryForCurrentContext();
+    if (!loadedState) return;
+    state = applyStickerWalletData(loadedState);
     ensureFormMode();
     await markOverduePlans();
     writeLocalData(state);
@@ -2144,7 +2339,9 @@ async function handleReadingPlanSubmit(event) {
   button.textContent = "독서 계획 만드는 중...";
   try {
     const result = await repository.createReadingPlan(input);
-    state = applyStickerWalletData(await repository.load());
+    const loadedState = await loadRepositoryForCurrentContext();
+    if (!loadedState) return;
+    state = applyStickerWalletData(loadedState);
     await markOverduePlans();
     writeLocalData(state);
     render();
@@ -2179,6 +2376,7 @@ async function handlePlanSubmit(event) {
   if (!isParentMode) return;
   const formPlan = {
     id: state.formMode === "copy" ? undefined : $("#planId").value || undefined,
+    assignedMemberId: selectedPlanAssignee(),
     subject: $("#subject").value.trim(),
     book: $("#book").value.trim(),
     unit: $("#unit").value.trim(),
@@ -2189,6 +2387,11 @@ async function handlePlanSubmit(event) {
     target: $("#target").value.trim(),
     status: statusLabels[$("#status").value] || $("#status").value,
   };
+  if (!formPlan.assignedMemberId) {
+    showToast("담당 자녀를 선택해 주세요.");
+    $("#planAssignedMember").focus();
+    return;
+  }
 
   const message = state.formMode === "copy" ? "복사한 학습계획이 저장되었습니다." : "학습계획을 저장했어요.";
   await saveAndRender(message, () => repository.upsertPlan(formPlan));
@@ -2562,7 +2765,7 @@ function bindEvents() {
     const copyButton = event.target.closest('[data-action="copy"]');
     if (copyButton) {
       event.stopPropagation();
-      const id = Number(copyButton.dataset.id);
+      const id = copyButton.dataset.id;
       await handleCopyPlan(id);
       return;
     }
@@ -2570,7 +2773,7 @@ function bindEvents() {
     const editButton = event.target.closest('[data-action="edit"]');
     if (editButton) {
       event.stopPropagation();
-      const id = Number(editButton.dataset.id);
+      const id = editButton.dataset.id;
       await handleEditPlan(id);
       return;
     }
@@ -2578,7 +2781,7 @@ function bindEvents() {
     const deleteButton = event.target.closest('[data-action="delete"]');
     if (deleteButton) {
       event.stopPropagation();
-      const id = Number(deleteButton.dataset.id);
+      const id = deleteButton.dataset.id;
       await handleDeletePlan(id);
       return;
     }
@@ -2619,6 +2822,7 @@ function bindEvents() {
   $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
   $("#closePasswordButton").addEventListener("click", closePasswordDialog);
   $("#planForm").addEventListener("submit", handlePlanSubmit);
+  $("#planAssignedMember").addEventListener("change", handlePlanAssigneeChange);
   $("#bookPlanForm")?.addEventListener("submit", handleBookPlanSubmit);
   $("#bookPlanForm")?.addEventListener("input", renderBookPlanPreview);
   $("#bookPlanForm")?.addEventListener("change", renderBookPlanPreview);
@@ -2640,25 +2844,31 @@ function bindEvents() {
 }
 
 async function reloadFromRemote(options = {}) {
-  if (isRemoteRefreshPending) return remoteLoadPromise;
-  isRemoteRefreshPending = true;
-  remoteLoadPromise = (async () => {
+  const generation = ++remoteLoadGeneration;
+  const requestCacheKey = localDataKey();
+  const request = (async () => {
     try {
       const previous = JSON.stringify(state);
-      state = applyStickerWalletData(await repository.load(options));
+      const loadedState = applyStickerWalletData(await repository.load(options));
+      if (generation !== remoteLoadGeneration || requestCacheKey !== localDataKey()) return false;
+      state = loadedState;
       ensureFormMode();
       if (!options.essentialOnly) await markOverduePlans();
+      if (generation !== remoteLoadGeneration || requestCacheKey !== localDataKey()) return false;
       writeLocalData(state);
       if (JSON.stringify(state) !== previous) render();
       setConnectionStatus(navigator.onLine ? "" : "오프라인입니다. 저장된 정보를 표시합니다.");
+      return true;
     } catch (error) {
+      if (generation !== remoteLoadGeneration || requestCacheKey !== localDataKey()) return false;
       handleRepositoryError(error);
+      return false;
     } finally {
-      isRemoteRefreshPending = false;
-      remoteLoadPromise = null;
+      if (generation === remoteLoadGeneration) remoteLoadPromise = null;
     }
   })();
-  return remoteLoadPromise;
+  remoteLoadPromise = request;
+  return request;
 }
 
 function deferStartupTask(callback) {
@@ -2698,9 +2908,14 @@ async function initApp() {
 async function enterAuthenticatedApp() {
   if (authenticationTransition) return authenticationTransition;
   authenticationTransition = (async () => {
-    activeCacheKey = localDataKey();
     const currentMember = familyChatController?.currentMember();
+    remoteLoadGeneration += 1;
     stickerWalletSnapshot = null;
+    state = emptyLocalData();
+    state.formMode = "create";
+    if (appReady) render();
+    await loadPlanAssignees();
+    activeCacheKey = localDataKey();
     console.info("[startup auth]", {
       member_key: currentMember?.member_key || null,
       family_id: currentMember?.family_id || null,

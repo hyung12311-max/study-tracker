@@ -31,7 +31,7 @@ test("POST study-complete returns 200 after plan completion, sticker award, and 
     supabaseFetch: async (path, options = {}) => {
       calls.push({ path, options });
       if (path.startsWith("study_plans?select=")) return [{ id: 36, subject: "수학", status: "예정" }];
-      if (path === "rpc/complete_study_plan_with_reward") return [{
+      if (path === "rpc/complete_study_plan_with_reward_for_member") return [{
         completed_plan: { id: 36, status: "done" },
         adjustment_type: "normal",
         rescheduled_count: 0,
@@ -61,7 +61,8 @@ test("POST study-complete returns 200 after plan completion, sticker award, and 
     assert.equal(response.body.completion.awardedStickerCount, 2);
     assert.equal(response.body.completion.stickerCount, 2);
     assert.equal(response.body.parentNotification.success, 2);
-    assert.ok(calls.some((call) => call.path === "rpc/complete_study_plan_with_reward"));
+    assert.ok(calls.some((call) => call.path === "rpc/complete_study_plan_with_reward_for_member"));
+    assert.ok(calls.some((call) => call.path.includes("family_id=eq.family-id") && call.path.includes("assigned_member_id=eq.child-id")));
     const push = calls.find((call) => call.push)?.push;
     const familyMessage = calls.find((call) => call.systemMessage)?.systemMessage;
     assert.equal(push.target, "parent");
@@ -83,7 +84,7 @@ test("delayed completion uses the same one-sticker result in chat and parent pus
     memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
     supabaseFetch: async (path) => {
       if (path.startsWith("study_plans?select=")) return [{ id: 37, subject: "한자 준 5급", status: "planned" }];
-      if (path === "rpc/complete_study_plan_with_reward") return [{
+      if (path === "rpc/complete_study_plan_with_reward_for_member") return [{
         completed_plan: { id: 37, status: "done" },
         adjustment_type: "late",
         rescheduled_count: 0,
@@ -127,7 +128,7 @@ test("repeated completion does not award or notify twice", async () => {
     memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
     supabaseFetch: async (path) => {
       if (path.startsWith("study_plans?select=")) return [{ id: 38, subject: "수학", status: completionCalls ? "done" : "planned" }];
-      if (path === "rpc/complete_study_plan_with_reward") {
+      if (path === "rpc/complete_study_plan_with_reward_for_member") {
         completionCalls += 1;
         return [{
           completed_plan: { id: 38, status: "done" },

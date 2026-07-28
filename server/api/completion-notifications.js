@@ -26,7 +26,12 @@ module.exports = async function completionNotifications(request, response) {
     if (!/^\d+$/.test(planId) || !title || title.length > 150 || !message || message.length > 1000) {
       throw u.err("완료 알림 기록을 확인해 주세요.", 400, "INVALID_COMPLETION_NOTIFICATION");
     }
-    const plan = (await u.supabaseFetch(`study_plans?select=id&id=eq.${encodeURIComponent(planId)}&limit=1`))?.[0];
+    const assigneeFilter = member.role === "parent"
+      ? ""
+      : `&assigned_member_id=eq.${encodeURIComponent(claims.sub)}`;
+    const plan = (await u.supabaseFetch(
+      `study_plans?select=id&id=eq.${encodeURIComponent(planId)}&family_id=eq.${encodeURIComponent(claims.family)}${assigneeFilter}&limit=1`
+    ))?.[0];
     if (!plan) throw u.err("학습 계획을 찾을 수 없습니다.", 404, "STUDY_PLAN_NOT_FOUND");
     const rows = await u.supabaseFetch("completion_notifications", {
       method: "POST",

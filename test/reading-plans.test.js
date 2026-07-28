@@ -29,7 +29,7 @@ async function createWith(body) {
     memberInFamily: async () => ({ id: "parent-id", role: "parent", is_active: true }),
     readJson: async () => body,
     supabaseFetch: async (path, options) => {
-      assert.equal(path, "rpc/create_reading_plan");
+      assert.equal(path, "rpc/create_reading_plan_for_member");
       rpcBody = JSON.parse(options.body);
       return [{ reading_plan_id: "reading-id", generated_count: 12, first_study_date: "2026-07-13", last_study_date: "2026-08-07" }];
     },
@@ -44,7 +44,7 @@ async function createWith(body) {
 }
 
 test("free reading creates repeated habit dates without title or pages", async () => {
-  const { response, rpcBody } = await createWith({ mode: "free", weekdays: [1, 3, 5] });
+  const { response, rpcBody } = await createWith({ mode: "free", weekdays: [1, 3, 5], assignedMemberId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" });
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.generatedCount, 12);
   assert.equal(rpcBody.p_reading_mode, "free");
@@ -52,10 +52,11 @@ test("free reading creates repeated habit dates without title or pages", async (
   assert.equal(rpcBody.p_start_page, null);
   assert.equal(rpcBody.p_end_page, null);
   assert.deepEqual(rpcBody.p_study_weekdays, [1, 3, 5]);
+  assert.equal(rpcBody.p_assigned_member_id, "cccccccc-cccc-4ccc-8ccc-cccccccccccc");
 });
 
 test("page reading keeps one optional title and one repeated page range", async () => {
-  const { response, rpcBody } = await createWith({ mode: "pages", weekdays: [5, 1, 3, 3], bookTitle: "마법천자문", startPage: 20, endPage: 40 });
+  const { response, rpcBody } = await createWith({ mode: "pages", weekdays: [5, 1, 3, 3], bookTitle: "마법천자문", startPage: 20, endPage: 40, assignedMemberId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" });
   assert.equal(response.statusCode, 200);
   assert.equal(rpcBody.p_reading_mode, "pages");
   assert.equal(rpcBody.p_book_title, "마법천자문");
@@ -65,7 +66,7 @@ test("page reading keeps one optional title and one repeated page range", async 
 });
 
 test("page reading allows the book title to be empty", async () => {
-  const { response, rpcBody } = await createWith({ mode: "pages", weekdays: [2, 4], startPage: 20, endPage: 40 });
+  const { response, rpcBody } = await createWith({ mode: "pages", weekdays: [2, 4], startPage: 20, endPage: 40, assignedMemberId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" });
   assert.equal(response.statusCode, 200);
   assert.equal(rpcBody.p_book_title, null);
   assert.equal(rpcBody.p_start_page, 20);
@@ -77,7 +78,7 @@ test("page reading rejects an invalid page range before writing", async () => {
   const restore = replaceUtils({
     authenticate: () => ({ sub: "parent-id", family: "family-id", role: "parent" }),
     memberInFamily: async () => ({ id: "parent-id", role: "parent", is_active: true }),
-    readJson: async () => ({ mode: "pages", weekdays: [1], startPage: 40, endPage: 20 }),
+    readJson: async () => ({ mode: "pages", weekdays: [1], startPage: 40, endPage: 20, assignedMemberId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" }),
     supabaseFetch: async () => { wrote = true; },
   });
   try {

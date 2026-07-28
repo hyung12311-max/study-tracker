@@ -10,9 +10,13 @@ module.exports = async function handler(request, response) {
     const claims = u.authenticate(request);
     const body = await u.readJson(request);
     if (!body.planId) throw u.err("planId is required.");
+    const member = await u.memberInFamily(claims.sub, claims.family);
+    if (!member || member.role !== "child" || member.is_active === false) {
+      throw u.err("권한이 없습니다.", 403, "ACTIVE_CHILD_REQUIRED");
+    }
 
     const rows = await u.supabaseFetch(
-      `study_plans?select=id,subject,workbook,status,parent_notified_at&id=eq.${encodeURIComponent(body.planId)}&limit=1`
+      `study_plans?select=id,subject,workbook,status,parent_notified_at&id=eq.${encodeURIComponent(body.planId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}&limit=1`
     );
     const plan = rows?.[0];
     if (!plan) return u.json(response, 404, { ok: false, error: "학습 기록을 찾지 못했습니다." });
@@ -42,7 +46,7 @@ module.exports = async function handler(request, response) {
       },
     });
 
-    await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(plan.id)}`, {
+    await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(plan.id)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}`, {
       method: "PATCH",
       body: JSON.stringify({
         parent_notified_at: result.success > 0 ? new Date().toISOString() : null,
