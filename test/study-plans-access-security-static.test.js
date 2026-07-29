@@ -17,7 +17,7 @@ const academyExpandMigration = fs.readFileSync(
   "utf8"
 );
 const contractMigration = fs.readFileSync(
-  path.join(root, "supabase", "pending_migrations", "202607280004_contract_study_data_api_only_access.sql"),
+  path.join(root, "supabase", "migrations", "202607280004_contract_study_data_api_only_access.sql"),
   "utf8"
 );
 const expandVerification = fs.readFileSync(
@@ -162,14 +162,16 @@ test("follow-up expand atomically binds every book mutation to the selected chil
   assert.match(assigneeExpandMigration, /commit;\s*$/i);
 });
 
-test("contract migration is quarantined and closes table and legacy RPC access", () => {
+test("promoted contract migration closes table and legacy RPC access", () => {
   const automaticMigrationNames = fs
     .readdirSync(path.join(root, "supabase", "migrations"))
     .filter((name) => name.endsWith(".sql"));
   assert.ok(automaticMigrationNames.includes("202607280002_expand_book_plan_assignee_wrappers.sql"));
   assert.ok(automaticMigrationNames.includes("202607280003_expand_academy_schedule_assignee_access.sql"));
-  assert.ok(!automaticMigrationNames.some((name) => name.startsWith("202607280004")));
-  assert.match(contractMigration, /intentionally outside supabase\/migrations/i);
+  assert.deepEqual(
+    automaticMigrationNames.filter((name) => name.startsWith("202607280004")),
+    ["202607280004_contract_study_data_api_only_access.sql"],
+  );
   assert.match(contractMigration, /alter table public\.study_plans enable row level security;/i);
   assert.match(contractMigration, /alter table public\.study_plans no force row level security;/i);
   assert.match(contractMigration, /revoke all privileges on table public\.study_plans from anon, authenticated;/i);
@@ -182,6 +184,25 @@ test("contract migration is quarantined and closes table and legacy RPC access",
   assert.match(contractMigration, /drop policy "academy_schedules_existing_app_access"[\s\S]*on public\.academy_schedules/i);
   assert.match(contractMigration, /revoke all privileges on table public\.academy_schedules[\s\S]*from anon, authenticated/i);
   assert.match(contractMigration, /grant select, insert, update, delete on table public\.academy_schedules[\s\S]*to service_role/i);
+  assert.match(contractMigration, /drop policy "academy_completion_family_select"[\s\S]*on public\.academy_completion_history/i);
+  assert.match(contractMigration, /revoke all privileges on table public\.academy_completion_history[\s\S]*from anon, authenticated/i);
+  assert.match(contractMigration, /grant select, insert, update, delete on table public\.academy_completion_history[\s\S]*to service_role/i);
+  for (const table of ["study_plans", "book_plans", "academy_schedules"]) {
+    assert.match(
+      contractMigration,
+      new RegExp(`'${table}', 'anon', array\\['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE'\\]`, "i"),
+    );
+    assert.match(
+      contractMigration,
+      new RegExp(`'${table}', 'authenticated', array\\['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE'\\]`, "i"),
+    );
+  }
+  assert.match(contractMigration, /'academy_completion_history', 'anon', array\['MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE'\]/i);
+  assert.match(contractMigration, /'academy_completion_history', 'authenticated', array\['MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE'\]/i);
+  assert.match(contractMigration, /academy_completion_publication state changed|academy completion publication state changed/i);
+  assert.match(contractMigration, /browser table ACL baseline changed/i);
+  assert.doesNotMatch(contractMigration, /^\s*(insert|update|delete|truncate)\b/im);
+  assert.doesNotMatch(contractMigration, /alter publication/i);
   for (const name of [
     "create_book_plan",
     "complete_study_plan_and_reschedule",
@@ -189,7 +210,7 @@ test("contract migration is quarantined and closes table and legacy RPC access",
     assert.match(contractMigration, new RegExp(`revoke all on function public\\.${name}[\\s\\S]*from public, anon, authenticated`, "i"));
   }
   assert.match(contractMigration, /unexpected study_plans policy/i);
-  assert.match(contractMigration, /unexpected browser table privilege/i);
+  assert.match(contractMigration, /browser table ACL baseline changed/i);
   assert.match(contractMigration, /legacy compatibility grant changed/i);
 });
 
@@ -227,6 +248,10 @@ test("expand and contract verification express the compatibility matrix", () => 
   assert.match(assigneeExpandVerification, /v2_wrapper_presence_and_signatures/i);
   assert.match(contractVerification, /relation\.table_name \|\| '_default_deny'/i);
   assert.match(contractVerification, /\(3, 'academy_schedules'\)/i);
+  assert.match(contractVerification, /\(4, 'academy_completion_history'\)/i);
+  assert.match(contractVerification, /browser_privilege_count = 0/i);
+  assert.match(contractVerification, /academy_completion_realtime_publication_unchanged/i);
+  assert.match(contractVerification, /contract_verification_summary/i);
   assert.match(contractVerification, /service_role_server_crud_retained/i);
   assert.match(academyExpandVerification, /legacy_academy_access_unchanged_during_expand/i);
   assert.match(academyExpandVerification, /verified_legacy_academy_rows_unchanged/i);
@@ -249,6 +274,24 @@ test("expand and contract rollback have distinct safety contracts", () => {
   assert.match(contractRollback, /alter table public\.study_plans disable row level security;/i);
   assert.match(contractRollback, /create policy "book_plans_existing_app_access"/i);
   assert.match(contractRollback, /create policy "academy_schedules_existing_app_access"/i);
+  assert.match(contractRollback, /create policy "academy_completion_family_select"/i);
+  for (const table of ["study_plans", "book_plans", "academy_schedules"]) {
+    assert.match(
+      contractRollback,
+      new RegExp(`grant all privileges on table public\\.${table}[\\s\\S]*to anon, authenticated`, "i"),
+    );
+  }
+  assert.match(
+    contractRollback,
+    /grant select, truncate, references, trigger, maintain[\s\S]*on table public\.academy_completion_history[\s\S]*to anon, authenticated/i,
+  );
+  assert.doesNotMatch(
+    contractRollback,
+    /grant[\s\S]{0,80}(?:insert|update|delete)[\s\S]{0,80}on table public\.academy_completion_history[\s\S]{0,80}to anon, authenticated/i,
+  );
+  assert.match(contractRollback, /TRUNCATE\/REFERENCES\/TRIGGER\/MAINTAIN privileges on all four relations/i);
+  assert.match(contractRollback, /exact browser ACL baseline was not restored/i);
+  assert.match(contractRollback, /emergency rollback preflight failed/i);
   assert.doesNotMatch(contractRollback, /drop function if exists public\./i);
   assert.match(contractRollback, /commit;\s*$/i);
 });

@@ -14,6 +14,14 @@ begin
 end
 $roles$;
 
+create schema auth;
+create function auth.uid()
+returns uuid
+language sql
+stable
+as $$ select null::uuid $$;
+grant usage on schema auth to anon, authenticated;
+
 create table public.family_members (
   id uuid primary key,
   family_id uuid not null,
@@ -110,8 +118,10 @@ create policy "book_plans_existing_app_access"
   to anon, authenticated
   using (true)
   with check (true);
-grant select, insert, update, delete on public.book_plans to anon, authenticated, service_role;
-grant select, insert, update, delete on public.study_plans to anon, authenticated, service_role;
+grant all privileges on public.book_plans to anon, authenticated;
+grant all privileges on public.study_plans to anon, authenticated;
+grant select, insert, update, delete on public.book_plans to service_role;
+grant select, insert, update, delete on public.study_plans to service_role;
 alter table public.academy_schedules enable row level security;
 create policy academy_schedules_existing_app_access
   on public.academy_schedules
@@ -119,16 +129,33 @@ create policy academy_schedules_existing_app_access
   to anon, authenticated
   using (true)
   with check (true);
+grant all privileges
+  on public.academy_schedules
+  to anon, authenticated;
 grant select, insert, update, delete
   on public.academy_schedules
-  to anon, authenticated, service_role;
+  to service_role;
 alter table public.academy_completion_history enable row level security;
 create policy academy_completion_family_select
   on public.academy_completion_history
   for select
   to authenticated
-  using (true);
-grant select on public.academy_completion_history to authenticated, service_role;
+  using (
+    exists (
+      select 1
+      from public.family_members viewer
+      where viewer.id = auth.uid()
+        and viewer.family_id = academy_completion_history.family_id
+        and viewer.is_active = true
+        and (
+          viewer.role = 'parent'
+          or viewer.id = academy_completion_history.member_id
+        )
+    )
+  );
+grant select, truncate, references, trigger, maintain
+  on public.academy_completion_history
+  to anon, authenticated;
 grant select, insert, update, delete on public.academy_completion_history to service_role;
 grant select, insert, update, delete on public.sticker_transactions to service_role;
 

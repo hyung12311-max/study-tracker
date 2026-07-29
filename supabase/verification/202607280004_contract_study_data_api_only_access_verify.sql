@@ -9,17 +9,21 @@ target_functions(function_order, function_kind, function_identity) as (
     (1, 'wrapper', 'public.create_book_plan_for_member(uuid,uuid,uuid,text,text,text,text,text,date,integer,integer,integer,integer[],text,text)'),
     (2, 'wrapper', 'public.create_reading_plan_for_member(uuid,uuid,uuid,text,text,integer,integer,integer[],date)'),
     (3, 'wrapper', 'public.complete_study_plan_with_reward_for_member(uuid,uuid,bigint,date)'),
-    (4, 'v2_wrapper', 'public.reflow_book_plan_for_assignee(uuid,uuid,uuid,uuid,date)'),
-    (5, 'v2_wrapper', 'public.add_book_plan_review_for_assignee(uuid,uuid,uuid,uuid,integer,text)'),
-    (6, 'v2_wrapper', 'public.update_book_plan_pages_for_assignee(uuid,uuid,uuid,uuid,integer)'),
-    (7, 'v2_wrapper', 'public.delete_book_plan_task_for_assignee(uuid,uuid,uuid,text)'),
-    (8, 'academy_wrapper', 'public.create_academy_schedule_for_assignee(uuid,uuid,uuid,text,integer,time without time zone,text,integer)'),
-    (9, 'academy_wrapper', 'public.update_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,text,integer,time without time zone,text,integer)'),
-    (10, 'academy_wrapper', 'public.delete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid)'),
-    (11, 'academy_wrapper', 'public.complete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,date)'),
-    (12, 'legacy_browser', 'public.create_book_plan(text,text,text,text,text,date,integer,integer,integer,integer[],text,text)'),
-    (13, 'legacy_browser', 'public.complete_study_plan_and_reschedule(bigint,date)'),
-    (14, 'legacy_service', 'public.complete_academy_schedule(uuid,uuid,uuid,date)')
+    (4, 'v1_wrapper', 'public.reflow_book_plan_for_family(uuid,uuid,uuid,date)'),
+    (5, 'v1_wrapper', 'public.add_book_plan_review_for_family(uuid,uuid,uuid,integer,text)'),
+    (6, 'v1_wrapper', 'public.update_book_plan_pages_for_family(uuid,uuid,uuid,integer)'),
+    (7, 'v1_wrapper', 'public.delete_book_plan_task_for_family(uuid,uuid,text)'),
+    (8, 'v2_wrapper', 'public.reflow_book_plan_for_assignee(uuid,uuid,uuid,uuid,date)'),
+    (9, 'v2_wrapper', 'public.add_book_plan_review_for_assignee(uuid,uuid,uuid,uuid,integer,text)'),
+    (10, 'v2_wrapper', 'public.update_book_plan_pages_for_assignee(uuid,uuid,uuid,uuid,integer)'),
+    (11, 'v2_wrapper', 'public.delete_book_plan_task_for_assignee(uuid,uuid,uuid,text)'),
+    (12, 'academy_wrapper', 'public.create_academy_schedule_for_assignee(uuid,uuid,uuid,text,integer,time without time zone,text,integer)'),
+    (13, 'academy_wrapper', 'public.update_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,text,integer,time without time zone,text,integer)'),
+    (14, 'academy_wrapper', 'public.delete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid)'),
+    (15, 'academy_wrapper', 'public.complete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,date)'),
+    (16, 'legacy_browser', 'public.create_book_plan(text,text,text,text,text,date,integer,integer,integer,integer[],text,text)'),
+    (17, 'legacy_browser', 'public.complete_study_plan_and_reschedule(bigint,date)'),
+    (18, 'legacy_service', 'public.complete_academy_schedule(uuid,uuid,uuid,date)')
 ),
 function_state as (
   select
@@ -60,14 +64,33 @@ relation_state as (
       from pg_catalog.pg_policy policy
       where policy.polrelid = class.oid
     ) as policy_count,
-    has_table_privilege('anon', class.oid, 'SELECT') as anon_select,
-    has_table_privilege('anon', class.oid, 'INSERT') as anon_insert,
-    has_table_privilege('anon', class.oid, 'UPDATE') as anon_update,
-    has_table_privilege('anon', class.oid, 'DELETE') as anon_delete,
-    has_table_privilege('authenticated', class.oid, 'SELECT') as authenticated_select,
-    has_table_privilege('authenticated', class.oid, 'INSERT') as authenticated_insert,
-    has_table_privilege('authenticated', class.oid, 'UPDATE') as authenticated_update,
-    has_table_privilege('authenticated', class.oid, 'DELETE') as authenticated_delete,
+    (
+      select count(*)
+      from aclexplode(coalesce(class.relacl, acldefault('r', class.relowner))) acl
+      join pg_catalog.pg_roles grantee on grantee.oid = acl.grantee
+      where grantee.rolname in ('anon', 'authenticated')
+    ) as browser_privilege_count,
+    (
+      select coalesce(
+        jsonb_agg(
+          jsonb_build_object(
+            'role', grantee.rolname,
+            'privilege', acl.privilege_type,
+            'grantable', acl.is_grantable
+          )
+          order by grantee.rolname, acl.privilege_type
+        ),
+        '[]'::jsonb
+      )
+      from aclexplode(coalesce(class.relacl, acldefault('r', class.relowner))) acl
+      join pg_catalog.pg_roles grantee on grantee.oid = acl.grantee
+      where grantee.rolname in ('anon', 'authenticated')
+    ) as browser_privileges,
+    (
+      select count(*)
+      from aclexplode(coalesce(class.relacl, acldefault('r', class.relowner))) acl
+      where acl.grantee = 0
+    ) as public_privilege_count,
     has_table_privilege('service_role', class.oid, 'SELECT') as service_role_select,
     has_table_privilege('service_role', class.oid, 'INSERT') as service_role_insert,
     has_table_privilege('service_role', class.oid, 'UPDATE') as service_role_update,
@@ -76,7 +99,8 @@ relation_state as (
     values
       (1, 'study_plans'),
       (2, 'book_plans'),
-      (3, 'academy_schedules')
+      (3, 'academy_schedules'),
+      (4, 'academy_completion_history')
   ) target(table_order, table_name)
   join pg_catalog.pg_class class
     on class.oid = to_regclass('public.' || target.table_name)
@@ -86,6 +110,14 @@ service_role_state as (
   from pg_catalog.pg_roles role
   where role.rolname = 'service_role'
 ),
+publication_state as (
+  select
+    count(*) filter (
+      where publication.schemaname = 'public'
+        and publication.tablename = 'academy_completion_history'
+    ) as academy_completion_publication_count
+  from pg_catalog.pg_publication_tables publication
+),
 checks(check_order, check_name, passed, result_data) as (
   select
     relation.table_order,
@@ -93,19 +125,15 @@ checks(check_order, check_name, passed, result_data) as (
     relation.rls_enabled
       and not relation.rls_forced
       and relation.policy_count = 0
-      and not (
-        relation.anon_select or relation.anon_insert
-        or relation.anon_update or relation.anon_delete
-        or relation.authenticated_select or relation.authenticated_insert
-        or relation.authenticated_update or relation.authenticated_delete
-      ),
+      and relation.browser_privilege_count = 0
+      and relation.public_privilege_count = 0,
     to_jsonb(relation)
   from relation_state relation
 
   union all
 
   select
-    4,
+    5,
     'service_role_server_crud_retained',
     bool_and(
       relation.service_role_select
@@ -124,7 +152,7 @@ checks(check_order, check_name, passed, result_data) as (
   union all
 
   select
-    4 + function.function_order,
+    5 + function.function_order,
     function.function_kind || '_function_' || function.function_order,
     function.function_oid is not null
       and function.security_definer
@@ -150,8 +178,30 @@ checks(check_order, check_name, passed, result_data) as (
       'public_execute', function.public_execute
     )
   from function_state function
+
+  union all
+
+  select
+    24,
+    'academy_completion_realtime_publication_unchanged',
+    publication.academy_completion_publication_count = 0,
+    to_jsonb(publication)
+  from publication_state publication
 )
 select check_order, check_name, passed, result_data
+from checks
+
+union all
+
+select
+  999,
+  'contract_verification_summary',
+  bool_and(passed),
+  jsonb_build_object(
+    'total_checks', count(*),
+    'passed_checks', count(*) filter (where passed),
+    'failed_checks', count(*) filter (where not passed)
+  )
 from checks
 order by check_order;
 

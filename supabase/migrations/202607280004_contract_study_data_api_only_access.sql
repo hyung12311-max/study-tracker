@@ -12,18 +12,17 @@
 -- policies were not part of the verified legacy metadata contract. A future
 -- read-only inventory must precede any destructive reading_plans change.
 --
--- academy_completion_history is also intentionally unchanged. The new
--- application reads it through an authenticated server API, but its exact
--- Production browser policy/grant inventory has not been approved as a
--- destructive CONTRACT precondition. academy_schedules is closed here because
--- its unconditional policy and anon/authenticated CRUD grants were verified.
+-- academy_schedules and academy_completion_history are both closed here.
+-- Their complete Production ACL and policy baselines were verified after the
+-- Academy API deployment. This contract changes access metadata only.
 
 begin;
 
 lock table
   public.study_plans,
   public.book_plans,
-  public.academy_schedules
+  public.academy_schedules,
+  public.academy_completion_history
 in share row exclusive mode;
 
 do $preflight$
@@ -42,12 +41,17 @@ begin
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: academy_schedules is missing';
   end if;
 
-  if (
+  if to_regclass('public.academy_completion_history') is null then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: academy_completion_history is missing';
+  end if;
+
+  if not (
     select class.relforcerowsecurity
+      = false and class.relrowsecurity = false
     from pg_catalog.pg_class class
     where class.oid = 'public.study_plans'::regclass
   ) then
-    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected FORCE RLS state';
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected study_plans RLS state';
   end if;
 
   if not (
@@ -64,6 +68,14 @@ begin
     where class.oid = 'public.academy_schedules'::regclass
   ) then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected academy_schedules RLS state';
+  end if;
+
+  if not (
+    select class.relrowsecurity and not class.relforcerowsecurity
+    from pg_catalog.pg_class class
+    where class.oid = 'public.academy_completion_history'::regclass
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected academy completion RLS state';
   end if;
 
   if not exists (
@@ -108,93 +120,111 @@ begin
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected academy_schedules policy';
   end if;
 
+  if not exists (
+    select 1
+    from pg_catalog.pg_policies policy
+    where policy.schemaname = 'public'
+      and policy.tablename = 'academy_completion_history'
+      and policy.policyname = 'academy_completion_family_select'
+      and policy.permissive = 'PERMISSIVE'
+      and policy.cmd = 'SELECT'
+      and policy.roles = array['authenticated']::name[]
+      and policy.with_check is null
+      and position(
+        'viewer.id=auth.uid'
+        in replace(regexp_replace(lower(policy.qual), '[[:space:]()]', '', 'g'), '::text', '')
+      ) > 0
+      and position(
+        'viewer.family_id=academy_completion_history.family_id'
+        in replace(regexp_replace(lower(policy.qual), '[[:space:]()]', '', 'g'), '::text', '')
+      ) > 0
+      and position(
+        'viewer.is_active=true'
+        in replace(regexp_replace(lower(policy.qual), '[[:space:]()]', '', 'g'), '::text', '')
+      ) > 0
+      and position(
+        'viewer.role=''parent'''
+        in replace(regexp_replace(lower(policy.qual), '[[:space:]()]', '', 'g'), '::text', '')
+      ) > 0
+      and position(
+        'viewer.id=academy_completion_history.member_id'
+        in replace(regexp_replace(lower(policy.qual), '[[:space:]()]', '', 'g'), '::text', '')
+      ) > 0
+      and position(
+        'ortrue'
+        in replace(regexp_replace(lower(policy.qual), '[[:space:]()]', '', 'g'), '::text', '')
+      ) = 0
+  ) or exists (
+    select 1
+    from pg_catalog.pg_policy policy
+    where policy.polrelid = 'public.academy_completion_history'::regclass
+      and policy.polname <> 'academy_completion_family_select'
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected academy completion policy';
+  end if;
+
   if exists (
     select 1
     from pg_catalog.pg_policy policy
     where policy.polrelid = 'public.study_plans'::regclass
-      and policy.polname <> 'single user study plans access'
   ) then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected study_plans policy';
   end if;
 
   if exists (
-    select 1
-    from pg_catalog.pg_class class
-    cross join lateral aclexplode(coalesce(
-      class.relacl,
-      acldefault('r', class.relowner)
-    )) acl
-    where class.oid = 'public.book_plans'::regclass
-      and acl.grantee = 0
-      and acl.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE')
-  ) then
-    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected PUBLIC book table privilege';
-  end if;
-
-  if exists (
-    select 1
-    from information_schema.role_table_grants grant_row
-    where grant_row.table_schema = 'public'
-      and grant_row.table_name in (
-        'study_plans',
-        'book_plans',
-        'academy_schedules'
+    with expected(table_name, role_name, privilege_types) as (
+      values
+        ('study_plans', 'anon', array['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE']::text[]),
+        ('study_plans', 'authenticated', array['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE']::text[]),
+        ('book_plans', 'anon', array['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE']::text[]),
+        ('book_plans', 'authenticated', array['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE']::text[]),
+        ('academy_schedules', 'anon', array['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE']::text[]),
+        ('academy_schedules', 'authenticated', array['DELETE','INSERT','MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE']::text[]),
+        ('academy_completion_history', 'anon', array['MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE']::text[]),
+        ('academy_completion_history', 'authenticated', array['MAINTAIN','REFERENCES','SELECT','TRIGGER','TRUNCATE']::text[])
+    ),
+    actual as (
+      select
+        class.relname as table_name,
+        grantee.rolname as role_name,
+        array_agg(acl.privilege_type order by acl.privilege_type)::text[] as privilege_types,
+        bool_or(acl.is_grantable) as has_grant_option
+      from pg_catalog.pg_class class
+      cross join lateral aclexplode(coalesce(
+        class.relacl,
+        acldefault('r', class.relowner)
+      )) acl
+      join pg_catalog.pg_roles grantee on grantee.oid = acl.grantee
+      where class.oid in (
+        'public.study_plans'::regclass,
+        'public.book_plans'::regclass,
+        'public.academy_schedules'::regclass,
+        'public.academy_completion_history'::regclass
       )
-      and grant_row.grantee in ('anon', 'authenticated')
-      and grant_row.privilege_type not in ('SELECT', 'INSERT', 'UPDATE', 'DELETE')
+        and grantee.rolname in ('anon', 'authenticated')
+      group by class.relname, grantee.rolname
+    )
+    select 1
+    from expected
+    left join actual using (table_name, role_name)
+    where coalesce(actual.privilege_types, array[]::text[])
+            is distinct from expected.privilege_types
+       or coalesce(actual.has_grant_option, false)
   ) then
-    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected browser table privilege';
-  end if;
-
-  if not (
-    has_table_privilege('anon', 'public.study_plans', 'SELECT')
-    and has_table_privilege('anon', 'public.study_plans', 'INSERT')
-    and has_table_privilege('anon', 'public.study_plans', 'UPDATE')
-    and has_table_privilege('anon', 'public.study_plans', 'DELETE')
-    and has_table_privilege('authenticated', 'public.study_plans', 'SELECT')
-    and has_table_privilege('authenticated', 'public.study_plans', 'INSERT')
-    and has_table_privilege('authenticated', 'public.study_plans', 'UPDATE')
-    and has_table_privilege('authenticated', 'public.study_plans', 'DELETE')
-  ) then
-    raise exception using errcode = 'P0001', message = '2A contract preflight failed: legacy browser CRUD grant changed';
-  end if;
-
-  if not (
-    has_table_privilege('anon', 'public.academy_schedules', 'SELECT')
-    and has_table_privilege('anon', 'public.academy_schedules', 'INSERT')
-    and has_table_privilege('anon', 'public.academy_schedules', 'UPDATE')
-    and has_table_privilege('anon', 'public.academy_schedules', 'DELETE')
-    and has_table_privilege('authenticated', 'public.academy_schedules', 'SELECT')
-    and has_table_privilege('authenticated', 'public.academy_schedules', 'INSERT')
-    and has_table_privilege('authenticated', 'public.academy_schedules', 'UPDATE')
-    and has_table_privilege('authenticated', 'public.academy_schedules', 'DELETE')
-  ) then
-    raise exception using errcode = 'P0001', message = '2A contract preflight failed: legacy academy browser CRUD grant changed';
-  end if;
-
-  if not (
-    has_table_privilege('anon', 'public.book_plans', 'SELECT')
-    and has_table_privilege('anon', 'public.book_plans', 'INSERT')
-    and has_table_privilege('anon', 'public.book_plans', 'UPDATE')
-    and has_table_privilege('anon', 'public.book_plans', 'DELETE')
-    and has_table_privilege('authenticated', 'public.book_plans', 'SELECT')
-    and has_table_privilege('authenticated', 'public.book_plans', 'INSERT')
-    and has_table_privilege('authenticated', 'public.book_plans', 'UPDATE')
-    and has_table_privilege('authenticated', 'public.book_plans', 'DELETE')
-  ) then
-    raise exception using errcode = 'P0001', message = '2A contract preflight failed: legacy book browser CRUD grant changed';
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: browser table ACL baseline changed';
   end if;
 
   if exists (
     select 1
     from pg_catalog.pg_class class
-    cross join lateral aclexplode(coalesce(
-      class.relacl,
-      acldefault('r', class.relowner)
-    )) acl
-    where class.oid = 'public.study_plans'::regclass
+    cross join lateral aclexplode(coalesce(class.relacl, acldefault('r', class.relowner))) acl
+    where class.oid in (
+      'public.study_plans'::regclass,
+      'public.book_plans'::regclass,
+      'public.academy_schedules'::regclass,
+      'public.academy_completion_history'::regclass
+    )
       and acl.grantee = 0
-      and acl.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE')
   ) then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected PUBLIC table privilege';
   end if;
@@ -205,6 +235,24 @@ begin
     where role.rolname = 'service_role'
   ), false) then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: service_role must bypass RLS';
+  end if;
+
+  if not (
+    has_table_privilege('service_role', 'public.study_plans', 'SELECT, INSERT, UPDATE, DELETE')
+    and has_table_privilege('service_role', 'public.book_plans', 'SELECT, INSERT, UPDATE, DELETE')
+    and has_table_privilege('service_role', 'public.academy_schedules', 'SELECT, INSERT, UPDATE, DELETE')
+    and has_table_privilege('service_role', 'public.academy_completion_history', 'SELECT, INSERT, UPDATE, DELETE')
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: service_role table contract changed';
+  end if;
+
+  if exists (
+    select 1
+    from pg_catalog.pg_publication_tables publication
+    where publication.schemaname = 'public'
+      and publication.tablename = 'academy_completion_history'
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: academy completion publication state changed';
   end if;
 
   foreach function_name in array array[
@@ -318,6 +366,48 @@ revoke all privileges on table public.academy_schedules
   from anon, authenticated;
 grant select, insert, update, delete on table public.academy_schedules
   to service_role;
+
+drop policy "academy_completion_family_select"
+  on public.academy_completion_history;
+alter table public.academy_completion_history enable row level security;
+alter table public.academy_completion_history no force row level security;
+revoke all privileges on table public.academy_completion_history
+  from anon, authenticated;
+grant select, insert, update, delete on table public.academy_completion_history
+  to service_role;
+
+do $postflight$
+begin
+  if exists (
+    select 1
+    from pg_catalog.pg_class class
+    cross join lateral aclexplode(coalesce(class.relacl, acldefault('r', class.relowner))) acl
+    join pg_catalog.pg_roles grantee on grantee.oid = acl.grantee
+    where class.oid in (
+      'public.study_plans'::regclass,
+      'public.book_plans'::regclass,
+      'public.academy_schedules'::regclass,
+      'public.academy_completion_history'::regclass
+    )
+      and grantee.rolname in ('anon', 'authenticated')
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract postflight failed: browser table privilege remains';
+  end if;
+
+  if exists (
+    select 1
+    from pg_catalog.pg_policy policy
+    where policy.polrelid in (
+      'public.study_plans'::regclass,
+      'public.book_plans'::regclass,
+      'public.academy_schedules'::regclass,
+      'public.academy_completion_history'::regclass
+    )
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract postflight failed: browser policy remains';
+  end if;
+end
+$postflight$;
 
 notify pgrst, 'reload schema';
 
