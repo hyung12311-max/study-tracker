@@ -545,11 +545,33 @@ test("general plan client CRUD and reads use the authenticated API with isolated
       new RegExp(`async function ${functionName}\\([\\s\\S]*?const assignedMemberId = requireSelectedPlanAssignee\\(\\)[\\s\\S]*?assignedMemberId`)
     );
   }
-  assert.match(source, /state = \{ \.\.\.state, plans: \[\], bookPlans: \[\] \}/);
+  assert.match(source, /async function handlePlanAssigneeChange\(\)[\s\S]*academySchedules: \[\][\s\S]*academyCompletions: \[\][\s\S]*resetAcademyForm\(\)/);
   assert.doesNotMatch(source, /client\.rpc\("(?:create_book_plan|add_book_plan_review|update_book_plan_pages|delete_book_plan_task|reflow_book_plan)"/);
   assert.match(html, /<section id="planAssigneeControl"[\s\S]*<select id="planAssignedMember" required/);
   assert.doesNotMatch(html, /<form id="planForm"[\s\S]*<label>담당 자녀/);
   assert.doesNotMatch(source, /selected \|\| planAssignees\[0\]\.id/);
   assert.match(router, /"study\/plans": studyPlans/);
   assert.match(router, /"study\/book-plans": studyBookPlans/);
+  assert.match(router, /"study\/academy-schedules": studyAcademySchedules/);
+});
+
+test("academy client uses the authenticated selected-child API and clears stale child state", () => {
+  const root = path.join(__dirname, "..");
+  const source = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+
+  assert.match(source, /requestJson\(`\/api\/study\/academy-schedules\$\{academyQueryString\}`/);
+  assert.match(source, /requestJson\("\/api\/study\/academy-schedules",[\s\S]*method: persisted \? "PATCH" : "POST"/);
+  assert.match(source, /requestJson\("\/api\/study\/academy-schedules",[\s\S]*method: "DELETE"/);
+  assert.doesNotMatch(source, /client\.from\("academy_schedules"\)/);
+  assert.match(source, /const assignedMemberId = requireSelectedPlanAssignee\(\)/);
+  assert.match(source, /selectedPlanAssignee\(\) !== assignedMemberId/);
+  assert.match(source, /academySchedules: \[\],[\s\S]*academyCompletions: \[\]/);
+  assert.match(source, /resetAcademyForm\(\)/);
+  assert.match(source, /const generation = \+\+remoteLoadGeneration/);
+  assert.match(source, /requestCacheKey !== localDataKey\(\)/);
+  const selectorPosition = html.indexOf('id="planAssigneeControl"');
+  const panelsPosition = html.indexOf('class="parent-management-panels"');
+  assert.ok(selectorPosition > 0 && selectorPosition < panelsPosition);
+  assert.doesNotMatch(source, /selected \|\| planAssignees\[0\]\.id/);
 });

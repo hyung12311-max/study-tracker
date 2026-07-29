@@ -149,6 +149,14 @@
             <button type="button" id="parentTabFamily" role="tab" aria-selected="false" aria-controls="parentPanelFamily" data-parent-panel="family">가족 관리</button>
           </nav>
 
+          <section id="planAssigneeControl" class="plan-assignee-control" aria-labelledby="planAssigneeLabel">
+            <label id="planAssigneeLabel" for="planAssignedMember">담당 자녀</label>
+            <select id="planAssignedMember" required aria-describedby="planAssigneeSummary">
+              <option value="">활성 자녀를 불러오는 중...</option>
+            </select>
+            <p id="planAssigneeSummary" role="status" aria-live="polite">계획과 학원일정을 관리할 자녀를 선택해 주세요.</p>
+          </section>
+
           <div class="parent-management-panels">
           <section id="parentPanelStudy" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabStudy" data-parent-tab="study">
           <div class="dashboard-grid">
@@ -176,14 +184,6 @@
             <label><input type="radio" name="learningType" value="reading" data-plan-mode="reading" /><span>독서</span></label>
             <label><input type="radio" name="learningType" value="daily" data-plan-mode="daily" /><span>기타</span></label>
           </fieldset>
-
-          <section id="planAssigneeControl" class="plan-assignee-control" aria-labelledby="planAssigneeLabel">
-            <label id="planAssigneeLabel" for="planAssignedMember">담당 자녀</label>
-            <select id="planAssignedMember" required aria-describedby="planAssigneeSummary">
-              <option value="">활성 자녀를 불러오는 중...</option>
-            </select>
-            <p id="planAssigneeSummary" role="status" aria-live="polite">계획을 등록할 자녀를 선택해 주세요.</p>
-          </section>
 
           <form id="planForm" class="planner-form plan-registration-panel" data-plan-form="daily" hidden>
             <input type="hidden" id="planId" />

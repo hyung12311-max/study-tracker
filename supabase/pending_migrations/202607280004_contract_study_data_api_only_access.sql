@@ -3,18 +3,28 @@
 -- This file is intentionally outside supabase/migrations so `supabase db push`
 -- cannot apply it in the same batch as the expand migration. Promote this exact
 -- file to supabase/migrations only after:
---   1. 202607280001 and 202607280002 expand verification passes,
+--   1. 202607280001, 202607280002, and 202607280003 expand verification passes,
 --   2. the new application is deployed, and
---   3. parent, Hagyeom, and Dayul regression checks pass.
+--   3. parent and every active child regression check passes.
 --
 -- reading_plans is intentionally not changed here. The application no longer
 -- has a browser table path for it, but its exact Production table grants and
 -- policies were not part of the verified legacy metadata contract. A future
 -- read-only inventory must precede any destructive reading_plans change.
+--
+-- academy_completion_history is also intentionally unchanged. The new
+-- application reads it through an authenticated server API, but its exact
+-- Production browser policy/grant inventory has not been approved as a
+-- destructive CONTRACT precondition. academy_schedules is closed here because
+-- its unconditional policy and anon/authenticated CRUD grants were verified.
 
 begin;
 
-lock table public.study_plans, public.book_plans in share row exclusive mode;
+lock table
+  public.study_plans,
+  public.book_plans,
+  public.academy_schedules
+in share row exclusive mode;
 
 do $preflight$
 declare
@@ -26,6 +36,10 @@ begin
 
   if to_regclass('public.book_plans') is null then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: book_plans is missing';
+  end if;
+
+  if to_regclass('public.academy_schedules') is null then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: academy_schedules is missing';
   end if;
 
   if (
@@ -42,6 +56,14 @@ begin
     where class.oid = 'public.book_plans'::regclass
   ) then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected book_plans RLS state';
+  end if;
+
+  if not (
+    select class.relrowsecurity and not class.relforcerowsecurity
+    from pg_catalog.pg_class class
+    where class.oid = 'public.academy_schedules'::regclass
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected academy_schedules RLS state';
   end if;
 
   if not exists (
@@ -63,6 +85,27 @@ begin
       and policy.polname <> 'book_plans_existing_app_access'
   ) then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected book_plans policy';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_catalog.pg_policies policy
+    where policy.schemaname = 'public'
+      and policy.tablename = 'academy_schedules'
+      and policy.policyname = 'academy_schedules_existing_app_access'
+      and policy.permissive = 'PERMISSIVE'
+      and policy.cmd = 'ALL'
+      and policy.roles @> array['anon', 'authenticated']::name[]
+      and cardinality(policy.roles) = 2
+      and trim(coalesce(policy.qual, '')) in ('true', '(true)')
+      and trim(coalesce(policy.with_check, '')) in ('true', '(true)')
+  ) or exists (
+    select 1
+    from pg_catalog.pg_policy policy
+    where policy.polrelid = 'public.academy_schedules'::regclass
+      and policy.polname <> 'academy_schedules_existing_app_access'
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: unexpected academy_schedules policy';
   end if;
 
   if exists (
@@ -92,7 +135,11 @@ begin
     select 1
     from information_schema.role_table_grants grant_row
     where grant_row.table_schema = 'public'
-      and grant_row.table_name in ('study_plans', 'book_plans')
+      and grant_row.table_name in (
+        'study_plans',
+        'book_plans',
+        'academy_schedules'
+      )
       and grant_row.grantee in ('anon', 'authenticated')
       and grant_row.privilege_type not in ('SELECT', 'INSERT', 'UPDATE', 'DELETE')
   ) then
@@ -110,6 +157,19 @@ begin
     and has_table_privilege('authenticated', 'public.study_plans', 'DELETE')
   ) then
     raise exception using errcode = 'P0001', message = '2A contract preflight failed: legacy browser CRUD grant changed';
+  end if;
+
+  if not (
+    has_table_privilege('anon', 'public.academy_schedules', 'SELECT')
+    and has_table_privilege('anon', 'public.academy_schedules', 'INSERT')
+    and has_table_privilege('anon', 'public.academy_schedules', 'UPDATE')
+    and has_table_privilege('anon', 'public.academy_schedules', 'DELETE')
+    and has_table_privilege('authenticated', 'public.academy_schedules', 'SELECT')
+    and has_table_privilege('authenticated', 'public.academy_schedules', 'INSERT')
+    and has_table_privilege('authenticated', 'public.academy_schedules', 'UPDATE')
+    and has_table_privilege('authenticated', 'public.academy_schedules', 'DELETE')
+  ) then
+    raise exception using errcode = 'P0001', message = '2A contract preflight failed: legacy academy browser CRUD grant changed';
   end if;
 
   if not (
@@ -158,7 +218,11 @@ begin
     'public.reflow_book_plan_for_assignee(uuid,uuid,uuid,uuid,date)',
     'public.add_book_plan_review_for_assignee(uuid,uuid,uuid,uuid,integer,text)',
     'public.update_book_plan_pages_for_assignee(uuid,uuid,uuid,uuid,integer)',
-    'public.delete_book_plan_task_for_assignee(uuid,uuid,uuid,text)'
+    'public.delete_book_plan_task_for_assignee(uuid,uuid,uuid,text)',
+    'public.create_academy_schedule_for_assignee(uuid,uuid,uuid,text,integer,time without time zone,text,integer)',
+    'public.update_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,text,integer,time without time zone,text,integer)',
+    'public.delete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid)',
+    'public.complete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,date)'
   ]
   loop
     if to_regprocedure(function_name) is null then
@@ -182,6 +246,29 @@ begin
         message = format('2A contract preflight failed: wrapper security contract changed: %s', function_name);
     end if;
   end loop;
+
+  if to_regprocedure(
+    'public.complete_academy_schedule(uuid,uuid,uuid,date)'
+  ) is null
+     or not has_function_privilege(
+       'service_role',
+       'public.complete_academy_schedule(uuid,uuid,uuid,date)',
+       'EXECUTE'
+     )
+     or has_function_privilege(
+       'anon',
+       'public.complete_academy_schedule(uuid,uuid,uuid,date)',
+       'EXECUTE'
+     )
+     or has_function_privilege(
+       'authenticated',
+       'public.complete_academy_schedule(uuid,uuid,uuid,date)',
+       'EXECUTE'
+     ) then
+    raise exception using
+      errcode = 'P0001',
+      message = '2A contract preflight failed: legacy academy completion grant changed';
+  end if;
 
   foreach function_name in array array[
     'public.create_book_plan(text,text,text,text,text,date,integer,integer,integer,integer[],text,text)',
@@ -222,6 +309,15 @@ alter table public.book_plans enable row level security;
 alter table public.book_plans no force row level security;
 revoke all privileges on table public.book_plans from anon, authenticated;
 grant select, insert, update, delete on table public.book_plans to service_role;
+
+drop policy "academy_schedules_existing_app_access"
+  on public.academy_schedules;
+alter table public.academy_schedules enable row level security;
+alter table public.academy_schedules no force row level security;
+revoke all privileges on table public.academy_schedules
+  from anon, authenticated;
+grant select, insert, update, delete on table public.academy_schedules
+  to service_role;
 
 notify pgrst, 'reload schema';
 

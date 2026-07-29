@@ -312,18 +312,6 @@ function createSupabaseRepository(config) {
     };
   }
 
-  function academyScheduleToRow(schedule) {
-    const id = schedule.id && !String(schedule.id).startsWith("local-") ? schedule.id : undefined;
-    return sanitizePayload({
-      id,
-      academy_name: schedule.name,
-      day_of_week: Number(schedule.dayOfWeek),
-      start_time: schedule.time,
-      memo: schedule.memo,
-      star_count: Number(schedule.stars || 1),
-    });
-  }
-
   function academyCompletionFromRow(row) {
     const value = Number(row?.star_count ?? row?.stars ?? 1);
     return {
@@ -405,6 +393,25 @@ function createSupabaseRepository(config) {
           .then((result) => ({ data: result.bookPlans, error: null }))
           .catch((error) => ({ data: null, error }))
       : Promise.resolve({ data: [], error: null });
+    const academyQueryString = assignedMemberId
+      ? `?assignedMemberId=${encodeURIComponent(assignedMemberId)}`
+      : "";
+    const academyDataPromise = essentialOnly
+      ? Promise.resolve({
+          schedules: localData.academySchedules,
+          completions: localData.academyCompletions,
+        })
+      : currentMember?.role === "parent" && !assignedMemberId
+        ? Promise.resolve({ schedules: [], completions: [] })
+        : requestJson(`/api/study/academy-schedules${academyQueryString}`, {
+            headers: familyAuthHeaders(),
+          });
+    const academySchedulesQuery = academyDataPromise
+      .then((result) => ({ data: result.schedules, error: null }))
+      .catch((error) => ({ data: null, error }));
+    const academyCompletionsQuery = academyDataPromise
+      .then((result) => ({ data: result.completions, error: null }))
+      .catch((error) => ({ data: null, error }));
     console.info("[study_plans API query]", {
       assignedMemberId: assignedMemberId || (currentMember?.role === "child" ? "session-member" : null),
       where: essentialOnly ? { study_date: `<=${weekEnd}`, status: "not in (완료,done)" } : {},
@@ -447,15 +454,15 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "학원 일정 불러오기 실패",
-        essentialOnly ? Promise.resolve({ data: localData.academySchedules, error: null }) : client.from("academy_schedules").select("id,academy_name,day_of_week,start_time,memo,star_count").order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
+        essentialOnly
+          ? Promise.resolve({ data: localData.academySchedules, error: null })
+          : academySchedulesQuery,
         localData.academySchedules
       ),
       requestOrFallback(
         "학원 완료 이력 불러오기 실패",
         !essentialOnly && familyAuthHeaders()
-          ? requestJson("/api/rewards/academy-complete", { headers: familyAuthHeaders() })
-              .then((result) => ({ data: result.completions, error: null }))
-              .catch((error) => ({ data: null, error }))
+          ? academyCompletionsQuery
           : Promise.resolve({ data: localData.academyCompletions, error: null }),
         localData.academyCompletions
       ),
@@ -669,26 +676,35 @@ function createSupabaseRepository(config) {
   }
 
   async function upsertAcademySchedule(schedule) {
-    assertConfigured();
-    const payload = academyScheduleToRow(schedule);
-    if (schedule.id && !String(schedule.id).startsWith("local-")) {
-      const { data } = await request(
-        "학원 일정 수정 실패",
-        client.from("academy_schedules").update(payload).eq("id", schedule.id).select("*").single()
-      );
-      return academyScheduleFromRow(data);
-    }
-
-    const { data } = await request(
-      "학원 일정 저장 실패",
-      client.from("academy_schedules").insert(payload).select("*").single()
-    );
-    return academyScheduleFromRow(data);
+    const assignedMemberId = requireSelectedPlanAssignee();
+    const persisted = schedule.id && !String(schedule.id).startsWith("local-");
+    const data = await requestJson("/api/study/academy-schedules", {
+      method: persisted ? "PATCH" : "POST",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({
+        ...(persisted ? { id: String(schedule.id) } : {}),
+        assignedMemberId,
+        name: schedule.name,
+        dayOfWeek: Number(schedule.dayOfWeek),
+        time: schedule.time,
+        memo: schedule.memo,
+        stars: Number(schedule.stars || 1),
+      }),
+    });
+    return {
+      schedule: academyScheduleFromRow(data.schedule),
+      assignedMemberId,
+    };
   }
 
   async function deleteAcademySchedule(id) {
-    assertConfigured();
-    await request("학원 일정 삭제 실패", client.from("academy_schedules").delete().eq("id", id));
+    const assignedMemberId = requireSelectedPlanAssignee();
+    await requestJson("/api/study/academy-schedules", {
+      method: "DELETE",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ id: String(id), assignedMemberId }),
+    });
+    return assignedMemberId;
   }
 
   async function completeAcademySchedule(schedule, completedDate) {
@@ -827,8 +843,8 @@ function updatePlanAssigneeSummary() {
   if (!summary) return;
   const selected = planAssignees.find((member) => member.id === selectedPlanAssignee());
   summary.textContent = selected
-    ? `현재 모든 계획은 ${selected.display_name} 자녀에게 등록됩니다.`
-    : "계획을 등록할 자녀를 선택해 주세요.";
+    ? `현재 계획과 학원일정은 ${selected.display_name} 자녀 기준으로 관리합니다.`
+    : "계획과 학원일정을 관리할 자녀를 선택해 주세요.";
 }
 
 function setPlanAssignee(memberId) {
@@ -909,21 +925,35 @@ async function handlePlanAssigneeChange() {
   if (!setPlanAssignee(assignedMemberId)) {
     if (storageKey) sessionStorage.removeItem(storageKey);
     remoteLoadGeneration += 1;
-    state = { ...state, plans: [], bookPlans: [] };
+    state = {
+      ...state,
+      plans: [],
+      bookPlans: [],
+      academySchedules: [],
+      academyCompletions: [],
+    };
     state.formMode = "create";
     activeCacheKey = localDataKey();
     resetForm();
     resetBookPlanForm();
     resetReadingPlanForm();
+    resetAcademyForm();
     render();
     return;
   }
-  state = { ...state, plans: [], bookPlans: [] };
+  state = {
+    ...state,
+    plans: [],
+    bookPlans: [],
+    academySchedules: [],
+    academyCompletions: [],
+  };
   state.formMode = "create";
   activeCacheKey = localDataKey();
   resetForm();
   resetBookPlanForm();
   resetReadingPlanForm();
+  resetAcademyForm();
   $("#todayList").setAttribute("aria-busy", "true");
   setConnectionStatus("선택한 자녀의 학습계획을 불러오는 중입니다...");
   render();
@@ -1157,29 +1187,6 @@ function todaysAcademySchedules() {
   return [...(state.academySchedules || [])]
     .filter((schedule) => Number(schedule.dayOfWeek) === dayOfWeek)
     .sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")) || String(a.name || "").localeCompare(String(b.name || "")));
-}
-
-function upsertAcademyScheduleLocally(schedule) {
-  const exists = (state.academySchedules || []).some((item) => String(item.id) === String(schedule.id));
-  const academySchedules = exists
-    ? state.academySchedules.map((item) => (String(item.id) === String(schedule.id) ? schedule : item))
-    : [...(state.academySchedules || []), schedule];
-  state = { ...state, academySchedules };
-  writeLocalData(state);
-}
-
-function replaceAcademyScheduleId(localId, savedSchedule) {
-  if (!savedSchedule || String(savedSchedule.id) === String(localId)) return;
-  state = {
-    ...state,
-    academySchedules: (state.academySchedules || []).map((item) => (String(item.id) === String(localId) ? savedSchedule : item)),
-    academyCompletions: (state.academyCompletions || []).map((item) => (
-      String(item.scheduleId || item.academy_schedule_id) === String(localId)
-        ? { ...item, scheduleId: savedSchedule.id }
-        : item
-    )),
-  };
-  writeLocalData(state);
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -2401,9 +2408,17 @@ async function handlePlanSubmit(event) {
 async function handleAcademySubmit(event) {
   event.preventDefault();
   if (!isParentMode) return;
+  let assignedMemberId;
+  try {
+    assignedMemberId = requireSelectedPlanAssignee();
+  } catch (error) {
+    showToast(error.message);
+    $("#planAssignedMember")?.focus();
+    return;
+  }
   const existingId = $("#academyScheduleId").value;
   const schedule = {
-    id: existingId || `local-academy-${Date.now()}`,
+    id: existingId || "",
     name: $("#academyName").value.trim(),
     dayOfWeek: Number($("#academyDayOfWeek").value),
     time: $("#academyTime").value,
@@ -2412,17 +2427,17 @@ async function handleAcademySubmit(event) {
   };
   if (!schedule.name || !schedule.time || Number.isNaN(schedule.dayOfWeek)) return;
 
-  upsertAcademyScheduleLocally(schedule);
-  render();
-  resetAcademyForm();
-  showToast("\uD559\uC6D0 \uC77C\uC815\uC744 \uC800\uC7A5\uD588\uC5B4\uC694.");
-
   try {
     const saved = await repository.upsertAcademySchedule(schedule);
-    replaceAcademyScheduleId(schedule.id, saved);
-    render();
+    if (
+      saved.assignedMemberId !== assignedMemberId
+      || selectedPlanAssignee() !== assignedMemberId
+    ) return;
+    resetAcademyForm();
+    await reloadFromRemote({ essentialOnly: false });
+    showToast("\uD559\uC6D0 \uC77C\uC815\uC744 \uC800\uC7A5\uD588\uC5B4\uC694.");
   } catch (error) {
-    console.warn("[academy] remote save skipped", error);
+    handleRepositoryError(error);
   }
 }
 
@@ -2443,28 +2458,27 @@ function handleEditAcademySchedule(id) {
 
 async function handleDeleteAcademySchedule(id) {
   if (!isParentMode) return;
+  let assignedMemberId;
+  try {
+    assignedMemberId = requireSelectedPlanAssignee();
+  } catch (error) {
+    showToast(error.message);
+    $("#planAssignedMember")?.focus();
+    return;
+  }
   const ok = window.confirm("\uD559\uC6D0 \uC77C\uC815\uC744 \uC0AD\uC81C\uD560\uAE4C\uC694?");
   if (!ok) return;
-  const removedCompletions = (state.academyCompletions || []).filter((item) => String(item.scheduleId || item.academy_schedule_id) === String(id));
-  const removedStars = removedCompletions.reduce((sum, item) => sum + Number(item.stars || item.star_count || 0), 0);
-  state = {
-    ...state,
-    academySchedules: (state.academySchedules || []).filter((item) => String(item.id) !== String(id)),
-    academyCompletions: (state.academyCompletions || []).filter((item) => String(item.scheduleId || item.academy_schedule_id) !== String(id)),
-    stickerCount: Math.max(Number(state.stickerCount || 0) - removedStars, 0),
-  };
-  writeLocalData(state);
-  render();
-  resetAcademyForm();
-  showToast("\uD559\uC6D0 \uC77C\uC815\uC744 \uC0AD\uC81C\uD588\uC5B4\uC694.");
-
-  if (!String(id).startsWith("local-")) {
-    try {
-      await repository.deleteAcademySchedule(id);
-      await rewardStoreController?.refresh({ silent: true });
-    } catch (error) {
-      console.warn("[academy] remote delete skipped", error);
-    }
+  try {
+    const deletedAssignee = await repository.deleteAcademySchedule(id);
+    if (
+      deletedAssignee !== assignedMemberId
+      || selectedPlanAssignee() !== assignedMemberId
+    ) return;
+    resetAcademyForm();
+    await reloadFromRemote({ essentialOnly: false });
+    showToast("\uD559\uC6D0 \uC77C\uC815\uC744 \uC0AD\uC81C\uD588\uC5B4\uC694.");
+  } catch (error) {
+    handleRepositoryError(error);
   }
 }
 

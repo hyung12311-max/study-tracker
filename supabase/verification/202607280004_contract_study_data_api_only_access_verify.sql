@@ -1,6 +1,6 @@
 begin transaction read only;
 
--- Metadata-only CONTRACT verification for 202607280003 after the pending
+-- Metadata-only CONTRACT verification for 202607280004 after the pending
 -- contract SQL has been promoted and applied. No business rows are read.
 
 with
@@ -13,8 +13,13 @@ target_functions(function_order, function_kind, function_identity) as (
     (5, 'v2_wrapper', 'public.add_book_plan_review_for_assignee(uuid,uuid,uuid,uuid,integer,text)'),
     (6, 'v2_wrapper', 'public.update_book_plan_pages_for_assignee(uuid,uuid,uuid,uuid,integer)'),
     (7, 'v2_wrapper', 'public.delete_book_plan_task_for_assignee(uuid,uuid,uuid,text)'),
-    (8, 'legacy_browser', 'public.create_book_plan(text,text,text,text,text,date,integer,integer,integer,integer[],text,text)'),
-    (9, 'legacy_browser', 'public.complete_study_plan_and_reschedule(bigint,date)')
+    (8, 'academy_wrapper', 'public.create_academy_schedule_for_assignee(uuid,uuid,uuid,text,integer,time without time zone,text,integer)'),
+    (9, 'academy_wrapper', 'public.update_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,text,integer,time without time zone,text,integer)'),
+    (10, 'academy_wrapper', 'public.delete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid)'),
+    (11, 'academy_wrapper', 'public.complete_academy_schedule_for_assignee(uuid,uuid,uuid,uuid,date)'),
+    (12, 'legacy_browser', 'public.create_book_plan(text,text,text,text,text,date,integer,integer,integer,integer[],text,text)'),
+    (13, 'legacy_browser', 'public.complete_study_plan_and_reschedule(bigint,date)'),
+    (14, 'legacy_service', 'public.complete_academy_schedule(uuid,uuid,uuid,date)')
 ),
 function_state as (
   select
@@ -67,7 +72,12 @@ relation_state as (
     has_table_privilege('service_role', class.oid, 'INSERT') as service_role_insert,
     has_table_privilege('service_role', class.oid, 'UPDATE') as service_role_update,
     has_table_privilege('service_role', class.oid, 'DELETE') as service_role_delete
-  from (values (1, 'study_plans'), (2, 'book_plans')) target(table_order, table_name)
+  from (
+    values
+      (1, 'study_plans'),
+      (2, 'book_plans'),
+      (3, 'academy_schedules')
+  ) target(table_order, table_name)
   join pg_catalog.pg_class class
     on class.oid = to_regclass('public.' || target.table_name)
 ),
@@ -95,7 +105,7 @@ checks(check_order, check_name, passed, result_data) as (
   union all
 
   select
-    3,
+    4,
     'service_role_server_crud_retained',
     bool_and(
       relation.service_role_select
@@ -114,7 +124,7 @@ checks(check_order, check_name, passed, result_data) as (
   union all
 
   select
-    3 + function.function_order,
+    4 + function.function_order,
     function.function_kind || '_function_' || function.function_order,
     function.function_oid is not null
       and function.security_definer

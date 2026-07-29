@@ -12,8 +12,12 @@ const assigneeExpandMigration = fs.readFileSync(
   path.join(root, "supabase", "migrations", "202607280002_expand_book_plan_assignee_wrappers.sql"),
   "utf8"
 );
+const academyExpandMigration = fs.readFileSync(
+  path.join(root, "supabase", "migrations", "202607280003_expand_academy_schedule_assignee_access.sql"),
+  "utf8"
+);
 const contractMigration = fs.readFileSync(
-  path.join(root, "supabase", "pending_migrations", "202607280003_contract_study_data_api_only_access.sql"),
+  path.join(root, "supabase", "pending_migrations", "202607280004_contract_study_data_api_only_access.sql"),
   "utf8"
 );
 const expandVerification = fs.readFileSync(
@@ -24,8 +28,12 @@ const assigneeExpandVerification = fs.readFileSync(
   path.join(root, "supabase", "verification", "202607280002_expand_book_plan_assignee_wrappers_verify.sql"),
   "utf8"
 );
+const academyExpandVerification = fs.readFileSync(
+  path.join(root, "supabase", "verification", "202607280003_expand_academy_schedule_assignee_access_verify.sql"),
+  "utf8"
+);
 const contractVerification = fs.readFileSync(
-  path.join(root, "supabase", "verification", "202607280003_contract_study_data_api_only_access_verify.sql"),
+  path.join(root, "supabase", "verification", "202607280004_contract_study_data_api_only_access_verify.sql"),
   "utf8"
 );
 const expandRollback = fs.readFileSync(
@@ -36,8 +44,12 @@ const assigneeExpandRollback = fs.readFileSync(
   path.join(root, "supabase", "rollback", "202607280002_expand_book_plan_assignee_wrappers_rollback.sql"),
   "utf8"
 );
+const academyExpandRollback = fs.readFileSync(
+  path.join(root, "supabase", "rollback", "202607280003_expand_academy_schedule_assignee_access_rollback.sql"),
+  "utf8"
+);
 const contractRollback = fs.readFileSync(
-  path.join(root, "supabase", "rollback", "202607280003_contract_study_data_api_only_access_emergency_rollback.sql"),
+  path.join(root, "supabase", "rollback", "202607280004_contract_study_data_api_only_access_emergency_rollback.sql"),
   "utf8"
 );
 const serverBoundarySources = [
@@ -155,7 +167,8 @@ test("contract migration is quarantined and closes table and legacy RPC access",
     .readdirSync(path.join(root, "supabase", "migrations"))
     .filter((name) => name.endsWith(".sql"));
   assert.ok(automaticMigrationNames.includes("202607280002_expand_book_plan_assignee_wrappers.sql"));
-  assert.ok(!automaticMigrationNames.some((name) => name.startsWith("202607280003")));
+  assert.ok(automaticMigrationNames.includes("202607280003_expand_academy_schedule_assignee_access.sql"));
+  assert.ok(!automaticMigrationNames.some((name) => name.startsWith("202607280004")));
   assert.match(contractMigration, /intentionally outside supabase\/migrations/i);
   assert.match(contractMigration, /alter table public\.study_plans enable row level security;/i);
   assert.match(contractMigration, /alter table public\.study_plans no force row level security;/i);
@@ -166,6 +179,9 @@ test("contract migration is quarantined and closes table and legacy RPC access",
   assert.match(contractMigration, /drop policy "book_plans_existing_app_access" on public\.book_plans;/i);
   assert.match(contractMigration, /revoke all privileges on table public\.book_plans from anon, authenticated;/i);
   assert.match(contractMigration, /grant select, insert, update, delete on table public\.book_plans to service_role;/i);
+  assert.match(contractMigration, /drop policy "academy_schedules_existing_app_access"[\s\S]*on public\.academy_schedules/i);
+  assert.match(contractMigration, /revoke all privileges on table public\.academy_schedules[\s\S]*from anon, authenticated/i);
+  assert.match(contractMigration, /grant select, insert, update, delete on table public\.academy_schedules[\s\S]*to service_role/i);
   for (const name of [
     "create_book_plan",
     "complete_study_plan_and_reschedule",
@@ -175,6 +191,28 @@ test("contract migration is quarantined and closes table and legacy RPC access",
   assert.match(contractMigration, /unexpected study_plans policy/i);
   assert.match(contractMigration, /unexpected browser table privilege/i);
   assert.match(contractMigration, /legacy compatibility grant changed/i);
+});
+
+test("academy expand adds atomic selected-child wrappers without changing legacy access", () => {
+  for (const name of [
+    "create_academy_schedule_for_assignee",
+    "update_academy_schedule_for_assignee",
+    "delete_academy_schedule_for_assignee",
+    "complete_academy_schedule_for_assignee",
+  ]) {
+    assert.match(academyExpandMigration, new RegExp(`create or replace function public\\.${name}`, "i"));
+    assert.match(academyExpandMigration, new RegExp(`alter function public\\.${name}[\\s\\S]*owner to postgres`, "i"));
+    assert.match(academyExpandMigration, new RegExp(`revoke all on function public\\.${name}[\\s\\S]*from public, anon, authenticated`, "i"));
+    assert.match(academyExpandMigration, new RegExp(`grant execute on function public\\.${name}[\\s\\S]*to service_role`, "i"));
+  }
+  assert.match(academyExpandMigration, /set search_path = pg_catalog, public/gi);
+  assert.match(academyExpandMigration, /where schedules\.id = p_schedule_id[\s\S]*schedules\.family_id = p_family_id[\s\S]*schedules\.assigned_member_id = p_assigned_member_id[\s\S]*for update/gi);
+  assert.match(academyExpandMigration, /completed academy schedule cannot be deleted/i);
+  assert.match(academyExpandMigration, /from public\.complete_academy_schedule\(/i);
+  assert.doesNotMatch(academyExpandMigration, /set\s+(?:family_id|assigned_member_id|created_by_member_id)\s*=/i);
+  assert.doesNotMatch(academyExpandMigration, /alter table .* row level security/i);
+  assert.doesNotMatch(academyExpandMigration, /(?:grant|revoke) .* on table/i);
+  assert.match(academyExpandMigration, /commit;\s*$/i);
 });
 
 test("expand and contract verification express the compatibility matrix", () => {
@@ -188,9 +226,11 @@ test("expand and contract verification express the compatibility matrix", () => 
   assert.match(assigneeExpandVerification, /^begin transaction read only;/i);
   assert.match(assigneeExpandVerification, /v2_wrapper_presence_and_signatures/i);
   assert.match(contractVerification, /relation\.table_name \|\| '_default_deny'/i);
-  assert.match(contractVerification, /\(values \(1, 'study_plans'\), \(2, 'book_plans'\)\)/i);
+  assert.match(contractVerification, /\(3, 'academy_schedules'\)/i);
   assert.match(contractVerification, /service_role_server_crud_retained/i);
-  for (const verification of [expandVerification, assigneeExpandVerification, contractVerification]) {
+  assert.match(academyExpandVerification, /legacy_academy_access_unchanged_during_expand/i);
+  assert.match(academyExpandVerification, /verified_legacy_academy_rows_unchanged/i);
+  for (const verification of [expandVerification, assigneeExpandVerification, academyExpandVerification, contractVerification]) {
     assert.doesNotMatch(verification, /^\s*(insert|update|delete|alter|create|drop|grant|revoke|call)\b/im);
     assert.match(verification, /rollback;\s*$/i);
   }
@@ -202,10 +242,13 @@ test("expand and contract rollback have distinct safety contracts", () => {
   assert.doesNotMatch(expandRollback, /disable row level security/i);
   assert.match(assigneeExpandRollback, /v2 application has not been deployed/i);
   assert.doesNotMatch(assigneeExpandRollback, /reflow_book_plan_for_family\s*\(/i);
+  assert.match(academyExpandRollback, /Academy API application has not been deployed/i);
+  assert.doesNotMatch(academyExpandRollback, /alter table/i);
   assert.match(contractRollback, /CONTRACT emergency recovery only/i);
   assert.match(contractRollback, /reopens (?:the )?direct REST risk/i);
   assert.match(contractRollback, /alter table public\.study_plans disable row level security;/i);
   assert.match(contractRollback, /create policy "book_plans_existing_app_access"/i);
+  assert.match(contractRollback, /create policy "academy_schedules_existing_app_access"/i);
   assert.doesNotMatch(contractRollback, /drop function if exists public\./i);
   assert.match(contractRollback, /commit;\s*$/i);
 });
