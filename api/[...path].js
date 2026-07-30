@@ -33,6 +33,9 @@ const studyBookPlans = require("../server/api/study/book-plans");
 const studyPlans = require("../server/api/study/plans");
 const studyReadingPlans = require("../server/api/study/reading-plans");
 const hangulDailyComplete = require("../server/api/hangul/daily-complete");
+const learningCatalog = require("../server/api/learning/catalog");
+const learningAssignments = require("../server/api/learning/assignments");
+const learningAssignmentCancel = require("../server/api/learning/assignments/[assignmentId]/cancel");
 
 const routes = Object.freeze({
   "family/members": familyMembers,
@@ -71,6 +74,8 @@ const routes = Object.freeze({
   "study/plans": studyPlans,
   "study/reading-plans": studyReadingPlans,
   "hangul/daily-complete": hangulDailyComplete,
+  "learning/catalog": learningCatalog,
+  "learning/assignments": learningAssignments,
 });
 
 function routeKey(request) {
@@ -87,7 +92,13 @@ function routeKey(request) {
 }
 
 module.exports = async function apiRouter(request, response) {
-  const handler = routes[routeKey(request)];
+  const key = routeKey(request);
+  let handler = routes[key];
+  const cancelMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/cancel$/i);
+  if (!handler && cancelMatch) {
+    request.query = { ...(request.query || {}), assignmentId: cancelMatch[1] };
+    handler = learningAssignmentCancel;
+  }
   if (!handler) {
     response.statusCode = 404;
     response.setHeader("Content-Type", "application/json; charset=utf-8");

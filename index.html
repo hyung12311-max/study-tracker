@@ -70,6 +70,12 @@
             <article class="study-card startup-card-skeleton" aria-label="학습 일정을 불러오는 중"><i></i><i></i><i></i></article>
             <article class="study-card startup-card-skeleton" aria-hidden="true"><i></i><i></i><i></i></article>
           </div>
+          <section id="childLearningSection" class="learning-section child-learning-section" hidden>
+            <div class="section-head">
+              <div><p class="eyebrow">Learning Quest</p><h3>내 문제풀이 단원</h3></div>
+            </div>
+            <div id="childLearningAssignmentList" class="learning-grid" aria-live="polite"></div>
+          </section>
         </section>
 
         <section id="progress" class="view" aria-labelledby="progressTitle">
@@ -144,6 +150,7 @@
 
           <nav class="parent-management-tabs" aria-label="부모 관리 메뉴" role="tablist">
             <button type="button" id="parentTabStudy" role="tab" aria-selected="true" aria-controls="parentPanelStudy" data-parent-panel="study">학습 계획</button>
+            <button type="button" id="parentTabLearning" role="tab" aria-selected="false" aria-controls="parentPanelLearning" data-parent-panel="learning">문제풀이</button>
             <button type="button" id="parentTabAcademy" role="tab" aria-selected="false" aria-controls="parentPanelAcademy" data-parent-panel="academy">학원 일정</button>
             <button type="button" id="parentTabRewards" role="tab" aria-selected="false" aria-controls="parentPanelRewards" data-parent-panel="rewards">보상 상품</button>
             <button type="button" id="parentTabFamily" role="tab" aria-selected="false" aria-controls="parentPanelFamily" data-parent-panel="family">가족 관리</button>
@@ -154,7 +161,7 @@
             <select id="planAssignedMember" required aria-describedby="planAssigneeSummary">
               <option value="">활성 자녀를 불러오는 중...</option>
             </select>
-            <p id="planAssigneeSummary" role="status" aria-live="polite">계획과 학원일정을 관리할 자녀를 선택해 주세요.</p>
+            <p id="planAssigneeSummary" role="status" aria-live="polite">계획, 학원일정과 문제풀이를 관리할 자녀를 선택해 주세요.</p>
           </section>
 
           <div class="parent-management-panels">
@@ -277,6 +284,21 @@
             </div>
           </form>
           <div id="planList" class="plan-list"></div>
+          </section>
+
+          <section id="parentPanelLearning" class="parent-management-panel learning-section" role="tabpanel" aria-labelledby="parentTabLearning" data-parent-tab="learning" hidden>
+            <header class="learning-panel-head">
+              <div><p class="eyebrow">Learning Assignment</p><h3>문제풀이 학습</h3></div>
+              <p>게시된 단원을 선택한 자녀에게 배정하고 단계 진행 상태를 확인합니다.</p>
+            </header>
+            <section>
+              <h4>배정 가능한 단원</h4>
+              <div id="learningCatalogList" class="learning-grid" aria-live="polite"></div>
+            </section>
+            <section>
+              <h4>현재 배정 및 진행 상태</h4>
+              <div id="learningAssignmentList" class="learning-grid" aria-live="polite"></div>
+            </section>
           </section>
 
           <section id="parentPanelAcademy" class="parent-management-panel" role="tabpanel" aria-labelledby="parentTabAcademy" data-parent-tab="academy" hidden>

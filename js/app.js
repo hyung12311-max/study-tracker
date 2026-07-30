@@ -4,6 +4,7 @@ import { AUTH_KEY as FAMILY_AUTH_KEY, TOKEN_KEY as FAMILY_TOKEN_KEY } from "./fa
 import { initFamilyChat } from "./family-chat.js";
 import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
+import { initLearning } from "./learning.js";
 
 const PARENT_PASSWORD = "1234";
 const BUILD_VERSION = "v39";
@@ -818,6 +819,7 @@ let authenticationTransition = null;
 let realtimeUnsubscribe = null;
 let stickerWalletSnapshot = null;
 let planAssignees = [];
+let learningController = null;
 
 function planAssigneeStorageKey() {
   const familyId = familyChatController?.currentMember()?.family_id;
@@ -843,8 +845,8 @@ function updatePlanAssigneeSummary() {
   if (!summary) return;
   const selected = planAssignees.find((member) => member.id === selectedPlanAssignee());
   summary.textContent = selected
-    ? `현재 계획과 학원일정은 ${selected.display_name} 자녀 기준으로 관리합니다.`
-    : "계획과 학원일정을 관리할 자녀를 선택해 주세요.";
+    ? `현재 계획, 학원일정과 문제풀이는 ${selected.display_name} 자녀 기준으로 관리합니다.`
+    : "계획, 학원일정과 문제풀이를 관리할 자녀를 선택해 주세요.";
 }
 
 function setPlanAssignee(memberId) {
@@ -938,6 +940,7 @@ async function handlePlanAssigneeChange() {
     resetBookPlanForm();
     resetReadingPlanForm();
     resetAcademyForm();
+    learningController?.reset();
     render();
     return;
   }
@@ -957,7 +960,10 @@ async function handlePlanAssigneeChange() {
   $("#todayList").setAttribute("aria-busy", "true");
   setConnectionStatus("선택한 자녀의 학습계획을 불러오는 중입니다...");
   render();
-  await reloadFromRemote({ essentialOnly: false });
+  await Promise.all([
+    reloadFromRemote({ essentialOnly: false }),
+    learningController?.refresh({ force: true }),
+  ]);
 }
 
 function applyStickerWalletData(nextState = state) {
@@ -1256,6 +1262,7 @@ function render() {
   renderProgress();
   renderRewards();
   renderParent();
+  learningController?.render();
   rewardStoreController?.render();
 }
 
@@ -2651,6 +2658,7 @@ function enterParentMode() {
   switchView("parent");
   loadNotificationPreferences();
   loadStickerRewardSettings();
+  learningController?.refresh();
   showToast("부모 모드로 전환했어요.");
 }
 
@@ -2913,6 +2921,14 @@ async function initApp() {
   const authStartedAt = performance.now();
   familyChatController = await initFamilyChat();
   if (!familyChatController.isAuthenticated()) await familyChatController.requireAuthentication();
+  learningController ||= initLearning({
+    requestJson,
+    authHeaders: familyAuthHeaders,
+    currentMember: () => familyChatController?.currentMember(),
+    selectedAssignee: selectedPlanAssignee,
+    requireSelectedAssignee: requireSelectedPlanAssignee,
+    showToast,
+  });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
@@ -2926,9 +2942,11 @@ async function enterAuthenticatedApp() {
     remoteLoadGeneration += 1;
     stickerWalletSnapshot = null;
     state = emptyLocalData();
+    learningController?.reset();
     state.formMode = "create";
     if (appReady) render();
     await loadPlanAssignees();
+    const learningTask = learningController?.refresh({ force: true });
     activeCacheKey = localDataKey();
     console.info("[startup auth]", {
       member_key: currentMember?.member_key || null,
@@ -2961,6 +2979,7 @@ async function enterAuthenticatedApp() {
           })
             .then((controller) => { rewardStoreController = controller; });
       await reloadFromRemote({ essentialOnly: true });
+      await learningTask;
       render();
       startupMetrics.firstContentMs ??= Math.round(performance.now() - startupStartedAt);
       await Promise.allSettled([rewardTask]);

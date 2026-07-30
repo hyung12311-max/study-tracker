@@ -1,5 +1,5 @@
 const STORAGE_KEY = "study-tracker-parent-management-tab-v1";
-const TAB_IDS = ["study", "academy", "rewards", "family"];
+const TAB_IDS = ["study", "learning", "academy", "rewards", "family"];
 
 class ParentTabPanel {
   constructor(id, button, panel) {
