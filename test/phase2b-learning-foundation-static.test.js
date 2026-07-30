@@ -77,7 +77,10 @@ test("Phase 2B-1A migration is ordered last and creates only the eight approved 
     .readdirSync(path.join(root, "supabase/migrations"))
     .filter((name) => name.endsWith(".sql"))
     .sort();
-  assert.equal(migrationNames.at(-1), migrationName);
+  assert.equal(
+    migrationNames.at(migrationNames.indexOf(migrationName) + 1),
+    "202607300002_create_phase_2b_attempt_engine.sql",
+  );
 
   const createdTables = [
     ...migration.matchAll(/^\s*create\s+table\s+public\.([a-z0-9_]+)/gim),
