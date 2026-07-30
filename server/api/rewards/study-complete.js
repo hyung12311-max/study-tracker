@@ -1,4 +1,13 @@
 const u = require("./_utils");
+const BIGINT_PATTERN = /^[1-9]\d{0,18}$/;
+const BIGINT_MAX = 9223372036854775807n;
+
+function planId(value) {
+  if (typeof value !== "string" || !BIGINT_PATTERN.test(value) || BigInt(value) > BIGINT_MAX) {
+    throw u.err("올바른 학습 계획을 선택해 주세요.", 400, "INVALID_PLAN_ID");
+  }
+  return value;
+}
 
 function seoulDate() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -24,13 +33,12 @@ module.exports = async function handler(request, response) {
   try {
     const claims = u.authenticate(request);
     const body = await u.readJson(request);
-    const planId = String(body.planId || "");
-    if (!/^\d+$/.test(planId)) throw u.err("올바른 학습 계획을 선택해 주세요.", 400, "INVALID_PLAN_ID");
+    const requestedPlanId = planId(body.planId);
 
     const member = await u.memberInFamily(claims.sub, claims.family);
     if (member?.role !== "child" || member.is_active === false) throw u.err("권한이 없습니다.", 403, "CHILD_PERMISSION_REQUIRED");
     const plan = (await u.supabaseFetch(
-      `study_plans?select=id,subject,workbook,status,reading_plan_id,reading_plans(family_id)&id=eq.${encodeURIComponent(planId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}&limit=1`
+      `study_plans?select=id,subject,workbook,status,reading_plan_id,reading_plans(family_id)&id=eq.${encodeURIComponent(requestedPlanId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}&limit=1`
     ))?.[0];
     if (!plan) throw u.err("학습 계획을 찾을 수 없습니다.", 404, "STUDY_PLAN_NOT_FOUND");
     if (plan.reading_plan_id && plan.reading_plans?.family_id !== claims.family) {
@@ -42,7 +50,7 @@ module.exports = async function handler(request, response) {
       body: JSON.stringify({
         p_family_id: claims.family,
         p_member_id: claims.sub,
-        p_plan_id: Number(planId),
+        p_plan_id: requestedPlanId,
         p_completed_date: seoulDate(),
       }),
     });
@@ -51,7 +59,7 @@ module.exports = async function handler(request, response) {
 
     const awardedStickerCount = Number(row.sticker_count || 0);
     const completion = {
-      plan: row.completed_plan,
+      plan: row.completed_plan ? { ...row.completed_plan, id: requestedPlanId } : row.completed_plan,
       adjustmentType: row.adjustment_type,
       rescheduledCount: Number(row.rescheduled_count || 0),
       awardedStickerCount,
@@ -67,17 +75,17 @@ module.exports = async function handler(request, response) {
     let parentNotification = { success: 0, failure: 0, subscriptionCount: 0, skipped: true };
     let familyMessage = { created: false, skipped: true };
     if (!completion.alreadyCompleted) {
-      familyMessage = await u.insertSystemMessage(claims.family, "study_complete", planId, completionMessage);
+      familyMessage = await u.insertSystemMessage(claims.family, "study_complete", requestedPlanId, completionMessage);
       parentNotification = await u.sendTargetedPush({
         familyId: claims.family,
         target: "parent",
         event: "study_complete",
         title: "⭐ 학습 완료",
         body: completionMessage,
-        tag: `study-complete-${planId}`,
+        tag: `study-complete-${requestedPlanId}`,
         url: "/?tab=today",
       });
-      await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(planId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}`, {
+      await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(requestedPlanId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}`, {
         method: "PATCH",
         body: JSON.stringify({
           parent_notified_at: Number(parentNotification.success || 0) > 0 ? new Date().toISOString() : null,

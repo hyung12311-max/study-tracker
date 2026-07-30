@@ -305,3 +305,12 @@ test("service-role routes scope study plan lookups and updates to the authentica
   assert.match(serverBoundarySources, /assigned_member_id=eq\.\$\{encodeURIComponent\(claims\.sub\)\}/);
   assert.match(serverBoundarySources, /const claims=family\.authenticate\(request\)|const claims = u\.authenticate\(request\)/);
 });
+
+test("bigint study plan ids stay canonical decimal strings at server boundaries", () => {
+  assert.doesNotMatch(
+    serverBoundarySources,
+    /(?:p_plan_id|study_plan_id)\s*:\s*(?:Number|parseInt|parseFloat)\s*\(/,
+  );
+  assert.match(serverBoundarySources, /\^\[1-9\]\\d\{0,18\}\$/);
+  assert.match(serverBoundarySources, /9223372036854775807n/);
+});

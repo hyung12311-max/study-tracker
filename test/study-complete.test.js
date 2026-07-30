@@ -215,3 +215,96 @@ test("a reading plan from another family cannot be completed", async () => {
     restore();
   }
 });
+
+test("study completion preserves every valid bigint plan id as a decimal string", async (t) => {
+  for (const value of [
+    "1",
+    "9007199254740991",
+    "9007199254740992",
+    "9223372036854775807",
+  ]) {
+    await t.test(value, async () => {
+      let rpcPlanId = null;
+      const restore = replaceUtils({
+        authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+        readJson: async () => ({ planId: value }),
+        memberInFamily: async () => ({ id: "child-id", display_name: "child", role: "child", is_active: true }),
+        supabaseFetch: async (path, options = {}) => {
+          if (path.startsWith("study_plans?select=")) {
+            assert.match(path, new RegExp(`id=eq\\.${value}`));
+            return [{ id: value, subject: "math", status: "planned" }];
+          }
+          if (path === "rpc/complete_study_plan_with_reward_for_member") {
+            rpcPlanId = JSON.parse(options.body).p_plan_id;
+            return [{
+              completed_plan: { id: 1, status: "done" },
+              adjustment_type: "normal",
+              rescheduled_count: 0,
+              sticker_count: 0,
+              reward_type: "study_on_time",
+              reward_reason: "completed",
+              already_completed: true,
+              balance: 0,
+            }];
+          }
+          return [];
+        },
+      });
+      try {
+        const response = responseCapture();
+        await handler({ method: "POST", headers: {} }, response);
+        assert.equal(response.statusCode, 200);
+        assert.equal(rpcPlanId, value);
+        assert.equal(typeof rpcPlanId, "string");
+        assert.equal(response.body.completion.plan.id, value);
+        assert.equal(typeof response.body.completion.plan.id, "string");
+      } finally {
+        restore();
+      }
+    });
+  }
+});
+
+test("study completion rejects non-canonical or non-string bigint ids before DB access", async (t) => {
+  const invalidValues = [
+    "",
+    " 1",
+    "1 ",
+    "0",
+    "-1",
+    "+1",
+    "1.0",
+    "1e3",
+    "abc",
+    "01",
+    "9223372036854775808",
+    9007199254740992,
+    [],
+    {},
+    true,
+    null,
+  ];
+
+  for (const value of invalidValues) {
+    await t.test(JSON.stringify(value), async () => {
+      let databaseCalls = 0;
+      const restore = replaceUtils({
+        authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+        readJson: async () => ({ planId: value }),
+        supabaseFetch: async () => {
+          databaseCalls += 1;
+          return [];
+        },
+      });
+      try {
+        const response = responseCapture();
+        await handler({ method: "POST", headers: {} }, response);
+        assert.equal(response.statusCode, 400);
+        assert.equal(response.body.code, "INVALID_PLAN_ID");
+        assert.equal(databaseCalls, 0);
+      } finally {
+        restore();
+      }
+    });
+  }
+});
