@@ -50,12 +50,17 @@ function extractFunction(source, functionName) {
   return source.slice(startMatch.index, end + "\n$function$;".length);
 }
 
-test("Phase 2B-2A is the last additive migration and creates only three attempt tables", () => {
+test("Phase 2B-2A precedes Phase 2B-3A and creates only three attempt tables", () => {
   const migrationNames = fs
     .readdirSync(path.join(root, "supabase/migrations"))
     .filter((name) => name.endsWith(".sql"))
     .sort();
-  assert.equal(migrationNames.at(-1), migrationName);
+  const migrationIndex = migrationNames.indexOf(migrationName);
+  assert.notEqual(migrationIndex, -1);
+  assert.equal(
+    migrationNames[migrationIndex + 1],
+    "202607310001_create_phase_2b_progress_rewards.sql",
+  );
 
   const createdTables = [
     ...migration.matchAll(/^\s*create\s+table\s+public\.([a-z0-9_]+)/gim),
