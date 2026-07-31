@@ -66,20 +66,39 @@ test("learning mutations use CSRF, duplicate-click guards, and refresh only curr
 });
 
 test("attempt UI isolates identity cache and discards stale responses", () => {
-  assert.match(learning, /attemptCache\.set\(`\$\{requestIdentity\}:\$\{attemptId\}`/);
+  assert.match(learning, /attemptCache\.set\(`\$\{requestIdentity\}:\$\{attempt\.id\}`/);
   assert.match(learning, /requestGeneration !== generation \|\| requestIdentity !== identity\(\)/);
   assert.match(learning, /attempt = null/);
   assert.match(learning, /feedback = null/);
   assert.match(learning, /attemptCache\.clear\(\)/);
 });
 
-test("attempt UI shows feedback and results without rewards or local pass calculation", () => {
+test("attempt UI shows server-owned feedback, rewards, unlock, and completion results", () => {
   assert.match(learning, /correctOptionText/);
   assert.match(learning, /explanation/);
   assert.match(learning, /result\.requiredCorrectAnswers/);
-  assert.match(learning, /다음 단계 해금과 보상은 아직 준비 중/);
-  assert.doesNotMatch(learning, /0\.8|Math\.ceil|sticker_transactions|first.?pass/i);
+  assert.match(learning, /result\.rewardGranted === true && result\.rewardAmount > 0/);
+  assert.match(learning, /스티커 \+\$\{result\.rewardAmount\}/);
+  assert.match(learning, /최초 통과 보상은 이미 받았어요/);
+  assert.match(learning, /result\.unlockedStageId/);
+  assert.match(learning, /다음 단계가 열렸어요/);
+  assert.match(learning, /result\.assignmentCompleted === true/);
+  assert.match(learning, /단원의 모든 단계를 완료했어요/);
+  assert.match(learning, /refreshStickerWallet/);
+  assert.match(learning, /Promise\.allSettled/);
+  assert.match(learning, /announcedRewardAttempts/);
+  assert.doesNotMatch(learning, /0\.8|Math\.ceil|sticker_transactions/i);
   assert.doesNotMatch(learning, /\/rest\/v1\/|\/rpc\/|service.?role/i);
+});
+
+test("learning reward UI refreshes server state and clears identity-scoped result state", () => {
+  assert.match(learning, /cache\.delete\(requestIdentity\)/);
+  assert.match(learning, /refresh\(\{ force: true \}\)/);
+  assert.match(learning, /attemptIdentity && attemptIdentity !== requestIdentity/);
+  assert.match(learning, /announcedRewardAttempts\.clear\(\)/);
+  assert.match(app, /refreshStickerWallet: \(\) => rewardStoreController\?\.refresh\(\{ silent: true \}\)/);
+  assert.match(learning, /assignmentStatusLabels/);
+  assert.match(learning, /completed: "단원 완료"/);
 });
 
 test("parent reset is confirmed and scoped to selected child", () => {

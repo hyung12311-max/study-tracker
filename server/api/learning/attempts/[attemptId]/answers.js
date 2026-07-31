@@ -25,8 +25,11 @@ async function answer(request) {
   });
   const result = rows?.[0] || rows;
   if (!result?.answer_id) throw learning.u.err("답안을 저장하지 못했습니다.", 500, "ANSWER_SUBMIT_FAILED");
-  const attempt = await shared.scopedAttempt(claims, attemptId);
   const complete = result.is_complete === true;
+  const completion = complete
+    ? await shared.finalizeResult(claims, attemptId, requestId)
+    : null;
+  const attempt = await shared.scopedAttempt(claims, attemptId);
   return {
     feedback: {
       isCorrect: result.is_correct === true,
@@ -38,7 +41,7 @@ async function answer(request) {
       totalQuestions: Number(result.total_questions),
       hasRemaining: !complete,
     },
-    attempt: complete ? await shared.attemptDto(claims, attempt) : {
+    attempt: complete ? await shared.attemptDto(claims, attempt, completion) : {
       id: attemptId,
       status: result.attempt_status,
       totalQuestions: Number(result.total_questions),

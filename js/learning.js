@@ -11,6 +11,12 @@ const stageStatusLabels = {
   passed: "통과",
 };
 
+const assignmentStatusLabels = {
+  active: "학습 중",
+  completed: "단원 완료",
+  cancelled: "배정 취소",
+};
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -27,6 +33,7 @@ export function initLearning({
   selectedAssignee,
   requireSelectedAssignee,
   showToast,
+  refreshStickerWallet = async () => {},
 }) {
   let generation = 0;
   let catalog = [];
@@ -42,6 +49,7 @@ export function initLearning({
   const cache = new Map();
   const attemptCache = new Map();
   const pending = new Set();
+  const announcedRewardAttempts = new Set();
 
   function identity() {
     const member = currentMember();
@@ -121,7 +129,7 @@ export function initLearning({
         ? `<small>${escapeHtml(assignment.course.subjectName)} · ${escapeHtml(assignment.course.internalName)}</small>`
         : "";
       return `<article class="learning-card learning-assignment-card">
-        <header><div>${parentMeta}<h4>${escapeHtml(assignment.unitTitle)}</h4></div><span class="learning-assignment-status">${escapeHtml(assignment.status)}</span></header>
+        <header><div>${parentMeta}<h4>${escapeHtml(assignment.unitTitle)}</h4></div><span class="learning-assignment-status">${escapeHtml(assignmentStatusLabels[assignment.status] || assignment.status)}</span></header>
         ${stageList(assignment.stages, assignment, parent)}
         ${parent && assignment.status === "active" ? `<button type="button" class="delete-btn" data-learning-action="cancel" data-assignment-id="${assignment.id}" ${busy ? "disabled" : ""}>${busy ? "취소 중…" : "배정 취소"}</button>` : ""}
       </article>`;
@@ -130,11 +138,44 @@ export function initLearning({
 
   function resultMarkup(result) {
     if (!result) return "";
+    const reward = result.passed && result.rewardGranted === true && result.rewardAmount > 0
+      ? `<small class="learning-reward">최초 통과 보상 · 스티커 +${result.rewardAmount}</small>`
+      : result.passed && result.firstPass === false
+        ? '<small>이 단계의 최초 통과 보상은 이미 받았어요.</small>'
+        : "";
+    const progression = result.passed && result.assignmentCompleted === true
+      ? '<small class="learning-unlock">단원의 모든 단계를 완료했어요!</small>'
+      : result.passed && result.unlockedStageId
+        ? '<small class="learning-unlock">다음 단계가 열렸어요!</small>'
+        : "";
     return `<div class="learning-result">
       <strong>${result.passed ? "단계를 통과했어요!" : "아쉽지만 다시 도전할 수 있어요."}</strong>
       <span>${result.correctAnswers}개 정답 · 통과 기준 ${result.requiredCorrectAnswers}개</span>
-      ${result.passed ? '<small>다음 단계 해금과 보상은 아직 준비 중이에요.</small>' : `<button type="button" class="primary" data-learning-action="retry-attempt" data-assignment-id="${attemptContext?.assignmentId || ""}" data-stage-id="${attemptContext?.stageId || ""}">다시 도전</button>`}
+      ${result.passed ? `${reward}${progression}` : `<button type="button" class="primary" data-learning-action="retry-attempt" data-assignment-id="${attemptContext?.assignmentId || ""}" data-stage-id="${attemptContext?.stageId || ""}">다시 도전</button>`}
     </div>`;
+  }
+
+  async function applyAttemptResult(nextAttempt, requestIdentity, { announceReward = false } = {}) {
+    attempt = nextAttempt;
+    attemptIdentity = requestIdentity;
+    attemptCache.set(`${requestIdentity}:${attempt.id}`, attempt);
+    const result = attempt.result;
+    if (!result?.passed || requestIdentity !== identity()) return;
+
+    cache.delete(requestIdentity);
+    const refreshTasks = [refresh({ force: true })];
+    if (result.rewardGranted === true && result.rewardAmount > 0) {
+      const announcementKey = `${requestIdentity}:${attempt.id}`;
+      if (announceReward && !announcedRewardAttempts.has(announcementKey)) {
+        announcedRewardAttempts.add(announcementKey);
+        showToast(`최초 통과 보상으로 스티커 +${result.rewardAmount}을 받았어요!`);
+      }
+      refreshTasks.push(Promise.resolve().then(() => refreshStickerWallet()));
+    }
+    const refreshResults = await Promise.allSettled(refreshTasks);
+    if (refreshResults.some((item) => item.status === "rejected")) {
+      console.warn("[learning reward] follow-up refresh failed");
+    }
   }
 
   function renderAttempt() {
@@ -215,8 +256,8 @@ export function initLearning({
         cache: "no-store",
       });
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
-      attempt = data.attempt;
-      attemptCache.set(`${requestIdentity}:${attemptId}`, data.attempt);
+      attemptLoading = false;
+      await applyAttemptResult(data.attempt, requestIdentity);
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       attemptError = cause.message || "문제를 불러오지 못했습니다.";
@@ -290,8 +331,7 @@ export function initLearning({
       });
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       feedback = data.feedback;
-      attempt = data.attempt;
-      attemptCache.set(`${requestIdentity}:${attempt.id}`, attempt);
+      await applyAttemptResult(data.attempt, requestIdentity, { announceReward: true });
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       attemptError = cause.message || "답안을 제출하지 못했습니다.";
@@ -315,7 +355,7 @@ export function initLearning({
         body: JSON.stringify({ requestId: requestId() }),
       });
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
-      attempt = data.attempt;
+      await applyAttemptResult(data.attempt, requestIdentity, { announceReward: true });
       feedback = null;
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
@@ -360,6 +400,15 @@ export function initLearning({
     const member = currentMember();
     const requestIdentity = identity();
     const requestGeneration = ++generation;
+    if (attemptIdentity && attemptIdentity !== requestIdentity) {
+      attempt = null;
+      attemptContext = null;
+      attemptIdentity = "";
+      attemptLoading = false;
+      attemptError = "";
+      feedback = null;
+      announcedRewardAttempts.clear();
+    }
     catalog = [];
     assignments = [];
     error = "";
@@ -508,6 +557,7 @@ export function initLearning({
       attemptError = "";
       feedback = null;
       attemptCache.clear();
+      announcedRewardAttempts.clear();
       render();
     },
   };

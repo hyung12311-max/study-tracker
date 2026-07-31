@@ -2928,6 +2928,7 @@ async function initApp() {
     selectedAssignee: selectedPlanAssignee,
     requireSelectedAssignee: requireSelectedPlanAssignee,
     showToast,
+    refreshStickerWallet: () => rewardStoreController?.refresh({ silent: true }),
   });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();

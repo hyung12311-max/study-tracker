@@ -11,16 +11,9 @@ async function finalize(request) {
   const attemptId = shared.attemptIdFrom(request);
   const requestId = learning.uuid(body.requestId, "INVALID_REQUEST_ID");
   await shared.scopedAttempt(claims, attemptId);
-  await learning.u.supabaseFetch("rpc/finalize_learning_stage_attempt", {
-    method: "POST",
-    body: JSON.stringify({
-      p_actor_member_id: claims.sub,
-      p_attempt_id: attemptId,
-      p_request_id: requestId,
-    }),
-  });
+  const completion = await shared.finalizeResult(claims, attemptId, requestId);
   const attempt = await shared.scopedAttempt(claims, attemptId);
-  return shared.attemptDto(claims, attempt);
+  return shared.attemptDto(claims, attempt, completion);
 }
 
 module.exports = async function finalizeLearningAttempt(request, response) {

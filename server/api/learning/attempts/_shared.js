@@ -1,4 +1,13 @@
+const { randomUUID } = require("node:crypto");
 const learning = require("../_utils");
+
+const EMPTY_COMPLETION = Object.freeze({
+  firstPass: false,
+  rewardGranted: false,
+  rewardAmount: 0,
+  unlockedStageId: null,
+  assignmentCompleted: false,
+});
 
 function attemptIdFrom(request) {
   return learning.uuid(request.query?.attemptId || "", "INVALID_ATTEMPT_ID");
@@ -26,7 +35,69 @@ function publicOptions(snapshot) {
   })) : [];
 }
 
-async function attemptDto(claims, attempt) {
+function booleanResult(value, fallback, field) {
+  if (value === undefined || value === null) return fallback;
+  if (typeof value !== "boolean") {
+    throw learning.u.err("Learning result is invalid.", 500, `INVALID_${field}`);
+  }
+  return value;
+}
+
+function completionResult(row) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    throw learning.u.err("Learning result is unavailable.", 500, "FINALIZE_RESULT_MISSING");
+  }
+  const firstPass = booleanResult(row.first_pass, false, "FIRST_PASS");
+  const rewardGranted = booleanResult(row.reward_granted, false, "REWARD_GRANTED");
+  const assignmentCompleted = booleanResult(row.assignment_completed, false, "ASSIGNMENT_COMPLETED");
+  const passed = booleanResult(row.passed, row.attempt_status === "passed", "PASSED");
+  if (row.attempt_status !== undefined && !["passed", "failed"].includes(row.attempt_status)) {
+    throw learning.u.err("Learning result status is invalid.", 500, "INVALID_ATTEMPT_STATUS");
+  }
+  if ((row.attempt_status === "passed") !== passed && row.attempt_status !== undefined) {
+    throw learning.u.err("Learning result status is inconsistent.", 500, "FINALIZE_RESULT_INCONSISTENT");
+  }
+  const rawAmount = row.reward_amount ?? 0;
+  const rewardAmount = typeof rawAmount === "number" ? rawAmount : Number.NaN;
+  if (!Number.isSafeInteger(rewardAmount) || rewardAmount < 0) {
+    throw learning.u.err("Learning reward result is invalid.", 500, "INVALID_REWARD_AMOUNT");
+  }
+  const unlockedStageId = row.unlocked_stage_id == null
+    ? null
+    : learning.uuid(row.unlocked_stage_id, "INVALID_UNLOCKED_STAGE_ID");
+  if (!passed) return { ...EMPTY_COMPLETION };
+  if (firstPass !== rewardGranted) {
+    throw learning.u.err("Learning reward result is inconsistent.", 500, "REWARD_RESULT_INCONSISTENT");
+  }
+  if (rewardGranted ? ![1, 2, 3, 5].includes(rewardAmount) : rewardAmount !== 0) {
+    throw learning.u.err("Learning reward result is inconsistent.", 500, "REWARD_RESULT_INCONSISTENT");
+  }
+  return {
+    firstPass,
+    rewardGranted,
+    rewardAmount,
+    unlockedStageId,
+    assignmentCompleted,
+  };
+}
+
+async function finalizeResult(claims, attemptId, requestId = randomUUID()) {
+  const rows = await learning.u.supabaseFetch("rpc/finalize_learning_stage_attempt", {
+    method: "POST",
+    body: JSON.stringify({
+      p_actor_member_id: claims.sub,
+      p_attempt_id: attemptId,
+      p_request_id: requestId,
+    }),
+  });
+  const row = rows?.[0] || rows;
+  if (String(row?.attempt_id || "") !== String(attemptId)) {
+    throw learning.u.err("Learning result is unavailable.", 500, "FINALIZE_RESULT_MISMATCH");
+  }
+  return completionResult(row);
+}
+
+async function attemptDto(claims, attempt, completion = EMPTY_COMPLETION) {
   const answers = await learning.u.supabaseFetch(
     `learning_attempt_answers?select=attempt_question_id&attempt_id=eq.${encodeURIComponent(attempt.id)}`
   ) || [];
@@ -59,6 +130,7 @@ async function attemptDto(claims, attempt) {
       requiredCorrectAnswers: Number(attempt.required_correct_answers),
       passed: attempt.status === "passed",
       finalizedAt: attempt.finalized_at,
+      ...completion,
     } : null,
   };
 }
@@ -67,13 +139,17 @@ async function loadAttempt(request) {
   const { claims } = await childScope(request);
   const attemptId = attemptIdFrom(request);
   const attempt = await scopedAttempt(claims, attemptId);
-  return { claims, attempt, dto: await attemptDto(claims, attempt) };
+  const terminal = attempt.status === "passed" || attempt.status === "failed";
+  const completion = terminal ? await finalizeResult(claims, attemptId) : EMPTY_COMPLETION;
+  return { claims, attempt, dto: await attemptDto(claims, attempt, completion) };
 }
 
 module.exports = {
   attemptDto,
   attemptIdFrom,
   childScope,
+  completionResult,
+  finalizeResult,
   learning,
   loadAttempt,
   scopedAttempt,

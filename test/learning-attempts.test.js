@@ -21,6 +21,7 @@ const FUTURE_QUESTION_ID = "66666666-6666-4666-8666-666666666666";
 const OPTION_ID = "77777777-7777-4777-8777-777777777777";
 const WRONG_OPTION_ID = "88888888-8888-4888-8888-888888888888";
 const REQUEST_ID = "99999999-9999-4999-8999-999999999999";
+const NEXT_STAGE_ID = "aaaaaaaa-2222-4222-8222-aaaaaaaaaaaa";
 
 function responseCapture() {
   return {
@@ -82,6 +83,26 @@ function attemptRow(status = "in_progress") {
     started_at: "2026-07-31T01:00:00Z",
     finalized_at: status === "in_progress" ? null : "2026-07-31T01:05:00Z",
     abandoned_at: null,
+  };
+}
+
+function finalizeRow({
+  status = "passed",
+  firstPass = true,
+  rewardGranted = true,
+  rewardAmount = 3,
+  unlockedStageId = NEXT_STAGE_ID,
+  assignmentCompleted = false,
+} = {}) {
+  return {
+    attempt_id: ATTEMPT_ID,
+    attempt_status: status,
+    passed: status === "passed",
+    first_pass: firstPass,
+    reward_granted: rewardGranted,
+    reward_amount: rewardAmount,
+    unlocked_stage_id: unlockedStageId,
+    assignment_completed: assignmentCompleted,
   };
 }
 
@@ -314,7 +335,7 @@ test("last answer reflects automatic finalize result using stored threshold", as
   for (const status of ["passed", "failed"]) {
     const restore = replaceUtils(mocks({
       body: { questionId: QUESTION_ID, optionId: OPTION_ID, requestId: REQUEST_ID },
-      supabaseFetch: async (path) => {
+      supabaseFetch: async (path, options = {}) => {
         if (path === "rpc/submit_learning_attempt_answer") return [{
           answer_id: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
           is_correct: status === "passed",
@@ -326,6 +347,22 @@ test("last answer reflects automatic finalize result using stored threshold", as
           is_complete: true,
           attempt_status: status,
         }];
+        if (path === "rpc/finalize_learning_stage_attempt") {
+          assert.deepEqual(JSON.parse(options.body), {
+            p_actor_member_id: CHILD_ID,
+            p_attempt_id: ATTEMPT_ID,
+            p_request_id: REQUEST_ID,
+          });
+          return [status === "passed"
+            ? finalizeRow()
+            : finalizeRow({
+                status: "failed",
+                firstPass: false,
+                rewardGranted: false,
+                rewardAmount: 0,
+                unlockedStageId: null,
+              })];
+        }
         return attemptRead(path, status, [QUESTION_ID, "1", "2", "3", "4"]) || [];
       },
     }));
@@ -338,6 +375,18 @@ test("last answer reflects automatic finalize result using stored threshold", as
       assert.equal(response.body.attempt.result.passed, status === "passed");
       assert.equal(response.body.attempt.result.requiredCorrectAnswers, 4);
       assert.equal(response.body.attempt.result.correctAnswers, status === "passed" ? 4 : 3);
+      assert.deepEqual(
+        {
+          firstPass: response.body.attempt.result.firstPass,
+          rewardGranted: response.body.attempt.result.rewardGranted,
+          rewardAmount: response.body.attempt.result.rewardAmount,
+          unlockedStageId: response.body.attempt.result.unlockedStageId,
+          assignmentCompleted: response.body.attempt.result.assignmentCompleted,
+        },
+        status === "passed"
+          ? { firstPass: true, rewardGranted: true, rewardAmount: 3, unlockedStageId: NEXT_STAGE_ID, assignmentCompleted: false }
+          : { firstPass: false, rewardGranted: false, rewardAmount: 0, unlockedStageId: null, assignmentCompleted: false }
+      );
     } finally { restore(); }
   }
 });
@@ -353,7 +402,7 @@ test("explicit finalize is idempotent and incomplete attempts return stable 409"
             error.supabaseCode = databaseCode;
             throw error;
           }
-          return [{ attempt_id: ATTEMPT_ID, attempt_status: "passed" }];
+          return [finalizeRow({ assignmentCompleted: true, unlockedStageId: null })];
         }
         return attemptRead(path, databaseCode ? "in_progress" : "passed", [QUESTION_ID]) || [];
       },
@@ -363,9 +412,142 @@ test("explicit finalize is idempotent and incomplete attempts return stable 409"
       await finalizeHandler(request("POST", { requestId: REQUEST_ID }, { attemptId: ATTEMPT_ID }), response);
       assert.equal(response.statusCode, databaseCode ? 409 : 200);
       if (databaseCode) assert.equal(response.body.code, "ATTEMPT_INCOMPLETE");
-      else assert.equal(response.body.attempt.result.passed, true);
+      else {
+        assert.equal(response.body.attempt.result.passed, true);
+        assert.equal(response.body.attempt.result.rewardGranted, true);
+        assert.equal(response.body.attempt.result.rewardAmount, 3);
+        assert.equal(response.body.attempt.result.unlockedStageId, null);
+        assert.equal(response.body.attempt.result.assignmentCompleted, true);
+      }
     } finally { restore(); }
   }
+});
+
+test("terminal GET replays stable public completion fields without internal reward identifiers", async () => {
+  let finalizeCalls = 0;
+  const restore = replaceUtils(mocks({
+    supabaseFetch: async (path) => {
+      if (path === "rpc/finalize_learning_stage_attempt") {
+        finalizeCalls += 1;
+        return [finalizeRow()];
+      }
+      return attemptRead(path, "passed", [QUESTION_ID]) || [];
+    },
+  }));
+  try {
+    const bodies = [];
+    for (let index = 0; index < 2; index += 1) {
+      const response = responseCapture();
+      await attemptHandler(request("GET", {}, { attemptId: ATTEMPT_ID }), response);
+      assert.equal(response.statusCode, 200);
+      bodies.push(response.body);
+    }
+    assert.equal(finalizeCalls, 2);
+    assert.deepEqual(bodies[1], bodies[0]);
+    assert.deepEqual(bodies[0].attempt.result, {
+      correctAnswers: 4,
+      requiredCorrectAnswers: 4,
+      passed: true,
+      finalizedAt: "2026-07-31T01:05:00Z",
+      firstPass: true,
+      rewardGranted: true,
+      rewardAmount: 3,
+      unlockedStageId: NEXT_STAGE_ID,
+      assignmentCompleted: false,
+    });
+    assert.doesNotMatch(JSON.stringify(bodies[0]), /first_pass_id|reward_transaction|ledger|family_id|member_id|content_version/i);
+  } finally { restore(); }
+});
+
+test("completion mapper supplies explicit defaults and rejects malformed database types", () => {
+  const shared = require("../server/api/learning/attempts/_shared");
+  assert.deepEqual(shared.completionResult({}), {
+    firstPass: false,
+    rewardGranted: false,
+    rewardAmount: 0,
+    unlockedStageId: null,
+    assignmentCompleted: false,
+  });
+  for (const rewardAmount of [1, 2, 3, 5]) {
+    assert.equal(shared.completionResult(finalizeRow({ rewardAmount })).rewardAmount, rewardAmount);
+  }
+  assert.deepEqual(shared.completionResult(finalizeRow({
+    status: "failed",
+    firstPass: false,
+    rewardGranted: false,
+    rewardAmount: 0,
+    unlockedStageId: null,
+    assignmentCompleted: true,
+  })), {
+    firstPass: false,
+    rewardGranted: false,
+    rewardAmount: 0,
+    unlockedStageId: null,
+    assignmentCompleted: false,
+  });
+  for (const row of [
+    { first_pass: "true" },
+    { reward_granted: 1 },
+    { reward_amount: "5" },
+    { reward_amount: -1 },
+    { attempt_status: "in_progress" },
+    { attempt_status: "failed", passed: true },
+    { attempt_status: "passed", passed: true, first_pass: true, reward_granted: false, reward_amount: 0 },
+    { attempt_status: "passed", passed: true, first_pass: true, reward_granted: true, reward_amount: 4 },
+    { unlocked_stage_id: "not-a-uuid" },
+    { assignment_completed: "false" },
+  ]) {
+    assert.throws(() => shared.completionResult(row));
+  }
+});
+
+test("client cannot submit reward, unlock, or completion decisions", async () => {
+  let databaseCalled = false;
+  const restore = replaceUtils(mocks({
+    body: {
+      requestId: REQUEST_ID,
+      rewardGranted: true,
+      rewardAmount: 5,
+      unlockedStageId: NEXT_STAGE_ID,
+      assignmentCompleted: true,
+    },
+    supabaseFetch: async () => {
+      databaseCalled = true;
+      return [];
+    },
+  }));
+  try {
+    const response = responseCapture();
+    await finalizeHandler(request("POST", {
+      requestId: REQUEST_ID,
+      rewardGranted: true,
+      rewardAmount: 5,
+      unlockedStageId: NEXT_STAGE_ID,
+      assignmentCompleted: true,
+    }, { attemptId: ATTEMPT_ID }), response);
+    assert.equal(response.statusCode, 400);
+    assert.equal(response.body.code, "LEARNING_FIELD_NOT_ALLOWED");
+    assert.equal(databaseCalled, false);
+  } finally { restore(); }
+});
+
+test("malformed finalize results become safe API errors without database details", async () => {
+  const restore = replaceUtils(mocks({
+    body: { requestId: REQUEST_ID },
+    supabaseFetch: async (path) => {
+      if (path === "rpc/finalize_learning_stage_attempt") {
+        return [{ ...finalizeRow(), reward_amount: "3", internal_detail: "sensitive ledger row" }];
+      }
+      return attemptRead(path, "passed", [QUESTION_ID]) || [];
+    },
+  }));
+  try {
+    const response = responseCapture();
+    await finalizeHandler(request("POST", { requestId: REQUEST_ID }, { attemptId: ATTEMPT_ID }), response);
+    assert.equal(response.statusCode, 500);
+    assert.equal(response.body.code, "INVALID_REWARD_AMOUNT");
+    assert.doesNotMatch(JSON.stringify(response.body), /sensitive|ledger|sql|supabase/i);
+  } finally { restore(); }
 });
 
 test("parent abandons only a scoped in-progress attempt and never deletes audit rows", async () => {
