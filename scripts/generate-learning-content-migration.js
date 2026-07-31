@@ -17,7 +17,8 @@ function rows(values) {
 }
 
 function sourceName(content) {
-  return `content/learning/math/make-ten-${content.version.label}.json`;
+  if (content.unit.slug === "make-ten") return `content/learning/math/make-ten-${content.version.label}.json`;
+  return `content/learning/math/${content.unit.slug}-${content.version.label}.json`;
 }
 
 function generateMigration(content) {
@@ -30,7 +31,8 @@ function generateMigration(content) {
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map((option) => ({ ...option, questionId: question.id })));
 
-  const sharedPreflight = content.version.number === 1 ? `if exists (
+  const legacyMakeTen = content.unit.slug === "make-ten";
+  const sharedPreflight = content.version.number === 1 && legacyMakeTen ? `if exists (
     select 1 from public.learning_courses
     where id = ${quote(content.course.id)}::uuid
        or course_code = ${quote(content.course.slug)}
@@ -44,6 +46,25 @@ function generateMigration(content) {
        or unit_code = ${quote(content.unit.slug)}
   ) then
     raise exception using errcode = '23505', message = 'make-ten unit identifier already exists';
+  end if;` : content.version.number === 1 ? `if exists (
+    select 1 from public.learning_courses
+    where (id = ${quote(content.course.id)}::uuid or course_code = ${quote(content.course.slug)})
+      and not (
+        id = ${quote(content.course.id)}::uuid
+        and course_code = ${quote(content.course.slug)}
+        and internal_name = ${quote(content.course.internalName)}
+        and subject_name = ${quote(content.course.subject)}
+      )
+  ) then
+    raise exception using errcode = '23505', message = 'learning course identifier conflicts with different content';
+  end if;
+
+  if exists (
+    select 1 from public.learning_units
+    where id = ${quote(content.unit.id)}::uuid
+       or unit_code = ${quote(content.unit.slug)}
+  ) then
+    raise exception using errcode = '23505', message = 'learning unit identifier already exists';
   end if;` : `if not exists (
     select 1
     from public.learning_courses course
@@ -59,8 +80,16 @@ function generateMigration(content) {
   ) then
     raise exception using errcode = 'P0002', message = 'make-ten shared course or unit is missing or changed';
   end if;`;
-  const sharedInserts = content.version.number === 1 ? `insert into public.learning_courses (id, course_code, internal_name, subject_name)
+  const sharedInserts = content.version.number === 1 && legacyMakeTen ? `insert into public.learning_courses (id, course_code, internal_name, subject_name)
 values (${quote(content.course.id)}, ${quote(content.course.slug)}, ${quote(content.course.internalName)}, ${quote(content.course.subject)});
+
+insert into public.learning_units (id, course_id, unit_code, display_title, sort_order)
+values (${quote(content.unit.id)}, ${quote(content.course.id)}, ${quote(content.unit.slug)}, ${quote(content.unit.title)}, ${content.unit.displayOrder});
+` : content.version.number === 1 ? `insert into public.learning_courses (id, course_code, internal_name, subject_name)
+select ${quote(content.course.id)}::uuid, ${quote(content.course.slug)}, ${quote(content.course.internalName)}, ${quote(content.course.subject)}
+where not exists (
+  select 1 from public.learning_courses where id = ${quote(content.course.id)}::uuid
+);
 
 insert into public.learning_units (id, course_id, unit_code, display_title, sort_order)
 values (${quote(content.unit.id)}, ${quote(content.course.id)}, ${quote(content.unit.slug)}, ${quote(content.unit.title)}, ${content.unit.displayOrder});
@@ -129,12 +158,13 @@ function contentHash(content) {
 }
 
 function generateVerification(content) {
+  const legacyMakeTen = content.unit.slug === "make-ten";
   const hash = contentHash(content);
   const expected = quote(canonicalJson(content));
   const questionCount = content.stages.reduce((sum, stage) => sum + stage.questions.length, 0);
   const optionCount = questionCount * 4;
   const questionsPerStage = content.stages[0].questions.length;
-  const v2Checks = content.version.number === 2 ? `
+  const v2Checks = legacyMakeTen && content.version.number === 2 ? `
 
   union all
   select 12, 'make_ten_v1_preserved',
@@ -169,11 +199,13 @@ function generateVerification(content) {
     ceil(10 * 8 / 10.0)::integer = 8
       and pg_get_functiondef(to_regprocedure('public.start_or_resume_learning_attempt(uuid,uuid,uuid,uuid,uuid,uuid)')) ~* 'ceil\\(question_count \\* 8 / 10\\.0\\)',
     jsonb_build_object('total_questions', 10, 'required_correct_answers', 8)` : "";
-  const verificationLabel = content.version.number === 1 ? "pilot content" : `${content.version.label} content`;
-  const rewardEmptyCheck = content.version.number === 1
+  const verificationLabel = legacyMakeTen
+    ? (content.version.number === 1 ? "pilot content" : `${content.version.label} content`)
+    : `${content.unit.slug} ${content.version.label} content`;
+  const rewardEmptyCheck = legacyMakeTen && content.version.number === 1
     ? `(select count(*) from public.sticker_transactions where source_type = 'learning_stage_first_pass') = 0`
     : `(select count(*) from public.sticker_transactions ledger_row join public.learning_stage_first_passes first_pass on first_pass.id::text = ledger_row.source_id where ledger_row.source_type = 'learning_stage_first_pass' and first_pass.content_version_id = ${quote(content.version.id)}::uuid) = 0`;
-  const rewardCount = content.version.number === 1
+  const rewardCount = legacyMakeTen && content.version.number === 1
     ? `(select count(*) from public.sticker_transactions where source_type = 'learning_stage_first_pass')`
     : `(select count(*) from public.sticker_transactions ledger_row join public.learning_stage_first_passes first_pass on first_pass.id::text = ledger_row.source_id where ledger_row.source_type = 'learning_stage_first_pass' and first_pass.content_version_id = ${quote(content.version.id)}::uuid)`;
   return `-- Phase 2B ${verificationLabel} verification. Read-only and row-aggregate only.

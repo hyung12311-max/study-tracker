@@ -1,0 +1,13 @@
+﻿curriculum_id,grade_level,semester,domain,unit_order,catalog_order,unit_slug,unit_title,recommendation_level,achievement_codes,prerequisite_unit_slugs,content_version,status
+studyplus-math-grade2-2022,초등 2,1,수와 연산,1,1,grade2-three-digit-numbers,세 자리 수를 알아봐요,초등 2,2수01-02|2수01-03,,v1,planned
+studyplus-math-grade2-2022,초등 2,1,도형과 측정,2,2,grade2-shapes,여러 가지 모양을 찾아요,초등 2,2수03-03|2수03-04|2수03-05,,v1,planned
+studyplus-math-grade2-2022,초등 2,1,수와 연산,3,3,grade2-addition-subtraction,덧셈과 뺄셈을 해요,초등 2,2수01-06|2수01-07|2수01-08|2수01-09,grade2-three-digit-numbers,v1,planned
+studyplus-math-grade2-2022,초등 2,1,도형과 측정,4,4,grade2-measuring-length,길이를 재어 봐요,초등 2,2수03-10|2수03-11|2수03-12,,v1,planned
+studyplus-math-grade2-2022,초등 2,1,자료와 가능성,5,5,grade2-classification,기준에 따라 분류해요,초등 2,2수04-01,,v1,planned
+studyplus-math-grade2-2022,초등 2,1,수와 연산,6,6,grade2-multiplication-meaning,곱셈의 뜻을 알아봐요,초등 2,2수01-10,,v1,planned
+studyplus-math-grade2-2022,초등 2,2,수와 연산,1,7,grade2-four-digit-numbers,네 자리 수를 알아봐요,초등 2,2수01-02|2수01-03,grade2-three-digit-numbers,v1,planned
+studyplus-math-grade2-2022,초등 2,2,수와 연산,2,8,grade2-multiplication-tables,곱셈구구를 익혀요,초등 2,2수01-11,grade2-multiplication-meaning,v1,planned
+studyplus-math-grade2-2022,초등 2,2,도형과 측정,3,9,grade2-length-calculation,길이를 계산해요,초등 2,2수03-11|2수03-12|2수03-13,grade2-measuring-length,v1,planned
+studyplus-math-grade2-2022,초등 2,2,도형과 측정,4,10,grade2-time,시각과 시간을 알아봐요,초등 2,2수03-07|2수03-08|2수03-09,,v1,planned
+studyplus-math-grade2-2022,초등 2,2,자료와 가능성,5,11,grade2-tables-graphs,표와 그래프로 나타내요,초등 2,2수04-02|2수04-03,grade2-classification,v1,planned
+studyplus-math-grade2-2022,초등 2,2,변화와 관계,6,12,grade2-patterns,규칙을 찾아요,초등 2,2수02-01|2수02-02,,v1,planned

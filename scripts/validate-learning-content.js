@@ -94,7 +94,9 @@ function validateLearningContent(content) {
       fail("$.unit.slug", "must be a lowercase slug");
     }
     text(content.unit.title, "$.unit.title", 200, true);
-    order(content.unit.displayOrder, 1, "$.unit.displayOrder");
+    if (!Number.isInteger(content.unit.displayOrder) || content.unit.displayOrder < 1) {
+      fail("$.unit.displayOrder", "must be a positive integer");
+    }
   }
   if (exactFields(content.version, "$.version", fields.version)) {
     uuid(content.version.id, "$.version.id");
@@ -111,8 +113,9 @@ function validateLearningContent(content) {
   if (!Array.isArray(content.stages) || content.stages.length !== 4) {
     fail("$.stages", "must contain exactly 4 stages");
   }
-  const questionsPerStage = content?.version?.number === 1 ? 5 : content?.version?.number === 2 ? 10 : null;
-  if (questionsPerStage === null) fail("$.version.number", "only v1 and v2 are supported");
+  const firstStageQuestionCount = Array.isArray(content.stages?.[0]?.questions) ? content.stages[0].questions.length : null;
+  const questionsPerStage = [5, 10].includes(firstStageQuestionCount) ? firstStageQuestionCount : null;
+  if (questionsPerStage === null) fail("$.stages", "each stage must use the supported 5- or 10-question structure");
   let questionCount = 0;
   let optionCount = 0;
   for (const [stageIndex, stage] of (Array.isArray(content.stages) ? content.stages : []).entries()) {
