@@ -200,6 +200,20 @@ test("parent catalog returns only published metadata and selected-child assignme
         assert.match(path, new RegExp(`assigned_member_id=eq\\.${CHILD_ID}`));
         return [{ unit_id: UNIT_ID, content_version_id: VERSION_ID }];
       }
+      if (path.startsWith("learning_member_subject_profiles?")) {
+        assert.match(path, new RegExp(`family_id=eq\\.${FAMILY_ID}`));
+        assert.match(path, new RegExp(`member_id=eq\\.${CHILD_ID}`));
+        return [{ subject: "math", level_code: "elementary_1" }];
+      }
+      if (path.startsWith("learning_unit_recommendation_metadata?")) {
+        return [{
+          unit_id: UNIT_ID,
+          subject: "math",
+          recommended_start_level_code: "elementary_1",
+          recommended_end_level_code: "elementary_1",
+          parent_sort_order: 1,
+        }];
+      }
       throw new Error(`Unexpected path: ${path}`);
     },
   }));
@@ -211,6 +225,8 @@ test("parent catalog returns only published metadata and selected-child assignme
     assert.equal(response.body.catalog[0].contentVersionId, VERSION_ID);
     assert.equal(response.body.catalog[0].alreadyAssigned, true);
     assert.equal(response.body.catalog[0].stageCount, 2);
+    assert.equal(response.body.catalog[0].recommended, true);
+    assert.doesNotMatch(JSON.stringify(response.body), /elementary_1|recommendationOrder/);
     assert.doesNotMatch(JSON.stringify(response.body), /prompt|option_text|is_correct|explanation|content_hash/);
     assert.equal(response.headers["Cache-Control"], "no-store");
   } finally {

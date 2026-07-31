@@ -21,7 +21,7 @@ async function catalog(request) {
 
   const unitIds = learning.idList(latestVersions, "unit_id");
   const versionIds = learning.idList(latestVersions);
-  const [units, stages, activeAssignments] = await Promise.all([
+  const [units, stages, activeAssignments, profileRows, recommendationRows] = await Promise.all([
     learning.u.supabaseFetch(
       `learning_units?select=id,course_id,display_title,sort_order&id=in.(${learning.inFilter(unitIds)})&order=sort_order.asc`
     ),
@@ -31,6 +31,12 @@ async function catalog(request) {
     learning.u.supabaseFetch(
       `learning_assignments?select=unit_id,content_version_id&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}&status=eq.active`
     ),
+    learning.u.supabaseFetch(
+      `learning_member_subject_profiles?select=subject,level_code&family_id=eq.${encodeURIComponent(claims.family)}&member_id=eq.${encodeURIComponent(assignedMemberId)}&subject=eq.math&limit=1`
+    ),
+    learning.u.supabaseFetch(
+      `learning_unit_recommendation_metadata?select=unit_id,subject,recommended_start_level_code,recommended_end_level_code,parent_sort_order&unit_id=in.(${learning.inFilter(unitIds)})`
+    ),
   ]);
   const courseIds = learning.idList(units, "course_id");
   const courses = courseIds.length ? await learning.u.supabaseFetch(
@@ -39,6 +45,8 @@ async function catalog(request) {
   const unitById = new Map((units || []).map((row) => [String(row.id), row]));
   const courseById = new Map((courses || []).map((row) => [String(row.id), row]));
   const assignedUnits = new Set((activeAssignments || []).map((row) => String(row.unit_id)));
+  const profile = (profileRows || [])[0] || null;
+  const recommendationByUnit = new Map((recommendationRows || []).map((row) => [String(row.unit_id), row]));
 
   return latestVersions.map((version) => {
     const unit = unitById.get(String(version.unit_id));
@@ -52,6 +60,14 @@ async function catalog(request) {
         difficulty: stage.difficulty,
         order: Number(stage.display_order),
       }));
+    const recommendation = recommendationByUnit.get(String(unit.id));
+    const recommended = Boolean(
+      profile && recommendation
+      && profile.subject === recommendation.subject
+      && profile.level_code === recommendation.recommended_start_level_code
+      && (!recommendation.recommended_end_level_code
+        || profile.level_code === recommendation.recommended_end_level_code)
+    );
     return {
       course: {
         internalName: course.internal_name,
@@ -63,8 +79,16 @@ async function catalog(request) {
       stageCount: versionStages.length,
       stages: versionStages,
       alreadyAssigned: assignedUnits.has(String(unit.id)),
+      recommended,
+      recommendationOrder: recommended ? Number(recommendation.parent_sort_order) : null,
     };
-  }).filter(Boolean);
+  }).filter(Boolean).sort((left, right) => {
+    if (left.recommended !== right.recommended) return left.recommended ? -1 : 1;
+    if (left.recommended && right.recommended) {
+      return left.recommendationOrder - right.recommendationOrder;
+    }
+    return left.unitTitle.localeCompare(right.unitTitle, "ko");
+  }).map(({ recommendationOrder, ...item }) => item);
 }
 
 module.exports = async function learningCatalog(request, response) {

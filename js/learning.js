@@ -40,6 +40,8 @@ export function initLearning({
   let generation = 0;
   let catalog = [];
   let assignments = [];
+  let profile = null;
+  let profileReady = false;
   let loading = false;
   let error = "";
   let attempt = null;
@@ -74,36 +76,76 @@ export function initLearning({
     `).join("")}</ol>`;
   }
 
+  function catalogCard(item) {
+    const key = `assign:${item.contentVersionId}`;
+    const busy = pending.has(key);
+    return `<article class="learning-card">
+      <header><div><small>${escapeHtml(item.course.subjectName)} · ${escapeHtml(item.course.internalName)}</small><h4>${escapeHtml(item.unitTitle)}</h4></div><span class="${item.recommended ? "learning-recommendation-badge" : ""}">${item.recommended ? "추천" : `${item.stageCount}단계`}</span></header>
+      ${stageList(item.stages, item, true)}
+      <button type="button" class="primary" data-learning-action="assign" data-unit-id="${item.unitId}" data-version-id="${item.contentVersionId}" ${item.alreadyAssigned || busy ? "disabled" : ""}>
+        ${item.alreadyAssigned ? "배정됨" : busy ? "배정 중…" : "이 단원 배정"}
+      </button>
+    </article>`;
+  }
+
+  function renderProfile() {
+    const form = document.querySelector("#learningProfileForm");
+    const select = document.querySelector("#learningProfileLevel");
+    const status = document.querySelector("#learningProfileStatus");
+    const save = document.querySelector("#learningProfileSave");
+    if (!form || !select || !status || !save) return;
+    const parent = currentMember()?.role === "parent";
+    form.hidden = !parent;
+    if (!parent) return;
+    const selected = selectedAssignee();
+    const saving = pending.has(`profile:${identity()}`);
+    select.disabled = !selected || loading || saving;
+    save.disabled = !selected || loading || saving;
+    if (!selected) {
+      select.value = "";
+      status.textContent = "담당 자녀를 선택해 주세요.";
+    } else if (!profileReady && loading) {
+      select.value = "";
+      status.textContent = "학습 기준을 불러오는 중입니다.";
+    } else {
+      select.value = profile?.level || "";
+      status.textContent = profile ? `${profile.subject} · ${profile.level} 기준으로 추천합니다.` : "설정 전입니다. 부모님이 시작 기준을 선택해 주세요.";
+    }
+    save.textContent = saving ? "저장 중…" : "저장";
+  }
+
   function renderCatalog() {
     const list = document.querySelector("#learningCatalogList");
-    if (!list) return;
+    const recommendedList = document.querySelector("#learningRecommendedList");
+    if (!list || !recommendedList) return;
     if (loading) {
       list.innerHTML = '<p class="learning-empty">배정 가능한 단원을 불러오는 중입니다.</p>';
+      recommendedList.innerHTML = '<p class="learning-empty">추천 단원을 확인하는 중입니다.</p>';
       return;
     }
     if (error) {
       list.innerHTML = `<p class="learning-error">${escapeHtml(error)}</p>`;
+      recommendedList.innerHTML = "";
       return;
     }
     if (!selectedAssignee()) {
       list.innerHTML = '<p class="learning-empty">담당 자녀를 선택하면 배정 가능한 단원을 확인할 수 있어요.</p>';
+      recommendedList.innerHTML = '<p class="learning-empty">담당 자녀를 선택해 주세요.</p>';
       return;
     }
     if (!catalog.length) {
       list.innerHTML = '<p class="learning-empty">현재 배정 가능한 문제풀이 단원이 없습니다.</p>';
+      recommendedList.innerHTML = '<p class="learning-empty">현재 추천 가능한 단원이 없습니다.</p>';
       return;
     }
-    list.innerHTML = catalog.map((item) => {
-      const key = `assign:${item.contentVersionId}`;
-      const busy = pending.has(key);
-      return `<article class="learning-card">
-        <header><div><small>${escapeHtml(item.course.subjectName)} · ${escapeHtml(item.course.internalName)}</small><h4>${escapeHtml(item.unitTitle)}</h4></div><span>${item.stageCount}단계</span></header>
-        ${stageList(item.stages, item, true)}
-        <button type="button" class="primary" data-learning-action="assign" data-unit-id="${item.unitId}" data-version-id="${item.contentVersionId}" ${item.alreadyAssigned || busy ? "disabled" : ""}>
-          ${item.alreadyAssigned ? "배정됨" : busy ? "배정 중…" : "이 단원 배정"}
-        </button>
-      </article>`;
-    }).join("");
+    const recommended = catalog.filter((item) => item.recommended);
+    const others = catalog.filter((item) => !item.recommended);
+    recommendedList.innerHTML = recommended.length
+      ? recommended.map(catalogCard).join("")
+      : `<p class="learning-empty">${profile ? "현재 기준에 맞는 추천 단원이 없습니다." : "학습 기준을 설정하면 추천 단원을 먼저 보여 드려요."}</p>`;
+    list.innerHTML = others.length
+      ? others.map(catalogCard).join("")
+      : '<p class="learning-empty">추천 외 다른 단원이 없습니다.</p>';
   }
 
   function renderAssignments(parent) {
@@ -257,6 +299,7 @@ export function initLearning({
     const childSection = document.querySelector("#childLearningSection");
     if (childSection) childSection.hidden = member?.role !== "child";
     renderCatalog();
+    renderProfile();
     renderAssignments(true);
     renderAssignments(false);
     renderAttempt();
@@ -457,6 +500,8 @@ export function initLearning({
     }
     catalog = [];
     assignments = [];
+    profile = null;
+    profileReady = false;
     error = "";
     if (!member) {
       loading = false;
@@ -473,6 +518,8 @@ export function initLearning({
     if (cached) {
       catalog = cached.catalog;
       assignments = cached.assignments;
+      profile = cached.profile;
+      profileReady = true;
       loading = false;
       render();
     } else {
@@ -482,19 +529,22 @@ export function initLearning({
     try {
       const query = assignedMemberId ? `?assignedMemberId=${encodeURIComponent(assignedMemberId)}` : "";
       const requests = member.role === "parent"
-        ? [
+          ? [
+            requestJson(`/api/learning/profile${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/catalog${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/assignments${query}`, { headers: authHeaders(), cache: "no-store" }),
           ]
-        : [Promise.resolve({ catalog: [] }), requestJson("/api/learning/assignments", {
+        : [Promise.resolve({ profile: null }), Promise.resolve({ catalog: [] }), requestJson("/api/learning/assignments", {
             headers: authHeaders(),
             cache: "no-store",
           })];
-      const [catalogData, assignmentData] = await Promise.all(requests);
+      const [profileData, catalogData, assignmentData] = await Promise.all(requests);
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       catalog = catalogData.catalog || [];
       assignments = assignmentData.assignments || [];
-      cache.set(requestIdentity, { catalog, assignments });
+      profile = profileData.profile || null;
+      profileReady = true;
+      cache.set(requestIdentity, { catalog, assignments, profile });
       error = "";
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
@@ -539,6 +589,42 @@ export function initLearning({
     } finally {
       pending.delete(key);
       if (requestIdentity === identity()) render();
+    }
+  }
+
+  async function saveProfile() {
+    const assignedMemberId = requireSelectedAssignee();
+    const level = document.querySelector("#learningProfileLevel")?.value || "";
+    if (!level) {
+      showToast("학습 기준을 선택해 주세요.");
+      return;
+    }
+    const requestIdentity = identity();
+    const requestGeneration = generation;
+    const key = `profile:${requestIdentity}`;
+    if (pending.has(key)) return;
+    pending.add(key);
+    render();
+    try {
+      const data = await requestJson("/api/learning/profile", {
+        method: "PUT",
+        headers: { ...authHeaders(), "X-Study-CSRF": "1" },
+        body: JSON.stringify({ assignedMemberId, subject: "수학", level }),
+      });
+      if (requestGeneration !== generation || requestIdentity !== identity()) return;
+      profile = data.profile;
+      profileReady = true;
+      cache.delete(requestIdentity);
+      showToast("수학 학습 기준을 저장했어요.");
+      pending.delete(key);
+      await refresh({ force: true });
+    } catch (cause) {
+      if (requestGeneration === generation && requestIdentity === identity()) {
+        error = cause.message;
+      }
+    } finally {
+      pending.delete(key);
+      if (requestGeneration === generation && requestIdentity === identity()) render();
     }
   }
 
@@ -605,6 +691,12 @@ export function initLearning({
     renderAttempt();
   });
 
+  document.addEventListener("submit", (event) => {
+    if (event.target?.id !== "learningProfileForm") return;
+    event.preventDefault();
+    saveProfile();
+  });
+
   return {
     refresh,
     render,
@@ -612,6 +704,8 @@ export function initLearning({
       generation += 1;
       catalog = [];
       assignments = [];
+      profile = null;
+      profileReady = false;
       loading = false;
       error = "";
       pending.clear();

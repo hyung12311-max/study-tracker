@@ -34,6 +34,7 @@ const studyPlans = require("../server/api/study/plans");
 const studyReadingPlans = require("../server/api/study/reading-plans");
 const hangulDailyComplete = require("../server/api/hangul/daily-complete");
 const learningCatalog = require("../server/api/learning/catalog");
+const learningProfile = require("../server/api/learning/profile");
 const learningAssignments = require("../server/api/learning/assignments");
 const learningAssignmentCancel = require("../server/api/learning/assignments/[assignmentId]/cancel");
 const learningAttemptStart = require("../server/api/learning/assignments/[assignmentId]/stages/[stageId]/attempts");
@@ -80,6 +81,7 @@ const routes = Object.freeze({
   "study/reading-plans": studyReadingPlans,
   "hangul/daily-complete": hangulDailyComplete,
   "learning/catalog": learningCatalog,
+  "learning/profile": learningProfile,
   "learning/assignments": learningAssignments,
 });
 

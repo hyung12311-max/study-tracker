@@ -21,6 +21,7 @@ test("learning UI uses only authenticated server APIs and explicit selected assi
 
 test("Vercel API router exposes assignment and scoped attempt routes", () => {
   assert.match(router, /"learning\/catalog": learningCatalog/);
+  assert.match(router, /"learning\/profile": learningProfile/);
   assert.match(router, /"learning\/assignments": learningAssignments/);
   assert.match(router, /\^learning\\\/assignments\\\/\(\[0-9a-f-\]\+\)\\\/cancel\$/);
   assert.match(router, /assignmentId: cancelMatch\[1\]/);
@@ -41,6 +42,8 @@ test("learning UI isolates cache and stale responses by family actor and selecte
 test("parent and child have separate learning and attempt areas", () => {
   assert.match(html, /id="parentPanelLearning"/);
   assert.match(html, /id="learningCatalogList"/);
+  assert.match(html, /id="learningProfileForm"/);
+  assert.match(html, /id="learningRecommendedList"/);
   assert.match(html, /id="learningAssignmentList"/);
   assert.match(html, /id="childLearningSection"/);
   assert.match(html, /id="childLearningAssignmentList"/);
@@ -50,6 +53,15 @@ test("parent and child have separate learning and attempt areas", () => {
   assert.match(learning, /start-attempt/);
   assert.match(learning, /resume-attempt/);
   assert.match(learning, /submit-all-answers/);
+});
+
+test("parent profile and recommendation UI stays identity-scoped and manual", () => {
+  assert.match(learning, /requestJson\(`\/api\/learning\/profile\$\{query\}`/);
+  assert.match(learning, /body: JSON\.stringify\(\{ assignedMemberId, subject: "수학", level \}\)/);
+  assert.match(learning, /profile = null;[\s\S]*profileReady = false;/);
+  assert.match(learning, /catalog\.filter\(\(item\) => item\.recommended\)/);
+  assert.match(learning, /learning-recommendation-badge/);
+  assert.doesNotMatch(learning, /elementary_[1-6]|learning_member_subject_profiles|upsert_learning_member_subject_profile/);
 });
 
 test("child cards do not render course, grade, or content version metadata", () => {

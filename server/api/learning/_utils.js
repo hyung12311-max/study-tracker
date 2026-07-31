@@ -1,6 +1,20 @@
 const u = require("../rewards/_utils");
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SUBJECT_CODES = Object.freeze({ "수학": "math" });
+const SUBJECT_LABELS = Object.freeze({ math: "수학" });
+const LEVEL_CODES = Object.freeze({
+  "준비": "ready",
+  "초등 1": "elementary_1",
+  "초등 2": "elementary_2",
+  "초등 3": "elementary_3",
+  "초등 4": "elementary_4",
+  "초등 5": "elementary_5",
+  "초등 6": "elementary_6",
+});
+const LEVEL_LABELS = Object.freeze(Object.fromEntries(
+  Object.entries(LEVEL_CODES).map(([label, code]) => [code, label])
+));
 
 function uuid(value, code = "INVALID_LEARNING_ID") {
   if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
@@ -158,6 +172,28 @@ function inFilter(ids) {
   return ids.join(",");
 }
 
+function subjectCode(label) {
+  if (typeof label !== "string" || !SUBJECT_CODES[label]) {
+    throw u.err("지원하는 과목을 선택해 주세요.", 400, "INVALID_LEARNING_SUBJECT");
+  }
+  return SUBJECT_CODES[label];
+}
+
+function levelCode(label) {
+  if (typeof label !== "string" || !LEVEL_CODES[label]) {
+    throw u.err("학습 기준을 선택해 주세요.", 400, "INVALID_LEARNING_LEVEL");
+  }
+  return LEVEL_CODES[label];
+}
+
+function profileDto(row) {
+  if (!row) return null;
+  const subject = SUBJECT_LABELS[row.subject];
+  const level = LEVEL_LABELS[row.level_code];
+  if (!subject || !level) return null;
+  return { subject, level };
+}
+
 function attemptError(response, error, fallbackCode = "ATTEMPT_STATE_CONFLICT") {
   const mappings = {
     "22004": [400, "INVALID_ATTEMPT_REQUEST", "문제풀이 요청 값을 확인해 주세요."],
@@ -184,10 +220,13 @@ module.exports = {
   exactBody,
   idList,
   inFilter,
+  levelCode,
   parentScope,
+  profileDto,
   requireMutationGuard,
   safeError,
   send,
+  subjectCode,
   u,
   uuid,
 };
