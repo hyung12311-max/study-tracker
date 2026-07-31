@@ -5,16 +5,20 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 const SLUG = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
 const VERSION = /^v[1-9][0-9]*$/;
 const DIFFICULTIES = ["seed", "leaf", "tree", "crown"];
-const FORBIDDEN_CHILD_TEXT = /(학년|교육과정|커리큘럼|content version|version|버전|uuid|관리자|내부용)/i;
+const FORBIDDEN_CHILD_TEXT = /(학년|교육과정|커리큘럼|content version|version|버전|uuid|관리자|내부용|elementary_[1-6]|\bready\b|\bmath\b)/i;
+const RECOMMENDATION_SUBJECTS = ["math"];
+const RECOMMENDATION_LEVELS = ["ready", "elementary_1", "elementary_2", "elementary_3", "elementary_4", "elementary_5", "elementary_6"];
+const MAX_PARENT_SORT_ORDER = 10000;
 
 const fields = Object.freeze({
-  root: ["schemaVersion", "course", "unit", "version", "stages"],
+  root: ["schemaVersion", "course", "unit", "version", "stages", "recommendation"],
   course: ["id", "slug", "internalName", "subject"],
   unit: ["id", "slug", "title", "displayOrder"],
   version: ["id", "label", "number"],
   stage: ["id", "difficulty", "title", "displayOrder", "questions"],
   question: ["id", "displayOrder", "weight", "prompt", "explanation", "options"],
   option: ["id", "displayOrder", "text", "isCorrect"],
+  recommendation: ["subject", "recommendedStartLevelCode", "recommendedEndLevelCode", "parentSortOrder"],
 });
 
 function canonicalize(value) {
@@ -42,10 +46,10 @@ function validateLearningContent(content) {
     }
     return true;
   };
-  const exactFields = (value, location, allowed) => {
+  const exactFields = (value, location, allowed, optional = []) => {
     if (!object(value, location)) return false;
     for (const key of allowed) {
-      if (!Object.hasOwn(value, key)) fail(`${location}.${key}`, "is required");
+      if (!optional.includes(key) && !Object.hasOwn(value, key)) fail(`${location}.${key}`, "is required");
     }
     for (const key of Object.keys(value)) {
       if (!allowed.includes(key)) fail(`${location}.${key}`, "is not allowed");
@@ -77,7 +81,7 @@ function validateLearningContent(content) {
     }
   };
 
-  if (!exactFields(content, "$", fields.root)) return { valid: false, errors };
+  if (!exactFields(content, "$", fields.root, ["recommendation"])) return { valid: false, errors };
   if (content.schemaVersion !== 1) fail("$.schemaVersion", "must equal 1");
 
   if (exactFields(content.course, "$.course", fields.course)) {
@@ -107,6 +111,26 @@ function validateLearningContent(content) {
       fail("$.version.number", "must be a positive integer");
     } else if (content.version.label !== `v${content.version.number}`) {
       fail("$.version", "label and number must identify the same version");
+    }
+  }
+  if (Object.hasOwn(content, "recommendation") && exactFields(content.recommendation, "$.recommendation", fields.recommendation)) {
+    const recommendation = content.recommendation;
+    if (!RECOMMENDATION_SUBJECTS.includes(recommendation.subject)) {
+      fail("$.recommendation.subject", "is not an allowed subject");
+    }
+    const startIndex = RECOMMENDATION_LEVELS.indexOf(recommendation.recommendedStartLevelCode);
+    if (startIndex === -1) fail("$.recommendation.recommendedStartLevelCode", "is not an allowed level code");
+    const endIndex = recommendation.recommendedEndLevelCode === null
+      ? null
+      : RECOMMENDATION_LEVELS.indexOf(recommendation.recommendedEndLevelCode);
+    if (endIndex === -1) fail("$.recommendation.recommendedEndLevelCode", "is not an allowed level code or null");
+    if (startIndex !== -1 && endIndex !== null && endIndex !== -1 && startIndex > endIndex) {
+      fail("$.recommendation", "start level must not be higher than end level");
+    }
+    if (!Number.isInteger(recommendation.parentSortOrder)
+        || recommendation.parentSortOrder < 1
+        || recommendation.parentSortOrder > MAX_PARENT_SORT_ORDER) {
+      fail("$.recommendation.parentSortOrder", `must be an integer from 1 to ${MAX_PARENT_SORT_ORDER}`);
     }
   }
 

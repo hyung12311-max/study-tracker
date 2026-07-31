@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { parseCsv, resolveAllowedOutput, validateAuthoredText } = require("./learning-content-csv");
 const { QUESTION_HEADERS, STAGES, UNIT_HEADERS } = require("./generate-learning-content-csv-template");
-const { loadAndValidateCurriculum } = require("./validate-learning-curriculum");
+const { loadAndValidateCurriculum, validateCurriculum } = require("./validate-learning-curriculum");
 const { validateLearningContent } = require("./validate-learning-content");
 
 const ROOT = path.resolve(__dirname, "..");
@@ -55,6 +55,8 @@ function isAuthored(row) {
 }
 
 function importUnit({ curriculum, unitsRows, questionRows, unitSlug }) {
+  const curriculumResult = validateCurriculum(curriculum);
+  if (!curriculumResult.valid) throw new Error(curriculumResult.errors.join("\n"));
   if (!SLUG.test(unitSlug)) throw new Error("--unit must be a valid lowercase slug");
   assertUnitsMatch(curriculum, unitsRows);
   const unit = curriculum.units.find((candidate) => candidate.slug === unitSlug);
@@ -134,6 +136,12 @@ function importUnit({ curriculum, unitsRows, questionRows, unitSlug }) {
       id: deterministicUuid("version", unitSlug, versionLabel),
       label: versionLabel,
       number: Number(versionMatch[1]),
+    },
+    recommendation: {
+      subject: unit.recommendation.subject,
+      recommendedStartLevelCode: unit.recommendation.recommendedStartLevelCode,
+      recommendedEndLevelCode: unit.recommendation.recommendedEndLevelCode,
+      parentSortOrder: unit.recommendation.parentSortOrder,
     },
     stages,
   };

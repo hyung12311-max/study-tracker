@@ -30,6 +30,59 @@ test("Make Ten v2 supports four equal stages of ten questions", () => {
   assert.equal(v2Source.stages.flatMap((stage) => stage.questions.flatMap((question) => question.options)).length, 160);
 });
 
+test("validator accepts optional exact recommendation metadata without changing legacy content", () => {
+  const legacyCanonical = canonicalJson(source);
+  const content = clone();
+  content.recommendation = {
+    subject: "math",
+    recommendedStartLevelCode: "elementary_2",
+    recommendedEndLevelCode: "elementary_2",
+    parentSortOrder: 1,
+  };
+  assert.deepEqual(validateLearningContent(content), { valid: true, errors: [] });
+  assert.equal(canonicalJson(source), legacyCanonical);
+});
+
+test("validator rejects incomplete, unknown, invalid, reversed, and unsafe recommendation metadata", () => {
+  const incomplete = clone();
+  incomplete.recommendation = { subject: "math" };
+  assert.match(validateLearningContent(incomplete).errors.join("\n"), /recommendedStartLevelCode: is required/);
+
+  const unknown = clone();
+  unknown.recommendation = {
+    subject: "science",
+    recommendedStartLevelCode: "elementary_9",
+    recommendedEndLevelCode: "elementary_1",
+    parentSortOrder: 0,
+    familyId: "00000000-0000-4000-8000-000000000001",
+  };
+  const unknownErrors = validateLearningContent(unknown).errors.join("\n");
+  assert.match(unknownErrors, /familyId: is not allowed/);
+  assert.match(unknownErrors, /subject: is not an allowed subject/);
+  assert.match(unknownErrors, /recommendedStartLevelCode: is not an allowed level code/);
+  assert.match(unknownErrors, /parentSortOrder: must be an integer from 1 to 10000/);
+
+  for (const parentSortOrder of [1.5, 10001]) {
+    const invalidOrder = clone();
+    invalidOrder.recommendation = {
+      subject: "math",
+      recommendedStartLevelCode: "elementary_2",
+      recommendedEndLevelCode: "elementary_2",
+      parentSortOrder,
+    };
+    assert.match(validateLearningContent(invalidOrder).errors.join("\n"), /parentSortOrder: must be an integer/);
+  }
+
+  const reversed = clone();
+  reversed.recommendation = {
+    subject: "math",
+    recommendedStartLevelCode: "elementary_3",
+    recommendedEndLevelCode: "elementary_2",
+    parentSortOrder: 1,
+  };
+  assert.match(validateLearningContent(reversed).errors.join("\n"), /start level must not be higher/);
+});
+
 test("validator rejects unknown fields, duplicate UUIDs, and invalid slugs", () => {
   const content = clone();
   content.extra = true;

@@ -19,6 +19,12 @@
       "achievementCodes": ["2수01-02", "2수01-03"],
       "prerequisiteUnitSlugs": [],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 1
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -33,6 +39,12 @@
       "achievementCodes": ["2수03-03", "2수03-04", "2수03-05"],
       "prerequisiteUnitSlugs": [],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 2
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -47,6 +59,12 @@
       "achievementCodes": ["2수01-06", "2수01-07", "2수01-08", "2수01-09"],
       "prerequisiteUnitSlugs": ["grade2-three-digit-numbers"],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 3
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -61,6 +79,12 @@
       "achievementCodes": ["2수03-10", "2수03-11", "2수03-12"],
       "prerequisiteUnitSlugs": [],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 4
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -75,6 +99,12 @@
       "achievementCodes": ["2수04-01"],
       "prerequisiteUnitSlugs": [],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 5
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -89,6 +119,12 @@
       "achievementCodes": ["2수01-10"],
       "prerequisiteUnitSlugs": [],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 6
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -103,6 +139,12 @@
       "achievementCodes": ["2수01-02", "2수01-03"],
       "prerequisiteUnitSlugs": ["grade2-three-digit-numbers"],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 7
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -117,6 +159,12 @@
       "achievementCodes": ["2수01-11"],
       "prerequisiteUnitSlugs": ["grade2-multiplication-meaning"],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 8
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -131,6 +179,12 @@
       "achievementCodes": ["2수03-11", "2수03-12", "2수03-13"],
       "prerequisiteUnitSlugs": ["grade2-measuring-length"],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 9
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -145,6 +199,12 @@
       "achievementCodes": ["2수03-07", "2수03-08", "2수03-09"],
       "prerequisiteUnitSlugs": [],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 10
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -159,6 +219,12 @@
       "achievementCodes": ["2수04-02", "2수04-03"],
       "prerequisiteUnitSlugs": ["grade2-classification"],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 11
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     },
@@ -173,6 +239,12 @@
       "achievementCodes": ["2수02-01", "2수02-02"],
       "prerequisiteUnitSlugs": [],
       "recommendationLevel": "초등 2",
+      "recommendation": {
+        "subject": "math",
+        "recommendedStartLevelCode": "elementary_2",
+        "recommendedEndLevelCode": "elementary_2",
+        "parentSortOrder": 12
+      },
       "status": "planned",
       "sourceNote": "1~2학년군 성취기준을 참고한 Study Plus 운영 배치"
     }

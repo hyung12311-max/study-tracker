@@ -12,6 +12,12 @@ test("grade 2 operating map has 12 ordered units and an explicit official-scope 
   assert.equal(source.units.length, 12);
   assert.deepEqual(source.units.map((unit) => unit.semester), [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]);
   assert.deepEqual(source.units.map((unit) => unit.catalogOrder), Array.from({ length: 12 }, (_, index) => index + 1));
+  assert.deepEqual(source.units.map((unit) => unit.recommendation), source.units.map((unit, index) => ({
+    subject: "math",
+    recommendedStartLevelCode: "elementary_2",
+    recommendedEndLevelCode: "elementary_2",
+    parentSortOrder: index + 1,
+  })));
   assert.match(source.mappingDisclaimer, /Study Plus/);
   assert.match(source.mappingDisclaimer, /공식 학년별 단원 순서가 아닙니다/);
 });
@@ -43,4 +49,18 @@ test("curriculum validator rejects prerequisite cycles", () => {
   const result = validateCurriculum(curriculum);
   assert.equal(result.valid, false);
   assert.ok(result.errors.some((error) => error.includes("prerequisite cycle")));
+});
+
+test("curriculum validator rejects missing, contaminated, reversed, and duplicate recommendation metadata", () => {
+  const curriculum = structuredClone(source);
+  delete curriculum.units[0].recommendation;
+  curriculum.units[1].recommendation.familyId = "00000000-0000-4000-8000-000000000001";
+  curriculum.units[2].recommendation.recommendedStartLevelCode = "elementary_3";
+  curriculum.units[2].recommendation.recommendedEndLevelCode = "elementary_2";
+  curriculum.units[3].recommendation.parentSortOrder = curriculum.units[4].recommendation.parentSortOrder;
+  const errors = validateCurriculum(curriculum).errors.join("\n");
+  assert.match(errors, /recommendation: is required/);
+  assert.match(errors, /recommendation\.familyId: is not allowed/);
+  assert.match(errors, /start level must not be higher/);
+  assert.match(errors, /parentSortOrder: must be globally unique|must equal catalogOrder/);
 });

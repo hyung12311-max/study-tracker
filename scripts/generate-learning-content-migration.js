@@ -30,6 +30,37 @@ function generateMigration(content) {
   const options = questions.flatMap((question) => [...question.options]
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map((option) => ({ ...option, questionId: question.id })));
+  const recommendation = content.recommendation;
+  const recommendationPreflight = recommendation ? `
+
+  if to_regclass('public.learning_unit_recommendation_metadata') is null then
+    raise exception using errcode = 'P0002', message = 'learning recommendation metadata table is missing';
+  end if;
+
+  if exists (
+    select 1
+    from public.learning_unit_recommendation_metadata metadata
+    where metadata.unit_id = ${quote(content.unit.id)}::uuid
+      and (
+        metadata.subject is distinct from ${quote(recommendation.subject)}
+        or metadata.recommended_start_level_code is distinct from ${quote(recommendation.recommendedStartLevelCode)}
+        or metadata.recommended_end_level_code is distinct from ${quote(recommendation.recommendedEndLevelCode)}
+        or metadata.parent_sort_order is distinct from ${recommendation.parentSortOrder}
+      )
+  ) then
+    raise exception using errcode = '23505', message = 'learning unit recommendation metadata conflicts with different content';
+  end if;` : "";
+  const recommendationInsert = recommendation ? `insert into public.learning_unit_recommendation_metadata (
+  unit_id, subject, recommended_start_level_code, recommended_end_level_code, parent_sort_order
+)
+select ${quote(content.unit.id)}::uuid, ${quote(recommendation.subject)}, ${quote(recommendation.recommendedStartLevelCode)}, ${quote(recommendation.recommendedEndLevelCode)}, ${recommendation.parentSortOrder}
+where not exists (
+  select 1
+  from public.learning_unit_recommendation_metadata metadata
+  where metadata.unit_id = ${quote(content.unit.id)}::uuid
+);
+
+` : "";
 
   const legacyMakeTen = content.unit.slug === "make-ten";
   const sharedPreflight = content.version.number === 1 && legacyMakeTen ? `if exists (
@@ -103,7 +134,7 @@ begin;
 
 do $preflight$
 begin
-  ${sharedPreflight}
+  ${sharedPreflight}${recommendationPreflight}
 
   if exists (
     select 1 from public.learning_content_versions
@@ -132,7 +163,7 @@ end
 $preflight$;
 
 ${sharedInserts}
-insert into public.learning_content_versions (id, unit_id, version_no, content_hash)
+${recommendationInsert}insert into public.learning_content_versions (id, unit_id, version_no, content_hash)
 values (${quote(content.version.id)}, ${quote(content.unit.id)}, ${content.version.number}, ${quote(hash)});
 
 insert into public.learning_stages (id, content_version_id, display_order, display_title, difficulty)
@@ -159,6 +190,7 @@ function contentHash(content) {
 
 function generateVerification(content) {
   const legacyMakeTen = content.unit.slug === "make-ten";
+  const recommendation = content.recommendation;
   const hash = contentHash(content);
   const expected = quote(canonicalJson(content));
   const questionCount = content.stages.reduce((sum, stage) => sum + stage.questions.length, 0);
@@ -199,6 +231,47 @@ function generateVerification(content) {
     ceil(10 * 8 / 10.0)::integer = 8
       and pg_get_functiondef(to_regprocedure('public.start_or_resume_learning_attempt(uuid,uuid,uuid,uuid,uuid,uuid)')) ~* 'ceil\\(question_count \\* 8 / 10\\.0\\)',
     jsonb_build_object('total_questions', 10, 'required_correct_answers', 8)` : "";
+  const nonMatchingLevelCode = recommendation?.recommendedStartLevelCode === "ready" ? "elementary_6" : "ready";
+  const recommendationChecks = recommendation ? `
+
+  union all
+  select 20, 'learning_recommendation_metadata_exact',
+    count(*) = 1,
+    jsonb_build_object('count', count(*))
+  from public.learning_unit_recommendation_metadata metadata
+  where metadata.unit_id = ${quote(content.unit.id)}::uuid
+    and metadata.subject = ${quote(recommendation.subject)}
+    and metadata.recommended_start_level_code = ${quote(recommendation.recommendedStartLevelCode)}
+    and metadata.recommended_end_level_code = ${quote(recommendation.recommendedEndLevelCode)}
+    and metadata.parent_sort_order = ${recommendation.parentSortOrder}
+
+  union all
+  select 21, 'learning_recommendation_latest_published_unit_once',
+    count(*) = 1 and bool_and(latest_version.id = ${quote(content.version.id)}::uuid),
+    jsonb_build_object('count', count(*), 'version_id', min(latest_version.id::text))
+  from (
+    select distinct on (version.unit_id) version.id, version.unit_id
+    from public.learning_content_versions version
+    where version.status = 'published'
+      and version.unit_id = ${quote(content.unit.id)}::uuid
+    order by version.unit_id, version.version_no desc
+  ) latest_version
+
+  union all
+  select 22, 'learning_recommendation_profile_classification',
+    count(*) filter (
+      where profile.level_code = metadata.recommended_start_level_code
+        and (metadata.recommended_end_level_code is null or profile.level_code = metadata.recommended_end_level_code)
+    ) = 1
+      and count(*) filter (
+        where profile.level_code = ${quote(nonMatchingLevelCode)}
+          and profile.level_code = metadata.recommended_start_level_code
+          and (metadata.recommended_end_level_code is null or profile.level_code = metadata.recommended_end_level_code)
+      ) = 0,
+    jsonb_build_object('matching_level', ${quote(recommendation.recommendedStartLevelCode)}, 'non_matching_level', ${quote(nonMatchingLevelCode)})
+  from public.learning_unit_recommendation_metadata metadata
+  cross join (values (${quote(recommendation.recommendedStartLevelCode)}), (${quote(nonMatchingLevelCode)})) profile(level_code)
+  where metadata.unit_id = ${quote(content.unit.id)}::uuid` : "";
   const verificationLabel = legacyMakeTen
     ? (content.version.number === 1 ? "pilot content" : `${content.version.label} content`)
     : `${content.unit.slug} ${content.version.label} content`;
@@ -370,7 +443,7 @@ with expected_content as (
       and to_regprocedure('public.publish_learning_content_version(uuid)') is not null
       and to_regprocedure('public.start_or_resume_learning_attempt(uuid,uuid,uuid,uuid,uuid,uuid)') is not null
       and to_regprocedure('public.finalize_learning_stage_attempt(uuid,uuid,uuid)') is not null,
-    jsonb_build_object('preserved', true)${v2Checks}
+    jsonb_build_object('preserved', true)${v2Checks}${recommendationChecks}
 )
 select check_order, check_name, passed, result_data
 from checks
@@ -385,7 +458,14 @@ rollback;
 }
 
 function generateRollback(content) {
-  const sharedCleanup = content.version.number === 1 ? `delete from public.learning_units unit
+  const recommendation = content.recommendation;
+  const sharedCleanup = content.version.number === 1 && recommendation ? `delete from public.learning_units unit
+where unit.id = ${quote(content.unit.id)}::uuid
+  and unit.course_id = ${quote(content.course.id)}::uuid
+  and not exists (
+    select 1 from public.learning_content_versions version
+    where version.unit_id = unit.id
+  );` : content.version.number === 1 ? `delete from public.learning_units unit
 where unit.id = ${quote(content.unit.id)}::uuid
   and unit.course_id = ${quote(content.course.id)}::uuid
   and not exists (
@@ -399,6 +479,41 @@ where course.id = ${quote(content.course.id)}::uuid
     select 1 from public.learning_units unit
     where unit.course_id = course.id
   );` : "";
+  const recommendationGuard = recommendation ? `
+
+  if to_regclass('public.learning_unit_recommendation_metadata') is null
+    or (
+      select count(*)
+      from public.learning_unit_recommendation_metadata metadata
+      where metadata.unit_id = ${quote(content.unit.id)}::uuid
+        and metadata.subject = ${quote(recommendation.subject)}
+        and metadata.recommended_start_level_code = ${quote(recommendation.recommendedStartLevelCode)}
+        and metadata.recommended_end_level_code = ${quote(recommendation.recommendedEndLevelCode)}
+        and metadata.parent_sort_order = ${recommendation.parentSortOrder}
+    ) <> 1
+    or exists (
+      select 1
+      from public.learning_unit_recommendation_metadata metadata
+      where metadata.unit_id = ${quote(content.unit.id)}::uuid
+        and (
+          metadata.subject is distinct from ${quote(recommendation.subject)}
+          or metadata.recommended_start_level_code is distinct from ${quote(recommendation.recommendedStartLevelCode)}
+          or metadata.recommended_end_level_code is distinct from ${quote(recommendation.recommendedEndLevelCode)}
+          or metadata.parent_sort_order is distinct from ${recommendation.parentSortOrder}
+        )
+    ) then
+    raise exception using
+      errcode = '55000',
+      message = 'rollback blocked: recommendation metadata is missing or changed';
+  end if;` : "";
+  const recommendationDelete = recommendation ? `delete from public.learning_unit_recommendation_metadata metadata
+where metadata.unit_id = ${quote(content.unit.id)}::uuid
+  and metadata.subject = ${quote(recommendation.subject)}
+  and metadata.recommended_start_level_code = ${quote(recommendation.recommendedStartLevelCode)}
+  and metadata.recommended_end_level_code = ${quote(recommendation.recommendedEndLevelCode)}
+  and metadata.parent_sort_order = ${recommendation.parentSortOrder};
+
+` : "";
   const rollbackLabel = content.version.number === 1 ? "v1 pilot content" : `${content.version.label} content version`;
   return `-- Pre-use rollback for the Make Ten ${rollbackLabel} only.
 begin;
@@ -418,11 +533,11 @@ begin
     raise exception using
       errcode = '55000',
       message = 'rollback blocked: make-ten content has assignment or learning history';
-  end if;
+  end if;${recommendationGuard}
 end
 $guard$;
 
-select pg_catalog.set_config('session_replication_role', 'replica', true);
+${recommendationDelete}select pg_catalog.set_config('session_replication_role', 'replica', true);
 
 delete from public.learning_question_options option
 using public.learning_questions question, public.learning_stages stage

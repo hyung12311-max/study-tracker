@@ -48,6 +48,8 @@ Curriculum 지도는 `node scripts/validate-learning-curriculum.js <file>`로, �
 
 검증된 JSON만 기존 `scripts/generate-learning-content-migration.js`에 전달합니다. 이 단계는 별도 검토와 승인 뒤에 수행합니다. CSV importer는 migration·assignment·attempt·reward·ACL·RLS·Realtime 변경을 만들지 않습니다.
 
+콘텐츠 JSON의 `recommendation`은 선택 계약입니다. 초등 2학년 CSV importer는 작성자가 추천값을 입력하게 하지 않고 curriculum map의 단원 metadata를 그대로 주입합니다. 네 필드 `subject`, `recommendedStartLevelCode`, `recommendedEndLevelCode`, `parentSortOrder`가 모두 있어야 하며 사용자·가족·자녀 식별자는 허용하지 않습니다. generator는 이 객체가 있을 때만 같은 content transaction에서 단원 단위 recommendation row를 추가하고, 기존 값이 다르면 덮어쓰지 않고 중단합니다. verification은 exact metadata와 최신 published version 추천 판정을 확인하며 rollback은 미사용 콘텐츠에서 exact metadata만 먼저 제거합니다. recommendation이 없는 기존 JSON의 세 SQL 산출물은 변경되지 않습니다.
+
 ## 11. 결정적 UUID
 
 작성자는 UUID를 입력하지 않습니다. importer는 고정 namespace와 course, unit slug, content version, stage, question order, option order의 canonical key를 SHA-256으로 해시하고 RFC 4122 variant와 version 4 bit를 고정합니다. 같은 입력은 시간·OS·경로와 무관하게 같은 UUID와 byte-identical JSON을 만듭니다. namespace 또는 canonical key 변경은 기존 식별자를 바꾸는 breaking change이므로 새 버전 정책과 migration 검토가 필요합니다. 기존 `10을 만들어요` v1/v2 UUID에는 이 규칙을 소급 적용하지 않습니다.

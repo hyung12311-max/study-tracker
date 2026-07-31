@@ -15,10 +15,10 @@ const curriculum = JSON.parse(fs.readFileSync(path.join(root, "content/learning/
 const storedUnits = fs.readFileSync(path.join(root, "content/learning/templates/grade2-math-units.csv"), "utf8");
 const storedQuestions = fs.readFileSync(path.join(root, "content/learning/templates/grade2-math-questions.csv"), "utf8");
 
-function preparedRows() {
+function preparedRows(unitSlug = "grade2-three-digit-numbers") {
   const unitsRows = parseCsv(storedUnits, UNIT_HEADERS, "units");
   const questionRows = parseCsv(storedQuestions, QUESTION_HEADERS, "questions");
-  for (const row of questionRows.filter((candidate) => candidate.unit_slug === "grade2-three-digit-numbers")) {
+  for (const row of questionRows.filter((candidate) => candidate.unit_slug === unitSlug)) {
     row.question_text = `${row.stage} 테스트 전용 문항 ${row.question_order}`;
     row.option_1 = "보기 하나";
     row.option_2 = "보기 둘";
@@ -87,6 +87,7 @@ test("importer creates deterministic 4/40/160 content accepted by existing tools
   const second = importUnit({ curriculum, ...secondRows, unitSlug: "grade2-three-digit-numbers" });
   assert.equal(`${JSON.stringify(first, null, 2)}\n`, `${JSON.stringify(second, null, 2)}\n`);
   assert.deepEqual(validateLearningContent(first), { valid: true, errors: [] });
+  assert.deepEqual(first.recommendation, curriculum.units[0].recommendation);
   assert.deepEqual(first.stages.map((stage) => stage.questions.length), [10, 10, 10, 10]);
   assert.equal(first.stages.flatMap((stage) => stage.questions.flatMap((question) => question.options)).length, 160);
   assert.match(generateMigration(first), /Content-only and additive/);
@@ -94,6 +95,25 @@ test("importer creates deterministic 4/40/160 content accepted by existing tools
   assert.match(generateVerification(first), /grade2-three-digit-numbers v1 content verification/);
   assert.doesNotMatch(generateVerification(first), /51000000-0000-4000-8000-000000000003/);
   assert.match(generateRollback(first), /where content_version_id =/);
+});
+
+test("importer injects recommendation only from the selected curriculum unit", () => {
+  for (const header of ["subject", "recommended_start_level_code", "recommended_end_level_code", "parent_sort_order"]) {
+    assert.ok(!UNIT_HEADERS.includes(header));
+    assert.ok(!QUESTION_HEADERS.includes(header));
+  }
+  const secondUnit = curriculum.units[1];
+  const content = importUnit({ curriculum, ...preparedRows(secondUnit.slug), unitSlug: secondUnit.slug });
+  assert.deepEqual(content.recommendation, secondUnit.recommendation);
+  assert.equal(content.recommendation.parentSortOrder, 2);
+
+  const missing = structuredClone(curriculum);
+  delete missing.units[0].recommendation;
+  assert.throws(() => importUnit({ curriculum: missing, ...preparedRows(), unitSlug: curriculum.units[0].slug }), /recommendation: is required/);
+
+  const contaminated = structuredClone(curriculum);
+  contaminated.units[0].recommendation.actorId = "00000000-0000-4000-8000-000000000001";
+  assert.throws(() => importUnit({ curriculum: contaminated, ...preparedRows(), unitSlug: curriculum.units[0].slug }), /actorId: is not allowed/);
 });
 
 test("deterministic UUIDs are stable, valid v4 values, and distinct across canonical keys", () => {

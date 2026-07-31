@@ -2,7 +2,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT_FIELDS = ["schemaVersion", "curriculumId", "officialNotice", "officialUrl", "officialGradeBand", "operationalGrade", "subject", "mappingDisclaimer", "units"];
-const UNIT_FIELDS = ["semester", "domain", "unitOrder", "catalogOrder", "slug", "title", "internalObjective", "achievementCodes", "prerequisiteUnitSlugs", "recommendationLevel", "status", "sourceNote"];
+const UNIT_FIELDS = ["semester", "domain", "unitOrder", "catalogOrder", "slug", "title", "internalObjective", "achievementCodes", "prerequisiteUnitSlugs", "recommendationLevel", "recommendation", "status", "sourceNote"];
+const RECOMMENDATION_FIELDS = ["subject", "recommendedStartLevelCode", "recommendedEndLevelCode", "parentSortOrder"];
 const DOMAINS = new Set(["수와 연산", "변화와 관계", "도형과 측정", "자료와 가능성"]);
 const STATUSES = new Set(["planned", "draft", "reviewed", "published"]);
 const ACHIEVEMENT_CODES = new Set([
@@ -13,6 +14,8 @@ const ACHIEVEMENT_CODES = new Set([
 ]);
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CODE = /^2수(?:01|02|03|04)-\d{2}$/;
+const RECOMMENDATION_SUBJECTS = ["math"];
+const RECOMMENDATION_LEVELS = ["ready", "elementary_1", "elementary_2", "elementary_3", "elementary_4", "elementary_5", "elementary_6"];
 
 function validateCurriculum(curriculum) {
   const errors = [];
@@ -44,6 +47,7 @@ function validateCurriculum(curriculum) {
   const slugs = new Map();
   const titles = new Map();
   const catalogOrders = new Set();
+  const parentSortOrders = new Set();
   for (const [index, unit] of (Array.isArray(curriculum.units) ? curriculum.units : []).entries()) {
     const location = `$.units[${index}]`;
     if (!exact(unit, UNIT_FIELDS, location)) continue;
@@ -70,8 +74,28 @@ function validateCurriculum(curriculum) {
     }
     if (!Array.isArray(unit.prerequisiteUnitSlugs)) fail(`${location}.prerequisiteUnitSlugs`, "must be an array");
     if (unit.recommendationLevel !== "초등 2") fail(`${location}.recommendationLevel`, "must equal 초등 2");
+    if (exact(unit.recommendation, RECOMMENDATION_FIELDS, `${location}.recommendation`)) {
+      const recommendation = unit.recommendation;
+      if (!RECOMMENDATION_SUBJECTS.includes(recommendation.subject)) fail(`${location}.recommendation.subject`, "is not an allowed subject");
+      const startIndex = RECOMMENDATION_LEVELS.indexOf(recommendation.recommendedStartLevelCode);
+      const endIndex = recommendation.recommendedEndLevelCode === null ? null : RECOMMENDATION_LEVELS.indexOf(recommendation.recommendedEndLevelCode);
+      if (startIndex === -1) fail(`${location}.recommendation.recommendedStartLevelCode`, "is not an allowed level code");
+      if (endIndex === -1) fail(`${location}.recommendation.recommendedEndLevelCode`, "is not an allowed level code or null");
+      if (startIndex !== -1 && endIndex !== null && endIndex !== -1 && startIndex > endIndex) fail(`${location}.recommendation`, "start level must not be higher than end level");
+      if (!Number.isInteger(recommendation.parentSortOrder) || recommendation.parentSortOrder < 1 || recommendation.parentSortOrder > 10000) {
+        fail(`${location}.recommendation.parentSortOrder`, "must be an integer from 1 to 10000");
+      } else if (parentSortOrders.has(recommendation.parentSortOrder)) {
+        fail(`${location}.recommendation.parentSortOrder`, "must be globally unique");
+      } else {
+        parentSortOrders.add(recommendation.parentSortOrder);
+      }
+      if (recommendation.parentSortOrder !== unit.catalogOrder) fail(`${location}.recommendation.parentSortOrder`, "must equal catalogOrder");
+    }
     if (!STATUSES.has(unit.status)) fail(`${location}.status`, "is not allowed");
     text(unit.sourceNote, `${location}.sourceNote`);
+  }
+  if (parentSortOrders.size === 12 && !Array.from({ length: 12 }, (_, index) => index + 1).every((value) => parentSortOrders.has(value))) {
+    fail("$.units", "recommendation parentSortOrder values must be continuous from 1 to 12");
   }
 
   for (const [index, unit] of (Array.isArray(curriculum.units) ? curriculum.units : []).entries()) {
