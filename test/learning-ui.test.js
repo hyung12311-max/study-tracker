@@ -121,6 +121,15 @@ test("attempt options use responsive grid columns without horizontal scrolling",
   assert.doesNotMatch(styles, /\.learning-options\s*\{[^}]*(?:overflow-x:\s*(?:auto|scroll)|width:\s*\d+px)/);
 });
 
+test("answer cards are borderless by default while preserving accessible states", () => {
+  assert.match(styles, /\.learning-option\s*\{[^}]*border:\s*none;/);
+  assert.match(styles, /\.learning-option-indicator\s*\{[^}]*border:\s*2px\s+solid/);
+  assert.match(styles, /\.learning-option:has\(input:checked\)\s*\{[^}]*background:[^}]*box-shadow:/);
+  assert.match(styles, /\.learning-option:has\(input:focus-visible\)\s*\{[^}]*outline:/);
+  assert.match(styles, /\.learning-option\.correct\s*\{[^}]*background:/);
+  assert.match(styles, /\.learning-option\.incorrect\s*\{[^}]*background:/);
+});
+
 test("attempt UI shows server-owned feedback, rewards, unlock, and completion results", () => {
   assert.match(learning, /correctOptionText/);
   assert.match(learning, /explanation/);
