@@ -18,11 +18,15 @@ test("learning UI uses only authenticated server APIs and explicit selected assi
   assert.doesNotMatch(app, /learning_(courses|units|content_versions|stages|assignments|stage_progress)/);
 });
 
-test("Vercel API router exposes catalog, assignments, and scoped cancel only", () => {
+test("Vercel API router exposes assignment and scoped attempt routes", () => {
   assert.match(router, /"learning\/catalog": learningCatalog/);
   assert.match(router, /"learning\/assignments": learningAssignments/);
   assert.match(router, /\^learning\\\/assignments\\\/\(\[0-9a-f-\]\+\)\\\/cancel\$/);
   assert.match(router, /assignmentId: cancelMatch\[1\]/);
+  assert.match(router, /start_or_resume_learning_attempt|learningAttemptStart/);
+  assert.match(router, /learningAttemptAnswer/);
+  assert.match(router, /learningAttemptFinalize/);
+  assert.match(router, /learningAttemptAbandon/);
 });
 
 test("learning UI isolates cache and stale responses by family actor and selected child", () => {
@@ -33,13 +37,16 @@ test("learning UI isolates cache and stale responses by family actor and selecte
   assert.match(app, /learningController\?\.refresh\(\{ force: true \}\)/);
 });
 
-test("parent and child have separate minimal learning areas", () => {
+test("parent and child have separate learning and attempt areas", () => {
   assert.match(html, /id="parentPanelLearning"/);
   assert.match(html, /id="learningCatalogList"/);
   assert.match(html, /id="learningAssignmentList"/);
   assert.match(html, /id="childLearningSection"/);
   assert.match(html, /id="childLearningAssignmentList"/);
-  assert.match(learning, /문제풀이 기능 준비 중/);
+  assert.match(html, /id="childLearningAttemptPanel"/);
+  assert.match(learning, /start-attempt/);
+  assert.match(learning, /resume-attempt/);
+  assert.match(learning, /submit-answer/);
 });
 
 test("child cards do not render course, grade, or content version metadata", () => {
@@ -47,15 +54,39 @@ test("child cards do not render course, grade, or content version metadata", () 
   assert.match(renderAssignments, /parent && assignment\.course/);
   assert.match(renderAssignments, /parentMeta/);
   assert.doesNotMatch(renderAssignments, /grade|contentVersionId|version_no|internal_name/);
-  assert.match(renderAssignments, /문제풀이 기능 준비 중/);
+  assert.match(renderAssignments, /stageList\(assignment\.stages, assignment, parent\)/);
 });
 
-test("learning mutations use CSRF header, duplicate-click guards, and refresh only current identity", () => {
-  assert.equal((learning.match(/"X-Study-CSRF": "1"/g) || []).length, 2);
+test("learning mutations use CSRF, duplicate-click guards, and refresh only current identity", () => {
+  assert.ok((learning.match(/"X-Study-CSRF": "1"/g) || []).length >= 6);
   assert.match(learning, /if \(pending\.has\(key\)\) return/);
   assert.match(learning, /pending\.add\(key\)/);
   assert.match(learning, /if \(requestIdentity === identity\(\)\)/);
   assert.match(learning, /await refresh\(\{ force: true \}\)/);
+});
+
+test("attempt UI isolates identity cache and discards stale responses", () => {
+  assert.match(learning, /attemptCache\.set\(`\$\{requestIdentity\}:\$\{attemptId\}`/);
+  assert.match(learning, /requestGeneration !== generation \|\| requestIdentity !== identity\(\)/);
+  assert.match(learning, /attempt = null/);
+  assert.match(learning, /feedback = null/);
+  assert.match(learning, /attemptCache\.clear\(\)/);
+});
+
+test("attempt UI shows feedback and results without rewards or local pass calculation", () => {
+  assert.match(learning, /correctOptionText/);
+  assert.match(learning, /explanation/);
+  assert.match(learning, /result\.requiredCorrectAnswers/);
+  assert.match(learning, /다음 단계 해금과 보상은 아직 준비 중/);
+  assert.doesNotMatch(learning, /0\.8|Math\.ceil|sticker_transactions|first.?pass/i);
+  assert.doesNotMatch(learning, /\/rest\/v1\/|\/rpc\/|service.?role/i);
+});
+
+test("parent reset is confirmed and scoped to selected child", () => {
+  assert.match(learning, /data-learning-action="abandon-attempt"/);
+  assert.match(learning, /confirm\("진행 중인 응시를 초기화할까요/);
+  assert.match(learning, /assignedMemberId, assignmentId: button\.dataset\.assignmentId/);
+  assert.match(learning, /requestGeneration === generation && requestIdentity === identity\(\)/);
 });
 
 test("catalog and assignment empty states are explicit", () => {

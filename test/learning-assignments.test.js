@@ -16,6 +16,7 @@ const VERSION_ID = "33333333-3333-4333-8333-333333333333";
 const ASSIGNMENT_ID = "44444444-4444-4444-8444-444444444444";
 const STAGE_ONE = "55555555-5555-4555-8555-555555555555";
 const STAGE_TWO = "66666666-6666-4666-8666-666666666666";
+const ATTEMPT_ID = "77777777-7777-4777-8777-777777777777";
 
 function responseCapture() {
   return {
@@ -102,6 +103,14 @@ function assignmentRows() {
       { assignment_id: ASSIGNMENT_ID, stage_id: STAGE_ONE, status: "unlocked", unlocked_at: "2026-07-31T00:00:00Z", passed_at: null },
       { assignment_id: ASSIGNMENT_ID, stage_id: STAGE_TWO, status: "locked", unlocked_at: null, passed_at: null },
     ],
+    attempts: [{
+      id: ATTEMPT_ID,
+      assignment_id: ASSIGNMENT_ID,
+      stage_id: STAGE_ONE,
+      status: "in_progress",
+      total_questions: 5,
+      started_at: "2026-07-31T00:01:00Z",
+    }],
   };
 }
 
@@ -120,6 +129,12 @@ function scopedListFetch(path) {
     assert.match(path, new RegExp(`family_id=eq\\.${FAMILY_ID}`));
     assert.match(path, new RegExp(`assigned_member_id=eq\\.${CHILD_ID}`));
     return rows.progress;
+  }
+  if (path.startsWith("learning_attempts?")) {
+    assert.match(path, new RegExp(`family_id=eq\\.${FAMILY_ID}`));
+    assert.match(path, new RegExp(`assigned_member_id=eq\\.${CHILD_ID}`));
+    assert.match(path, /status=eq\.in_progress/);
+    return rows.attempts;
   }
   return [];
 }
@@ -380,6 +395,13 @@ test("parent assignment list is scoped to the selected active child", async () =
     await assignmentHandler(request("GET", `/api/learning/assignments?assignedMemberId=${CHILD_ID}`), response);
     assert.equal(response.statusCode, 200);
     assert.equal(response.body.assignments[0].course.internalName, "초등 수학 5");
+    assert.deepEqual(response.body.assignments[0].stages[0].attempt, {
+      id: ATTEMPT_ID,
+      status: "in_progress",
+      totalQuestions: 5,
+      startedAt: "2026-07-31T00:01:00Z",
+    });
+    assert.equal(response.body.assignments[0].stages[1].attempt, null);
   } finally {
     restore();
   }

@@ -103,6 +103,11 @@ function send(response, status, body) {
   return u.json(response, status, body);
 }
 
+function allow(response, methods) {
+  response.setHeader("Cache-Control", "no-store");
+  return u.allow(response, methods);
+}
+
 function safeError(response, error) {
   const databaseCode = error.supabaseCode;
   if (databaseCode === "23505") {
@@ -153,9 +158,28 @@ function inFilter(ids) {
   return ids.join(",");
 }
 
+function attemptError(response, error, fallbackCode = "ATTEMPT_STATE_CONFLICT") {
+  const mappings = {
+    "22004": [400, "INVALID_ATTEMPT_REQUEST", "문제풀이 요청 값을 확인해 주세요."],
+    "23505": [409, "ANSWER_CONFLICT", "이미 제출한 답안과 요청 내용이 다릅니다."],
+    "23514": [400, "INVALID_ATTEMPT_OPTION", "선택한 답안을 확인해 주세요."],
+    "40001": [409, "ATTEMPT_CONFLICT", "응시 상태가 변경되었습니다. 다시 확인해 주세요."],
+    "42501": [403, "LEARNING_ACCESS_DENIED", "문제풀이에 접근할 권한이 없습니다."],
+    "55000": [409, fallbackCode, "현재 응시 상태에서는 요청을 처리할 수 없습니다."],
+    P0002: [404, "LEARNING_NOT_FOUND", "문제풀이 대상을 찾을 수 없습니다."],
+  };
+  const mapping = mappings[error.supabaseCode];
+  if (mapping) {
+    return send(response, mapping[0], { ok: false, error: mapping[2], code: mapping[1] });
+  }
+  return safeError(response, error);
+}
+
 module.exports = {
   activeChild,
   activeMember,
+  allow,
+  attemptError,
   assignmentReadScope,
   exactBody,
   idList,

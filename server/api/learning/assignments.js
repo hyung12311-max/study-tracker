@@ -9,7 +9,7 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
   const unitIds = learning.idList(assignments, "unit_id");
   const versionIds = learning.idList(assignments, "content_version_id");
   const assignmentIds = learning.idList(assignments);
-  const [units, stages, progress] = await Promise.all([
+  const [units, stages, progress, attempts] = await Promise.all([
     learning.u.supabaseFetch(
       `learning_units?select=id,course_id,display_title&id=in.(${learning.inFilter(unitIds)})`
     ),
@@ -19,6 +19,9 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
     learning.u.supabaseFetch(
       `learning_stage_progress?select=assignment_id,stage_id,status,unlocked_at,passed_at&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}&assignment_id=in.(${learning.inFilter(assignmentIds)})`
     ),
+    learning.u.supabaseFetch(
+      `learning_attempts?select=id,assignment_id,stage_id,status,total_questions,started_at&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}&assignment_id=in.(${learning.inFilter(assignmentIds)})&status=eq.in_progress`
+    ),
   ]);
   const courseIds = learning.idList(units, "course_id");
   const courses = courseIds.length ? await learning.u.supabaseFetch(
@@ -27,6 +30,9 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
   const unitById = new Map((units || []).map((row) => [String(row.id), row]));
   const courseById = new Map((courses || []).map((row) => [String(row.id), row]));
   const progressByKey = new Map((progress || []).map(
+    (row) => [`${row.assignment_id}:${row.stage_id}`, row]
+  ));
+  const attemptByKey = new Map((attempts || []).map(
     (row) => [`${row.assignment_id}:${row.stage_id}`, row]
   ));
 
@@ -45,6 +51,7 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
         .filter((stage) => String(stage.content_version_id) === String(assignment.content_version_id))
         .map((stage) => {
           const stageProgress = progressByKey.get(`${assignment.id}:${stage.id}`);
+          const attempt = attemptByKey.get(`${assignment.id}:${stage.id}`);
           return {
             id: String(stage.id),
             title: stage.display_title,
@@ -53,6 +60,12 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
             status: stageProgress?.status || "locked",
             unlockedAt: stageProgress?.unlocked_at || null,
             passedAt: stageProgress?.passed_at || null,
+            attempt: attempt ? {
+              id: String(attempt.id),
+              status: attempt.status,
+              totalQuestions: Number(attempt.total_questions),
+              startedAt: attempt.started_at,
+            } : null,
           };
         }),
     };
