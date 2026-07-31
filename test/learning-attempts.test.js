@@ -113,17 +113,24 @@ function attemptRead(path, status = "in_progress", answered = []) {
     return [attemptRow(status)];
   }
   if (path.startsWith("learning_attempt_answers?")) {
-    return answered.map((id) => ({ attempt_question_id: id }));
+    return answered.map((id, index) => ({
+      attempt_question_id: id,
+      selected_option_id: index === 0 ? OPTION_ID : WRONG_OPTION_ID,
+      is_correct: index === 0,
+      submitted_at: "2026-07-31T01:02:00Z",
+    }));
   }
   if (path.startsWith("learning_attempt_questions?")) {
-    assert.doesNotMatch(path, /correct_option_id|explanation_snapshot|source_question_id/);
+    assert.doesNotMatch(path, /source_question_id/);
     return [
       {
         id: QUESTION_ID,
         display_order: 1,
         prompt_snapshot: "2 + 2는 무엇일까요?",
+        explanation_snapshot: "둘과 둘을 더하면 넷이에요.",
+        correct_option_id: OPTION_ID,
         options_snapshot: [
-          { id: OPTION_ID, displayOrder: 1, text: "4", isCorrect: true },
+          { id: OPTION_ID, displayOrder: 1, text: "4" },
           { id: WRONG_OPTION_ID, displayOrder: 2, text: "5" },
         ],
       },
@@ -131,6 +138,8 @@ function attemptRead(path, status = "in_progress", answered = []) {
         id: FUTURE_QUESTION_ID,
         display_order: 2,
         prompt_snapshot: "미래 문제",
+        explanation_snapshot: "미래 해설",
+        correct_option_id: OPTION_ID,
         options_snapshot: [{ id: OPTION_ID, displayOrder: 1, text: "미래 정답" }],
       },
     ];
@@ -174,7 +183,7 @@ test("attempt routes return no-store for unsupported methods", async () => {
   }
 });
 
-test("child start is self-scoped, idempotent through request id, and returns only the current question", async () => {
+test("child start is self-scoped, idempotent, and projects every ordered question without future feedback", async () => {
   const calls = [];
   const restore = replaceUtils(mocks({
     body: { requestId: REQUEST_ID },
@@ -201,10 +210,11 @@ test("child start is self-scoped, idempotent through request id, and returns onl
     const response = responseCapture();
     await startHandler(request("POST", { requestId: REQUEST_ID }, { assignmentId: ASSIGNMENT_ID, stageId: STAGE_ID }), response);
     assert.equal(response.statusCode, 200);
-    assert.equal(response.body.attempt.currentQuestion.id, QUESTION_ID);
-    assert.equal(response.body.attempt.currentQuestion.options[0].id, OPTION_ID);
+    assert.deepEqual(response.body.attempt.questions.map((question) => question.id), [QUESTION_ID, FUTURE_QUESTION_ID]);
+    assert.equal(response.body.attempt.questions[0].options[0].id, OPTION_ID);
+    assert.equal(response.body.attempt.questions[0].answer, null);
     const serialized = JSON.stringify(response.body);
-    assert.doesNotMatch(serialized, /future|미래|isCorrect|correctOption|explanation|contentVersion|course|grade/i);
+    assert.doesNotMatch(serialized, /isCorrect|correctOption|explanation|contentVersion|course|grade|미래 해설/i);
     assert.equal(calls.filter(({ path }) => path === "rpc/start_or_resume_learning_attempt").length, 1);
   } finally { restore(); }
 });
@@ -221,9 +231,30 @@ test("attempt GET is child self-scoped and hides other-family attempts", async (
       const response = responseCapture();
       await attemptHandler(request("GET", {}, { attemptId: ATTEMPT_ID }), response);
       assert.equal(response.statusCode, found ? 200 : 404);
-      if (found) assert.equal(response.body.attempt.currentQuestion.id, QUESTION_ID);
+      if (found) assert.equal(response.body.attempt.questions[0].id, QUESTION_ID);
     } finally { restore(); }
   }
+});
+
+test("resume exposes feedback only for submitted questions and keeps unanswered answers secret", async () => {
+  const restore = replaceUtils(mocks({
+    supabaseFetch: async (path) => attemptRead(path, "in_progress", [QUESTION_ID]) || [],
+  }));
+  try {
+    const response = responseCapture();
+    await attemptHandler(request("GET", {}, { attemptId: ATTEMPT_ID }), response);
+    assert.equal(response.statusCode, 200);
+    const [answered, unanswered] = response.body.attempt.questions;
+    assert.deepEqual(answered.answer, {
+      selectedOptionId: OPTION_ID,
+      isCorrect: true,
+      correctOptionText: "4",
+      explanation: "둘과 둘을 더하면 넷이에요.",
+      submittedAt: "2026-07-31T01:02:00Z",
+    });
+    assert.equal(unanswered.answer, null);
+    assert.doesNotMatch(JSON.stringify(unanswered), /미래 해설|correctOption|isCorrect/);
+  } finally { restore(); }
 });
 
 test("answer submission sends no client grading fields and returns scoped immediate feedback", async () => {

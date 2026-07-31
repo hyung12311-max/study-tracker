@@ -9,6 +9,7 @@ const {
 
 const sourcePath = path.join(__dirname, "..", "content", "learning", "math", "make-ten-v1.json");
 const source = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
+const v2Source = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "content", "learning", "math", "make-ten-v2.json"), "utf8"));
 const clone = () => structuredClone(source);
 
 test("Make Ten v1 satisfies the complete validator contract", () => {
@@ -20,6 +21,13 @@ test("Make Ten v1 satisfies the complete validator contract", () => {
     source.stages.flatMap((stage) => stage.questions.flatMap((question) => question.options)).length,
     80,
   );
+});
+
+test("Make Ten v2 supports four equal stages of ten questions", () => {
+  assert.deepEqual(validateLearningContent(v2Source), { valid: true, errors: [] });
+  assert.deepEqual(v2Source.stages.map((stage) => stage.questions.length), [10, 10, 10, 10]);
+  assert.equal(v2Source.stages.flatMap((stage) => stage.questions).length, 40);
+  assert.equal(v2Source.stages.flatMap((stage) => stage.questions.flatMap((question) => question.options)).length, 160);
 });
 
 test("validator rejects unknown fields, duplicate UUIDs, and invalid slugs", () => {
@@ -57,6 +65,14 @@ test("validator requires four options, unique text, and exactly one answer", () 
   assert.equal(result.valid, false);
   assert.ok(result.errors.some((error) => error.includes("duplicates another option")));
   assert.ok(result.errors.some((error) => error.includes("exactly one correct option")));
+});
+
+test("validator rejects unequal question counts inside one version", () => {
+  const content = structuredClone(v2Source);
+  content.stages[2].questions.pop();
+  const result = validateLearningContent(content);
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((error) => error.includes("must contain exactly 10 questions")));
 });
 
 test("validator rejects empty, padded, long, or internal child-facing text", () => {

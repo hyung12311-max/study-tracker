@@ -44,9 +44,11 @@ test("parent and child have separate learning and attempt areas", () => {
   assert.match(html, /id="childLearningSection"/);
   assert.match(html, /id="childLearningAssignmentList"/);
   assert.match(html, /id="childLearningAttemptPanel"/);
+  assert.match(html, /id="learningAttemptView"/);
+  assert.match(html, /id="learningAttemptFullscreenPanel"/);
   assert.match(learning, /start-attempt/);
   assert.match(learning, /resume-attempt/);
-  assert.match(learning, /submit-answer/);
+  assert.match(learning, /submit-all-answers/);
 });
 
 test("child cards do not render course, grade, or content version metadata", () => {
@@ -69,8 +71,45 @@ test("attempt UI isolates identity cache and discards stale responses", () => {
   assert.match(learning, /attemptCache\.set\(`\$\{requestIdentity\}:\$\{attempt\.id\}`/);
   assert.match(learning, /requestGeneration !== generation \|\| requestIdentity !== identity\(\)/);
   assert.match(learning, /attempt = null/);
-  assert.match(learning, /feedback = null/);
+  assert.match(learning, /selectedAnswers\.clear\(\)/);
+  assert.match(learning, /attemptViewOpen = false/);
   assert.match(learning, /attemptCache\.clear\(\)/);
+});
+
+test("attempt view renders all questions, requires every selection, and submits in order", () => {
+  assert.match(learning, /learningAttemptFullscreenPanel/);
+  assert.match(learning, /questions\.map\(\(question\)/);
+  assert.match(learning, /unanswered\.every\(\(question\) => selectedAnswers\.has\(question\.id\)\)/);
+  assert.match(learning, /unanswered\.sort\(\(a, b\) => a\.order - b\.order\)/);
+  assert.match(learning, /for \(const question of unanswered/);
+  assert.match(learning, /저장된 답은 유지됩니다/);
+  assert.match(learning, /question\.answer \|\| submitting \? "disabled"/);
+  const submitAll = learning.match(/async function submitAllAnswers\(\)[\s\S]*?\n  async function finalizeAttempt/)?.[0] || "";
+  assert.doesNotMatch(submitAll, /score\s*:|passed\s*:/);
+});
+
+test("difficulty values keep DB keys while child labels use approved Korean names", () => {
+  assert.match(learning, /seed: "입문"/);
+  assert.match(learning, /leaf: "기초"/);
+  assert.match(learning, /tree: "심화"/);
+  assert.match(learning, /crown: "최상위 도전!"/);
+  assert.match(learning, /seed: 1, leaf: 2, tree: 3, crown: 5/);
+});
+
+test("next-stage action depends on refreshed assignment progress, not only finalize output", () => {
+  assert.match(learning, /function nextUnlockedStage\(\)/);
+  assert.match(learning, /stage\.status === "unlocked"/);
+  assert.match(learning, /cache\.delete\(requestIdentity\)/);
+  assert.match(learning, /refresh\(\{ force: true \}\)/);
+  assert.match(learning, /nextStage \? `[\s\S]*data-learning-action="start-attempt"/);
+});
+
+test("wide option cards keep accessible labels and non-color feedback", () => {
+  assert.match(learning, /<label class="learning-option/);
+  assert.match(learning, /learning-option-indicator/);
+  assert.match(learning, /✓ 정답/);
+  assert.match(learning, /✕ 오답/);
+  assert.match(html, /aria-label="문제풀이에서 뒤로가기"/);
 });
 
 test("attempt UI shows server-owned feedback, rewards, unlock, and completion results", () => {

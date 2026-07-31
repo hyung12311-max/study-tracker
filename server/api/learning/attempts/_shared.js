@@ -99,24 +99,33 @@ async function finalizeResult(claims, attemptId, requestId = randomUUID()) {
 
 async function attemptDto(claims, attempt, completion = EMPTY_COMPLETION) {
   const answers = await learning.u.supabaseFetch(
-    `learning_attempt_answers?select=attempt_question_id&attempt_id=eq.${encodeURIComponent(attempt.id)}`
+    `learning_attempt_answers?select=attempt_question_id,selected_option_id,is_correct,submitted_at&attempt_id=eq.${encodeURIComponent(attempt.id)}`
   ) || [];
-  const answeredIds = new Set(answers.map((answer) => String(answer.attempt_question_id)));
-  let currentQuestion = null;
-  if (attempt.status === "in_progress") {
-    const questions = await learning.u.supabaseFetch(
-      `learning_attempt_questions?select=id,display_order,prompt_snapshot,options_snapshot&attempt_id=eq.${encodeURIComponent(attempt.id)}&order=display_order.asc`
-    ) || [];
-    const next = questions.find((question) => !answeredIds.has(String(question.id)));
-    if (next) {
-      currentQuestion = {
-        id: String(next.id),
-        order: Number(next.display_order),
-        prompt: next.prompt_snapshot,
-        options: publicOptions(next.options_snapshot),
+  const answerByQuestion = new Map(answers.map((answer) => [String(answer.attempt_question_id), answer]));
+  const questionRows = await learning.u.supabaseFetch(
+    `learning_attempt_questions?select=id,display_order,prompt_snapshot,explanation_snapshot,options_snapshot,correct_option_id&attempt_id=eq.${encodeURIComponent(attempt.id)}&order=display_order.asc`
+  ) || [];
+  const questions = questionRows.map((question) => {
+    const answer = answerByQuestion.get(String(question.id));
+    const options = publicOptions(question.options_snapshot);
+    const dto = {
+      id: String(question.id),
+      order: Number(question.display_order),
+      prompt: question.prompt_snapshot,
+      options,
+      answer: null,
+    };
+    if (answer) {
+      dto.answer = {
+        selectedOptionId: String(answer.selected_option_id),
+        isCorrect: answer.is_correct === true,
+        correctOptionText: options.find((option) => option.id === String(question.correct_option_id))?.text || "",
+        explanation: question.explanation_snapshot,
+        submittedAt: answer.submitted_at,
       };
     }
-  }
+    return dto;
+  });
   const terminal = attempt.status === "passed" || attempt.status === "failed";
   return {
     id: String(attempt.id),
@@ -124,7 +133,7 @@ async function attemptDto(claims, attempt, completion = EMPTY_COMPLETION) {
     totalQuestions: Number(attempt.total_questions),
     answeredCount: answers.length,
     startedAt: attempt.started_at,
-    currentQuestion,
+    questions,
     result: terminal ? {
       correctAnswers: Number(attempt.correct_answers),
       requiredCorrectAnswers: Number(attempt.required_correct_answers),

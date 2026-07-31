@@ -79,6 +79,16 @@
           </section>
         </section>
 
+        <section id="learningAttemptView" class="learning-attempt-view" aria-labelledby="learningAttemptTitle" hidden>
+          <header class="learning-attempt-view-head">
+            <button type="button" class="learning-back-button" data-learning-action="close-attempt" aria-label="문제풀이에서 뒤로가기">← 뒤로</button>
+            <div><p class="eyebrow">Learning Quest</p><h2 id="learningAttemptTitle">문제풀이</h2></div>
+            <span id="learningAttemptStageName" class="learning-stage-name"></span>
+          </header>
+          <div id="learningAttemptStageProgress" class="learning-stage-progress" aria-label="단계 진행"></div>
+          <div id="learningAttemptFullscreenPanel" class="learning-attempt-fullscreen-panel" aria-live="polite"></div>
+        </section>
+
         <section id="progress" class="view" aria-labelledby="progressTitle">
           <div class="section-head">
             <div>

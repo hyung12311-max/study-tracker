@@ -41,14 +41,7 @@ async function answer(request) {
       totalQuestions: Number(result.total_questions),
       hasRemaining: !complete,
     },
-    attempt: complete ? await shared.attemptDto(claims, attempt, completion) : {
-      id: attemptId,
-      status: result.attempt_status,
-      totalQuestions: Number(result.total_questions),
-      answeredCount: Number(result.answered_count),
-      currentQuestion: null,
-      result: null,
-    },
+    attempt: await shared.attemptDto(claims, attempt, completion || undefined),
   };
 }
 

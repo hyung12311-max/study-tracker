@@ -796,12 +796,43 @@ h2 {
 .learning-question { display: grid; gap: 14px; }
 .learning-question h4 { margin: 0; font-size: 1.1rem; line-height: 1.55; }
 .learning-options { display: grid; gap: 9px; margin: 0; padding: 0; border: 0; }
-.learning-option { display: flex; gap: 10px; align-items: center; padding: 12px 13px; border: 1px solid rgba(84,94,167,.2); border-radius: 13px; background: #f8f9ff; font-weight: 800; }
+.learning-option { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 10px; align-items: center; min-height: 52px; padding: 12px 14px; border: 2px solid rgba(84,94,167,.18); border-radius: 14px; background: #f8f9ff; font-weight: 800; cursor: pointer; }
+.learning-option:hover { border-color: rgba(84,94,167,.48); }
+.learning-option:focus-within { outline: 3px solid rgba(84,94,167,.28); outline-offset: 2px; }
+.learning-option input { position: absolute; opacity: 0; pointer-events: none; }
+.learning-option-indicator { width: 20px; height: 20px; border: 2px solid #777fae; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 4px #fff; }
+.learning-option:has(input:checked) { border-color: #555eae; background: #eef0ff; }
+.learning-option:has(input:checked) .learning-option-indicator { background: #555eae; }
+.learning-option-text { min-width: 0; line-height: 1.45; overflow-wrap: anywhere; }
+.learning-option em { font-size: .78rem; font-style: normal; white-space: nowrap; }
+.learning-option.correct { border-color: #2f9250; background: #e9f8ee; }
+.learning-option.correct .learning-option-indicator { border-color: #2f9250; background: #2f9250; }
+.learning-option.incorrect { border-color: #c85c45; background: #fff0eb; }
+.learning-option.incorrect .learning-option-indicator { border-color: #c85c45; background: #c85c45; }
 .learning-feedback { display: grid; gap: 8px; padding: 14px; border-radius: 14px; background: #edf8ef; }
 .learning-feedback.incorrect { background: #fff3ec; }
 .learning-feedback p { margin: 0; }
 .learning-result { display: grid; gap: 10px; padding: 16px; border-radius: 14px; background: #f3f5ff; text-align: center; }
 .learning-result strong { font-size: 1.25rem; }
+.learning-attempt-view { position: fixed; inset: 0; z-index: 100; overflow-y: auto; padding: 24px max(20px,calc((100vw - 920px)/2)); background: linear-gradient(160deg,#f7f8ff,#fff8ef); }
+.learning-attempt-view[hidden] { display: none; }
+.learning-attempt-open { overflow: hidden; }
+.learning-attempt-view-head { position: sticky; top: -24px; z-index: 2; display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; padding: 20px 0 16px; background: rgba(247,248,255,.96); backdrop-filter: blur(10px); }
+.learning-attempt-view-head h2,.learning-attempt-view-head p { margin: 0; }
+.learning-back-button { min-height: 44px; white-space: nowrap; }
+.learning-stage-name { padding: 8px 12px; border-radius: 999px; background: #e9ebff; font-weight: 900; }
+.learning-stage-progress { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 8px 0 22px; }
+.learning-stage-progress span { display: grid; place-items: center; min-height: 8px; overflow: hidden; border-radius: 999px; background: #dfe2ee; color: transparent; font-size: 0; }
+.learning-stage-progress span.complete { background: #75ba82; }
+.learning-stage-progress span.current { background: #626bb3; }
+.learning-attempt-fullscreen-panel { display: grid; gap: 22px; padding-bottom: 40px; }
+.learning-question-list { display: grid; gap: 18px; }
+.learning-question-card { display: grid; gap: 14px; padding: 20px; border: 1px solid rgba(84,94,167,.18); border-radius: 18px; background: #fff; box-shadow: 0 8px 26px rgba(43,42,53,.07); }
+.learning-question-card h3 { margin: 0; line-height: 1.55; }
+.learning-question-card.is-correct { border-color: rgba(47,146,80,.45); }
+.learning-question-card.is-incorrect { border-color: rgba(200,92,69,.45); }
+.learning-submit-all { position: sticky; bottom: 16px; min-height: 52px; box-shadow: 0 8px 24px rgba(43,42,53,.2); }
+.learning-unit-complete { color: #2f7d47; }
 
 @media (max-width: 720px) {
   .learning-panel-head { display: grid; }
@@ -809,6 +840,10 @@ h2 {
   .learning-stage { grid-template-columns: auto 1fr; }
   .learning-stage-actions { grid-column: 1/-1; justify-content: stretch; }
   .learning-stage-actions button { flex: 1; }
+  .learning-attempt-view { padding: 12px; }
+  .learning-attempt-view-head { top: -12px; grid-template-columns: auto 1fr; padding-top: 12px; }
+  .learning-stage-name { grid-column: 1/-1; justify-self: start; }
+  .learning-question-card { padding: 15px; }
 }
 
 .empty-note {

@@ -1,9 +1,11 @@
 const difficultyLabels = {
-  seed: "🌱",
-  leaf: "🌿",
-  tree: "🌳",
-  crown: "👑",
+  seed: "입문",
+  leaf: "기초",
+  tree: "심화",
+  crown: "최상위 도전!",
 };
+
+const difficultyRewards = { seed: 1, leaf: 2, tree: 3, crown: 5 };
 
 const stageStatusLabels = {
   locked: "잠김",
@@ -45,7 +47,8 @@ export function initLearning({
   let attemptIdentity = "";
   let attemptLoading = false;
   let attemptError = "";
-  let feedback = null;
+  let attemptViewOpen = false;
+  const selectedAnswers = new Map();
   const cache = new Map();
   const attemptCache = new Map();
   const pending = new Set();
@@ -60,12 +63,12 @@ export function initLearning({
   function stageList(stages = [], assignment, parent) {
     return `<ol class="learning-stage-list">${stages.map((stage) => `
       <li class="learning-stage learning-stage-${escapeHtml(stage.status || "locked")}">
-        <span>${difficultyLabels[stage.difficulty] || "📘"}</span>
+        <span>${escapeHtml(difficultyLabels[stage.difficulty] || "단계")}</span>
         <strong>${escapeHtml(stage.title)}</strong>
         <div class="learning-stage-actions">
           <small>${stageStatusLabels[stage.status] || "잠김"}</small>
           ${parent && stage.attempt?.status === "in_progress" ? `<button type="button" class="delete-btn" data-learning-action="abandon-attempt" data-assignment-id="${assignment.id}" data-attempt-id="${stage.attempt.id}">응시 초기화</button>` : ""}
-          ${!parent && assignment.status === "active" && stage.status === "unlocked" ? `<button type="button" class="primary" data-learning-action="${stage.attempt ? "resume-attempt" : "start-attempt"}" data-assignment-id="${assignment.id}" data-stage-id="${stage.id}" ${stage.attempt ? `data-attempt-id="${stage.attempt.id}"` : ""}>${stage.attempt ? "이어 풀기" : "문제 풀기"}</button>` : ""}
+          ${!parent && assignment.status === "active" && stage.status === "unlocked" ? `<button type="button" class="primary" data-learning-action="${stage.attempt ? "resume-attempt" : "start-attempt"}" data-assignment-id="${assignment.id}" data-stage-id="${stage.id}" data-unit-title="${escapeHtml(assignment.unitTitle)}" data-stage-title="${escapeHtml(stage.title)}" data-stage-difficulty="${escapeHtml(stage.difficulty)}" data-stage-order="${stage.order}" ${stage.attempt ? `data-attempt-id="${stage.attempt.id}"` : ""}>${stage.attempt ? "문제풀이로 이동" : "문제풀이로 이동"}</button>` : ""}
         </div>
       </li>
     `).join("")}</ol>`;
@@ -148,11 +151,19 @@ export function initLearning({
       : result.passed && result.unlockedStageId
         ? '<small class="learning-unlock">다음 단계가 열렸어요!</small>'
         : "";
+    const nextStage = result.passed && !result.assignmentCompleted ? nextUnlockedStage() : null;
     return `<div class="learning-result">
       <strong>${result.passed ? "단계를 통과했어요!" : "아쉽지만 다시 도전할 수 있어요."}</strong>
       <span>${result.correctAnswers}개 정답 · 통과 기준 ${result.requiredCorrectAnswers}개</span>
-      ${result.passed ? `${reward}${progression}` : `<button type="button" class="primary" data-learning-action="retry-attempt" data-assignment-id="${attemptContext?.assignmentId || ""}" data-stage-id="${attemptContext?.stageId || ""}">다시 도전</button>`}
+      ${result.passed ? `${reward}${progression}${nextStage ? `<button type="button" class="primary" data-learning-action="start-attempt" data-assignment-id="${escapeHtml(attemptContext?.assignmentId || "")}" data-stage-id="${escapeHtml(nextStage.id)}" data-unit-title="${escapeHtml(attemptContext?.unitTitle || "")}" data-stage-title="${escapeHtml(nextStage.title)}" data-stage-difficulty="${escapeHtml(nextStage.difficulty)}" data-stage-order="${nextStage.order}">다음 단계</button>` : result.assignmentCompleted ? '<strong class="learning-unit-complete">단원 완료</strong>' : ""}` : `<button type="button" class="primary" data-learning-action="retry-attempt" data-assignment-id="${attemptContext?.assignmentId || ""}" data-stage-id="${attemptContext?.stageId || ""}" data-unit-title="${escapeHtml(attemptContext?.unitTitle || "")}" data-stage-title="${escapeHtml(attemptContext?.stageTitle || "")}" data-stage-difficulty="${escapeHtml(attemptContext?.difficulty || "")}" data-stage-order="${attemptContext?.stageOrder || ""}">다시 도전</button>`}
     </div>`;
+  }
+
+  function nextUnlockedStage() {
+    const assignment = assignments.find((item) => item.id === attemptContext?.assignmentId);
+    if (!assignment) return null;
+    const currentOrder = Number(attemptContext?.stageOrder || 0);
+    return assignment.stages.find((stage) => stage.order === currentOrder + 1 && stage.status === "unlocked") || null;
   }
 
   async function applyAttemptResult(nextAttempt, requestIdentity, { announceReward = false } = {}) {
@@ -179,49 +190,65 @@ export function initLearning({
   }
 
   function renderAttempt() {
-    const panel = document.querySelector("#childLearningAttemptPanel");
+    const legacyPanel = document.querySelector("#childLearningAttemptPanel");
+    const view = document.querySelector("#learningAttemptView");
+    const panel = document.querySelector("#learningAttemptFullscreenPanel");
     const member = currentMember();
-    if (!panel) return;
-    if (member?.role !== "child" || (!attempt && !attemptLoading && !attemptError)) {
-      panel.hidden = true;
+    if (!panel || !view) return;
+    if (legacyPanel) {
+      legacyPanel.hidden = true;
+      legacyPanel.innerHTML = "";
+    }
+    if (member?.role !== "child" || !attemptViewOpen) {
+      view.hidden = true;
+      document.body.classList.remove("learning-attempt-open");
       panel.innerHTML = "";
       return;
     }
-    panel.hidden = false;
+    view.hidden = false;
+    document.body.classList.add("learning-attempt-open");
+    const title = document.querySelector("#learningAttemptTitle");
+    const stageName = document.querySelector("#learningAttemptStageName");
+    const stageProgress = document.querySelector("#learningAttemptStageProgress");
+    if (title) title.textContent = attemptContext?.unitTitle || "문제풀이";
+    if (stageName) stageName.textContent = `${difficultyLabels[attemptContext?.difficulty] || "단계"} · 최초 통과 +${difficultyRewards[attemptContext?.difficulty] || 0}`;
+    if (stageProgress) stageProgress.innerHTML = [1, 2, 3, 4].map((order) => `<span class="${order < Number(attemptContext?.stageOrder) ? "complete" : order === Number(attemptContext?.stageOrder) ? "current" : ""}">${order}</span>`).join("");
     if (attemptLoading) {
       panel.innerHTML = '<p class="learning-empty">문제를 불러오는 중입니다.</p>';
       return;
     }
-    if (attemptError) {
+    if (attemptError && !attempt) {
       panel.innerHTML = `<p class="learning-error">${escapeHtml(attemptError)}</p>${attempt?.id ? `<button type="button" data-learning-action="reload-attempt" data-attempt-id="${attempt.id}">다시 불러오기</button>` : ""}`;
       return;
     }
     if (!attempt) return;
+    const questions = Array.isArray(attempt.questions) ? attempt.questions : [];
+    const unanswered = questions.filter((question) => !question.answer);
+    const allSelected = unanswered.length > 0 && unanswered.every((question) => selectedAnswers.has(question.id));
+    const submitting = pending.has(`answers:${attempt.id}`);
     const progress = `<p class="learning-attempt-progress">${attempt.answeredCount} / ${attempt.totalQuestions} 문제 완료</p>`;
-    if (feedback) {
-      panel.innerHTML = `${progress}<div class="learning-feedback ${feedback.isCorrect ? "" : "incorrect"}">
-        <strong>${feedback.isCorrect ? "정답이에요!" : "다시 기억해 보아요."}</strong>
-        ${feedback.isCorrect ? "" : `<p>정답: ${escapeHtml(feedback.correctOptionText)}</p>`}
-        <p>${escapeHtml(feedback.explanation || "해설이 없습니다.")}</p>
-      </div>${feedback.hasRemaining ? '<button type="button" class="primary" data-learning-action="next-question">다음 문제</button>' : resultMarkup(attempt.result)}`;
-      return;
-    }
-    if (attempt.result) {
-      panel.innerHTML = progress + resultMarkup(attempt.result);
-      return;
-    }
-    const question = attempt.currentQuestion;
-    if (!question) {
-      panel.innerHTML = `${progress}<button type="button" data-learning-action="finalize-attempt">결과 확인</button>`;
-      return;
-    }
-    panel.innerHTML = `${progress}<div class="learning-question">
-      <h4>${question.order}. ${escapeHtml(question.prompt)}</h4>
-      <fieldset class="learning-options" aria-label="답 선택">
-        ${question.options.map((option) => `<label class="learning-option"><input type="radio" name="learningAnswer" value="${option.id}"><span>${escapeHtml(option.text)}</span></label>`).join("")}
-      </fieldset>
-      <button type="button" class="primary" data-learning-action="submit-answer" data-question-id="${question.id}">답 제출</button>
-    </div>`;
+    const questionMarkup = questions.map((question) => {
+      const selectedId = question.answer?.selectedOptionId || selectedAnswers.get(question.id) || "";
+      const feedbackClass = question.answer ? (question.answer.isCorrect ? "is-correct" : "is-incorrect") : "";
+      return `<article class="learning-question-card ${feedbackClass}" data-question-id="${question.id}">
+        <h3>${question.order}. ${escapeHtml(question.prompt)}</h3>
+        <fieldset class="learning-options" aria-label="${question.order}번 답 선택" ${question.answer || submitting ? "disabled" : ""}>
+          ${question.options.map((option) => {
+            const checked = option.id === selectedId;
+            const isCorrect = question.answer && option.text === question.answer.correctOptionText;
+            const isWrongSelection = question.answer && checked && !question.answer.isCorrect;
+            const state = isCorrect ? "correct" : isWrongSelection ? "incorrect" : "";
+            const stateText = isCorrect ? '<em>✓ 정답</em>' : isWrongSelection ? '<em>✕ 선택한 답</em>' : "";
+            return `<label class="learning-option ${state}"><input type="radio" name="learningAnswer-${question.id}" value="${option.id}" data-question-id="${question.id}" ${checked ? "checked" : ""}><span class="learning-option-indicator" aria-hidden="true"></span><span class="learning-option-text">${escapeHtml(option.text)}</span>${stateText}</label>`;
+          }).join("")}
+        </fieldset>
+        ${question.answer ? `<div class="learning-feedback ${question.answer.isCorrect ? "" : "incorrect"}"><strong>${question.answer.isCorrect ? "✓ 정답" : `✕ 오답 · 정답 ${escapeHtml(question.answer.correctOptionText)}`}</strong><p>${escapeHtml(question.answer.explanation || "해설이 없습니다.")}</p></div>` : ""}
+      </article>`;
+    }).join("");
+    const action = attempt.result
+      ? resultMarkup(attempt.result)
+      : `<button type="button" class="primary learning-submit-all" data-learning-action="submit-all-answers" ${allSelected && !submitting ? "" : "disabled"}>${submitting ? "답안을 저장하는 중…" : "답안 제출"}</button>`;
+    panel.innerHTML = `${progress}${attemptError ? `<p class="learning-error">${escapeHtml(attemptError)}</p>` : ""}<div class="learning-question-list">${questionMarkup}</div>${action}`;
   }
 
   function render() {
@@ -246,9 +273,9 @@ export function initLearning({
     const requestIdentity = identity();
     attemptLoading = true;
     attemptError = "";
-    feedback = null;
     attemptContext = context;
     attemptIdentity = requestIdentity;
+    attemptViewOpen = true;
     renderAttempt();
     try {
       const data = await requestJson(`/api/learning/attempts/${encodeURIComponent(attemptId)}`, {
@@ -281,9 +308,17 @@ export function initLearning({
     pending.add(key);
     attemptLoading = true;
     attemptError = "";
-    feedback = null;
-    attemptContext = { assignmentId, stageId };
+    selectedAnswers.clear();
+    attemptContext = {
+      assignmentId,
+      stageId,
+      unitTitle: button.dataset.unitTitle || "문제풀이",
+      stageTitle: button.dataset.stageTitle || "",
+      difficulty: button.dataset.stageDifficulty || "",
+      stageOrder: Number(button.dataset.stageOrder || 0),
+    };
     attemptIdentity = requestIdentity;
+    attemptViewOpen = true;
     render();
     try {
       const data = await requestJson(`/api/learning/assignments/${encodeURIComponent(assignmentId)}/stages/${encodeURIComponent(stageId)}/attempts`, {
@@ -306,35 +341,46 @@ export function initLearning({
     }
   }
 
-  async function submitAnswer(button) {
-    if (!attempt?.id || feedback) return;
-    const selected = document.querySelector('#childLearningAttemptPanel input[name="learningAnswer"]:checked');
-    if (!selected) {
-      showToast("답을 하나 선택해 주세요.");
+  async function submitAllAnswers() {
+    if (!attempt?.id || attempt.result) return;
+    const unanswered = (attempt.questions || []).filter((question) => !question.answer);
+    if (!unanswered.length || unanswered.some((question) => !selectedAnswers.has(question.id))) {
+      showToast("모든 문제의 답을 선택해 주세요.");
       return;
     }
-    const key = `answer:${attempt.id}:${button.dataset.questionId}`;
+    const key = `answers:${attempt.id}`;
     if (pending.has(key)) return;
     const requestGeneration = generation;
     const requestIdentity = identity();
     pending.add(key);
+    attemptError = "";
     renderAttempt();
     try {
-      const data = await requestJson(`/api/learning/attempts/${encodeURIComponent(attempt.id)}/answers`, {
-        method: "POST",
-        headers: { ...authHeaders(), "X-Study-CSRF": "1" },
-        body: JSON.stringify({
-          questionId: button.dataset.questionId,
-          optionId: selected.value,
-          requestId: requestId(),
-        }),
-      });
-      if (requestGeneration !== generation || requestIdentity !== identity()) return;
-      feedback = data.feedback;
-      await applyAttemptResult(data.attempt, requestIdentity, { announceReward: true });
+      for (const question of unanswered.sort((a, b) => a.order - b.order)) {
+        const data = await requestJson(`/api/learning/attempts/${encodeURIComponent(attempt.id)}/answers`, {
+          method: "POST",
+          headers: { ...authHeaders(), "X-Study-CSRF": "1" },
+          body: JSON.stringify({
+            questionId: question.id,
+            optionId: selectedAnswers.get(question.id),
+            requestId: requestId(),
+          }),
+        });
+        if (requestGeneration !== generation || requestIdentity !== identity()) return;
+        selectedAnswers.delete(question.id);
+        await applyAttemptResult(data.attempt, requestIdentity, { announceReward: true });
+      }
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
-      attemptError = cause.message || "답안을 제출하지 못했습니다.";
+      const message = cause.message || "일부 답안을 저장하지 못했습니다. 저장된 답은 유지됩니다.";
+      try {
+        const data = await requestJson(`/api/learning/attempts/${encodeURIComponent(attempt.id)}`, {
+          headers: authHeaders(),
+          cache: "no-store",
+        });
+        if (requestGeneration === generation && requestIdentity === identity()) attempt = data.attempt;
+      } catch {}
+      attemptError = message;
     } finally {
       pending.delete(key);
       if (requestGeneration === generation && requestIdentity === identity()) renderAttempt();
@@ -356,7 +402,6 @@ export function initLearning({
       });
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       await applyAttemptResult(data.attempt, requestIdentity, { announceReward: true });
-      feedback = null;
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       attemptError = cause.message || "결과를 확인하지 못했습니다.";
@@ -406,7 +451,8 @@ export function initLearning({
       attemptIdentity = "";
       attemptLoading = false;
       attemptError = "";
-      feedback = null;
+      attemptViewOpen = false;
+      selectedAnswers.clear();
       announcedRewardAttempts.clear();
     }
     catalog = [];
@@ -532,12 +578,31 @@ export function initLearning({
     if (button.dataset.learningAction === "assign") assign(button);
     if (button.dataset.learningAction === "cancel") cancel(button);
     if (button.dataset.learningAction === "start-attempt" || button.dataset.learningAction === "retry-attempt") startAttempt(button);
-    if (button.dataset.learningAction === "resume-attempt") loadAttempt(button.dataset.attemptId, { assignmentId: button.dataset.assignmentId, stageId: button.dataset.stageId });
+    if (button.dataset.learningAction === "resume-attempt") loadAttempt(button.dataset.attemptId, {
+      assignmentId: button.dataset.assignmentId,
+      stageId: button.dataset.stageId,
+      unitTitle: button.dataset.unitTitle,
+      stageTitle: button.dataset.stageTitle,
+      difficulty: button.dataset.stageDifficulty,
+      stageOrder: Number(button.dataset.stageOrder || 0),
+    });
     if (button.dataset.learningAction === "reload-attempt") loadAttempt(button.dataset.attemptId);
-    if (button.dataset.learningAction === "submit-answer") submitAnswer(button);
-    if (button.dataset.learningAction === "next-question") loadAttempt(attempt.id);
+    if (button.dataset.learningAction === "submit-all-answers") submitAllAnswers();
     if (button.dataset.learningAction === "finalize-attempt") finalizeAttempt();
     if (button.dataset.learningAction === "abandon-attempt") abandonAttempt(button);
+    if (button.dataset.learningAction === "close-attempt") {
+      attemptViewOpen = false;
+      selectedAnswers.clear();
+      attemptError = "";
+      renderAttempt();
+    }
+  });
+
+  document.addEventListener("change", (event) => {
+    const input = event.target.closest('#learningAttemptFullscreenPanel input[type="radio"][data-question-id]');
+    if (!input || input.disabled || !attemptViewOpen) return;
+    selectedAnswers.set(input.dataset.questionId, input.value);
+    renderAttempt();
   });
 
   return {
@@ -555,7 +620,8 @@ export function initLearning({
       attemptIdentity = "";
       attemptLoading = false;
       attemptError = "";
-      feedback = null;
+      attemptViewOpen = false;
+      selectedAnswers.clear();
       attemptCache.clear();
       announcedRewardAttempts.clear();
       render();

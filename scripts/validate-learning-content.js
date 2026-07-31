@@ -111,6 +111,8 @@ function validateLearningContent(content) {
   if (!Array.isArray(content.stages) || content.stages.length !== 4) {
     fail("$.stages", "must contain exactly 4 stages");
   }
+  const questionsPerStage = content?.version?.number === 1 ? 5 : content?.version?.number === 2 ? 10 : null;
+  if (questionsPerStage === null) fail("$.version.number", "only v1 and v2 are supported");
   let questionCount = 0;
   let optionCount = 0;
   for (const [stageIndex, stage] of (Array.isArray(content.stages) ? content.stages : []).entries()) {
@@ -122,8 +124,8 @@ function validateLearningContent(content) {
       fail(`${stagePath}.difficulty`, `must equal ${DIFFICULTIES[stageIndex]}`);
     }
     text(stage.title, `${stagePath}.title`, 200, true);
-    if (!Array.isArray(stage.questions) || stage.questions.length !== 5) {
-      fail(`${stagePath}.questions`, "must contain exactly 5 questions");
+    if (!Array.isArray(stage.questions) || stage.questions.length !== questionsPerStage) {
+      fail(`${stagePath}.questions`, `must contain exactly ${questionsPerStage} questions`);
     }
     for (const [questionIndex, question] of (Array.isArray(stage.questions) ? stage.questions : []).entries()) {
       questionCount += 1;
@@ -154,8 +156,10 @@ function validateLearningContent(content) {
       if (correctCount !== 1) fail(`${questionPath}.options`, "must contain exactly one correct option");
     }
   }
-  if (questionCount !== 20) fail("$.stages", `must contain 20 questions, found ${questionCount}`);
-  if (optionCount !== 80) fail("$.stages", `must contain 80 options, found ${optionCount}`);
+  const expectedQuestions = 4 * (questionsPerStage || 0);
+  const expectedOptions = expectedQuestions * 4;
+  if (questionCount !== expectedQuestions) fail("$.stages", `must contain ${expectedQuestions} questions, found ${questionCount}`);
+  if (optionCount !== expectedOptions) fail("$.stages", `must contain ${expectedOptions} options, found ${optionCount}`);
   return { valid: errors.length === 0, errors };
 }
 

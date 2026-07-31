@@ -184,7 +184,11 @@ test("parent catalog returns only published metadata and selected-child assignme
       if (child) return child;
       if (path.startsWith("learning_content_versions?")) {
         assert.match(path, /status=eq\.published/);
-        return [{ id: VERSION_ID, unit_id: UNIT_ID }];
+        assert.match(path, /order=unit_id\.asc,version_no\.desc/);
+        return [
+          { id: VERSION_ID, unit_id: UNIT_ID, version_no: 2 },
+          { id: "99999999-2222-4222-8222-999999999999", unit_id: UNIT_ID, version_no: 1 },
+        ];
       }
       if (path.startsWith("learning_units?")) return [{ id: UNIT_ID, course_id: COURSE_ID, display_title: "분수의 덧셈", sort_order: 1 }];
       if (path.startsWith("learning_stages?")) return assignmentRows().stages;
@@ -204,6 +208,7 @@ test("parent catalog returns only published metadata and selected-child assignme
     await catalogHandler(request("GET", `/api/learning/catalog?assignedMemberId=${CHILD_ID}`), response);
     assert.equal(response.statusCode, 200);
     assert.equal(response.body.catalog.length, 1);
+    assert.equal(response.body.catalog[0].contentVersionId, VERSION_ID);
     assert.equal(response.body.catalog[0].alreadyAssigned, true);
     assert.equal(response.body.catalog[0].stageCount, 2);
     assert.doesNotMatch(JSON.stringify(response.body), /prompt|option_text|is_correct|explanation|content_hash/);

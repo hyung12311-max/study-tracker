@@ -7,12 +7,20 @@ async function catalog(request) {
     url.searchParams.get("assignedMemberId")
   );
   const versions = await learning.u.supabaseFetch(
-    "learning_content_versions?select=id,unit_id&status=eq.published&order=published_at.desc"
+    "learning_content_versions?select=id,unit_id,version_no&status=eq.published&order=unit_id.asc,version_no.desc"
   ) || [];
-  if (!versions.length) return [];
+  const latestVersions = [];
+  const seenUnits = new Set();
+  for (const version of versions) {
+    const unitId = String(version.unit_id);
+    if (seenUnits.has(unitId)) continue;
+    seenUnits.add(unitId);
+    latestVersions.push(version);
+  }
+  if (!latestVersions.length) return [];
 
-  const unitIds = learning.idList(versions, "unit_id");
-  const versionIds = learning.idList(versions);
+  const unitIds = learning.idList(latestVersions, "unit_id");
+  const versionIds = learning.idList(latestVersions);
   const [units, stages, activeAssignments] = await Promise.all([
     learning.u.supabaseFetch(
       `learning_units?select=id,course_id,display_title,sort_order&id=in.(${learning.inFilter(unitIds)})&order=sort_order.asc`
@@ -32,7 +40,7 @@ async function catalog(request) {
   const courseById = new Map((courses || []).map((row) => [String(row.id), row]));
   const assignedUnits = new Set((activeAssignments || []).map((row) => String(row.unit_id)));
 
-  return versions.map((version) => {
+  return latestVersions.map((version) => {
     const unit = unitById.get(String(version.unit_id));
     const course = unit && courseById.get(String(unit.course_id));
     if (!unit || !course) return null;
