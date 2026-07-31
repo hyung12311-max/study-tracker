@@ -37,8 +37,10 @@ test("Phase 2B-3A is additive and creates only the first-pass table", () => {
     .filter((name) => name.endsWith(".sql"))
     .sort();
   assert.equal(
-    migrationNames.at(-1),
-    "202607310001_create_phase_2b_progress_rewards.sql",
+    migrationNames.at(
+      migrationNames.indexOf("202607310001_create_phase_2b_progress_rewards.sql") + 1,
+    ),
+    "202607310002_seed_make_ten_learning_content.sql",
   );
   const createdTables = [
     ...migration.matchAll(/^\s*create\s+table\s+public\.([a-z0-9_]+)/gim),

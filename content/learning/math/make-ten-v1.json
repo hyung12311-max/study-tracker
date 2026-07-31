@@ -1,0 +1,314 @@
+{
+  "schemaVersion": 1,
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
+  "unit": {
+    "id": "51000000-0000-4000-8000-000000000002",
+    "slug": "make-ten",
+    "title": "10을 만들어요",
+    "displayOrder": 1
+  },
+  "version": {
+    "id": "51000000-0000-4000-8000-000000000003",
+    "label": "v1",
+    "number": 1
+  },
+  "stages": [
+    {
+      "id": "52000000-0000-4000-8000-000000000001",
+      "difficulty": "seed",
+      "title": "짝을 찾아요",
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "53000000-0000-4000-8000-000000000001",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "7에 얼마를 더하면 10이 될까요?",
+          "explanation": "7에 3을 더하면 10이 됩니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000001", "displayOrder": 1, "text": "1", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000002", "displayOrder": 2, "text": "2", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000003", "displayOrder": 3, "text": "3", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000004", "displayOrder": 4, "text": "4", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000002",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "4에 얼마를 더하면 10이 될까요?",
+          "explanation": "4에 6을 더하면 10이 됩니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000005", "displayOrder": 1, "text": "4", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000006", "displayOrder": 2, "text": "5", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000007", "displayOrder": 3, "text": "6", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000008", "displayOrder": 4, "text": "7", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000003",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "얼마에 8을 더하면 10이 될까요?",
+          "explanation": "2에 8을 더하면 10이 됩니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000009", "displayOrder": 1, "text": "1", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000010", "displayOrder": 2, "text": "2", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000011", "displayOrder": 3, "text": "3", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000012", "displayOrder": 4, "text": "4", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000004",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "5에 얼마를 더하면 10이 될까요?",
+          "explanation": "5와 5를 더하면 10이 됩니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000013", "displayOrder": 1, "text": "3", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000014", "displayOrder": 2, "text": "4", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000015", "displayOrder": 3, "text": "5", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000016", "displayOrder": 4, "text": "6", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000005",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "얼마에 1을 더하면 10이 될까요?",
+          "explanation": "9에 1을 더하면 10이 됩니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000017", "displayOrder": 1, "text": "7", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000018", "displayOrder": 2, "text": "8", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000019", "displayOrder": 3, "text": "9", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000020", "displayOrder": 4, "text": "10", "isCorrect": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "52000000-0000-4000-8000-000000000002",
+      "difficulty": "leaf",
+      "title": "더해 보아요",
+      "displayOrder": 2,
+      "questions": [
+        {
+          "id": "53000000-0000-4000-8000-000000000006",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "3 + 4는 얼마일까요?",
+          "explanation": "3에서 네 칸 더 가면 7입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000021", "displayOrder": 1, "text": "6", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000022", "displayOrder": 2, "text": "7", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000023", "displayOrder": 3, "text": "8", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000024", "displayOrder": 4, "text": "9", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000007",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "2 + 5는 얼마일까요?",
+          "explanation": "2와 5를 더하면 7입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000025", "displayOrder": 1, "text": "5", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000026", "displayOrder": 2, "text": "6", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000027", "displayOrder": 3, "text": "7", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000028", "displayOrder": 4, "text": "8", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000008",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "6 + 3은 얼마일까요?",
+          "explanation": "6에 3을 더하면 9입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000029", "displayOrder": 1, "text": "7", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000030", "displayOrder": 2, "text": "8", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000031", "displayOrder": 3, "text": "9", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000032", "displayOrder": 4, "text": "10", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000009",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "1 + 8은 얼마일까요?",
+          "explanation": "1과 8을 더하면 9입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000033", "displayOrder": 1, "text": "7", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000034", "displayOrder": 2, "text": "8", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000035", "displayOrder": 3, "text": "9", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000036", "displayOrder": 4, "text": "10", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000010",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "4 + 4는 얼마일까요?",
+          "explanation": "4를 두 번 더하면 8입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000037", "displayOrder": 1, "text": "6", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000038", "displayOrder": 2, "text": "7", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000039", "displayOrder": 3, "text": "8", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000040", "displayOrder": 4, "text": "9", "isCorrect": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "52000000-0000-4000-8000-000000000003",
+      "difficulty": "tree",
+      "title": "빈칸을 채워요",
+      "displayOrder": 3,
+      "questions": [
+        {
+          "id": "53000000-0000-4000-8000-000000000011",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "3 + □ = 8입니다. □에 들어갈 수는 무엇일까요?",
+          "explanation": "3에 5를 더하면 8이므로 빈칸은 5입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000041", "displayOrder": 1, "text": "4", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000042", "displayOrder": 2, "text": "5", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000043", "displayOrder": 3, "text": "6", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000044", "displayOrder": 4, "text": "7", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000012",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "□ + 4 = 10입니다. □에 들어갈 수는 무엇일까요?",
+          "explanation": "6에 4를 더하면 10이므로 빈칸은 6입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000045", "displayOrder": 1, "text": "4", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000046", "displayOrder": 2, "text": "5", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000047", "displayOrder": 3, "text": "6", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000048", "displayOrder": 4, "text": "7", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000013",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "9 - □ = 5입니다. □에 들어갈 수는 무엇일까요?",
+          "explanation": "9에서 4를 빼면 5이므로 빈칸은 4입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000049", "displayOrder": 1, "text": "2", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000050", "displayOrder": 2, "text": "3", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000051", "displayOrder": 3, "text": "4", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000052", "displayOrder": 4, "text": "5", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000014",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "□ + 2 = 7입니다. □에 들어갈 수는 무엇일까요?",
+          "explanation": "5에 2를 더하면 7이므로 빈칸은 5입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000053", "displayOrder": 1, "text": "3", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000054", "displayOrder": 2, "text": "4", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000055", "displayOrder": 3, "text": "5", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000056", "displayOrder": 4, "text": "6", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000015",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "10 - □ = 3입니다. □에 들어갈 수는 무엇일까요?",
+          "explanation": "10에서 7을 빼면 3이므로 빈칸은 7입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000057", "displayOrder": 1, "text": "5", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000058", "displayOrder": 2, "text": "6", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000059", "displayOrder": 3, "text": "7", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000060", "displayOrder": 4, "text": "8", "isCorrect": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "52000000-0000-4000-8000-000000000004",
+      "difficulty": "crown",
+      "title": "이야기로 풀어요",
+      "displayOrder": 4,
+      "questions": [
+        {
+          "id": "53000000-0000-4000-8000-000000000016",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "사과가 3개 있었는데 2개를 더 받았어요. 모두 몇 개일까요?",
+          "explanation": "3개와 2개를 더하면 모두 5개입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000061", "displayOrder": 1, "text": "4개", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000062", "displayOrder": 2, "text": "5개", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000063", "displayOrder": 3, "text": "6개", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000064", "displayOrder": 4, "text": "7개", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000017",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "연필이 7자루 있어요. 10자루가 되려면 몇 자루가 더 필요할까요?",
+          "explanation": "7에 3을 더하면 10이므로 3자루가 더 필요합니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000065", "displayOrder": 1, "text": "1자루", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000066", "displayOrder": 2, "text": "2자루", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000067", "displayOrder": 3, "text": "3자루", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000068", "displayOrder": 4, "text": "4자루", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000018",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "6 + □ = 10입니다. □에 들어갈 수는 무엇일까요?",
+          "explanation": "6에 4를 더하면 10이므로 빈칸은 4입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000069", "displayOrder": 1, "text": "2", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000070", "displayOrder": 2, "text": "3", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000071", "displayOrder": 3, "text": "4", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000072", "displayOrder": 4, "text": "5", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000019",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "공 9개 중에서 2개를 사용했어요. 남은 공은 몇 개일까요?",
+          "explanation": "9에서 2를 빼면 7이므로 공은 7개 남습니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000073", "displayOrder": 1, "text": "5개", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000074", "displayOrder": 2, "text": "6개", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000075", "displayOrder": 3, "text": "7개", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000076", "displayOrder": 4, "text": "8개", "isCorrect": false }
+          ]
+        },
+        {
+          "id": "53000000-0000-4000-8000-000000000020",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "2 + 3 + 4는 얼마일까요?",
+          "explanation": "2와 3을 더한 5에 4를 더하면 9입니다.",
+          "options": [
+            { "id": "54000000-0000-4000-8000-000000000077", "displayOrder": 1, "text": "7", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000078", "displayOrder": 2, "text": "8", "isCorrect": false },
+            { "id": "54000000-0000-4000-8000-000000000079", "displayOrder": 3, "text": "9", "isCorrect": true },
+            { "id": "54000000-0000-4000-8000-000000000080", "displayOrder": 4, "text": "10", "isCorrect": false }
+          ]
+        }
+      ]
+    }
+  ]
+}
