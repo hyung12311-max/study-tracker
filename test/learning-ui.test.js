@@ -7,6 +7,7 @@ const root = path.join(__dirname, "..");
 const learning = fs.readFileSync(path.join(root, "js", "learning.js"), "utf8");
 const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const styles = fs.readFileSync(path.join(root, "css", "styles.css"), "utf8");
 const router = fs.readFileSync(path.join(root, "api", "[...path].js"), "utf8");
 
 test("learning UI uses only authenticated server APIs and explicit selected assignee", () => {
@@ -110,6 +111,14 @@ test("wide option cards keep accessible labels and non-color feedback", () => {
   assert.match(learning, /✓ 정답/);
   assert.match(learning, /✕ 오답/);
   assert.match(html, /aria-label="문제풀이에서 뒤로가기"/);
+});
+
+test("attempt options use responsive grid columns without horizontal scrolling", () => {
+  assert.match(styles, /\.learning-options\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(styles, /@media \(max-width:\s*960px\)\s*\{\s*\.learning-options\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(styles, /@media \(max-width:\s*360px\)\s*\{\s*\.learning-options\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.match(styles, /\.learning-option\s*\{[^}]*min-height:\s*48px/);
+  assert.doesNotMatch(styles, /\.learning-options\s*\{[^}]*(?:overflow-x:\s*(?:auto|scroll)|width:\s*\d+px)/);
 });
 
 test("attempt UI shows server-owned feedback, rewards, unlock, and completion results", () => {
