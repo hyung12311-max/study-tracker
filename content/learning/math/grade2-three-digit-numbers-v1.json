@@ -1048,31 +1048,31 @@
           "id": "463be537-521e-4655-8298-c3d647ec5694",
           "displayOrder": 1,
           "weight": 1,
-          "prompt": "백의 자리 숫자가 4이고 십의 자리 숫자가 0이며 일의 자리 숫자가 6인 수는?",
-          "explanation": "각 자리의 숫자를 차례로 놓으면 406입니다.",
+          "prompt": "430보다 크고 470보다 작으며 일의 자리 숫자는 2입니다. 십의 자리 숫자가 일의 자리 숫자의 2배인 수는?",
+          "explanation": "범위와 일의 자리 조건으로 후보를 좁힙니다. 일의 자리 2의 2배인 4가 십의 자리에 오는 수는 442입니다.",
           "options": [
             {
               "id": "8ffb6318-adda-4457-b592-6b20e3760d45",
               "displayOrder": 1,
-              "text": "460",
-              "isCorrect": false
+              "text": "442",
+              "isCorrect": true
             },
             {
               "id": "062dc9c1-5495-472e-8366-ceec2f53c05e",
               "displayOrder": 2,
-              "text": "406",
-              "isCorrect": true
+              "text": "452",
+              "isCorrect": false
             },
             {
               "id": "6bd1fff6-ff21-40ad-9444-1017b146a7b5",
               "displayOrder": 3,
-              "text": "46",
+              "text": "462",
               "isCorrect": false
             },
             {
               "id": "51f06edf-013d-4231-bf3a-deb611db98c3",
               "displayOrder": 4,
-              "text": "400",
+              "text": "432",
               "isCorrect": false
             }
           ]
@@ -1081,31 +1081,31 @@
           "id": "b79b2ebe-3137-42e5-aadd-0711d2364b08",
           "displayOrder": 2,
           "weight": 1,
-          "prompt": "백이 3개이고 십이 8개이며 일이 2개인 수보다 1 큰 수는?",
-          "explanation": "백 3개와 십 8개와 일 2개인 수는 382이고 그보다 1 큰 수는 383입니다.",
+          "prompt": "600보다 크고 700보다 작은 수입니다. 십의 자리 숫자는 일의 자리 숫자보다 1 작고 두 숫자를 더하면 9입니다. 이 수는?",
+          "explanation": "십의 자리와 일의 자리의 합이 9인 이웃한 숫자는 4와 5입니다. 작은 4를 십의 자리에 놓으면 645입니다.",
           "options": [
             {
               "id": "c864f71a-d92c-48a1-90fb-afabf04245f7",
               "displayOrder": 1,
-              "text": "382",
+              "text": "654",
               "isCorrect": false
             },
             {
               "id": "027dcaf8-b7d8-42f4-b6d7-af6a49b02b3e",
               "displayOrder": 2,
-              "text": "383",
+              "text": "645",
               "isCorrect": true
             },
             {
               "id": "12d6f81c-bbee-431a-97a9-dc6822f8d196",
               "displayOrder": 3,
-              "text": "392",
+              "text": "634",
               "isCorrect": false
             },
             {
               "id": "b3ba38d7-3554-4684-a9f0-a6c6c519f2f7",
               "displayOrder": 4,
-              "text": "482",
+              "text": "643",
               "isCorrect": false
             }
           ]
@@ -1114,32 +1114,32 @@
           "id": "dd91a344-f3e7-4084-ac0b-a2b4aa835633",
           "displayOrder": 3,
           "weight": 1,
-          "prompt": "숫자 2와 0과 7을 한 번씩 써서 만든 가장 큰 세 자리 수는?",
-          "explanation": "가장 큰 숫자부터 백의 자리와 십의 자리와 일의 자리에 놓으면 720입니다.",
+          "prompt": "숫자 카드 3과 6과 8을 각각 한 번씩 써서 세 자리 수를 만듭니다. 만들 수 있는 두 번째로 큰 수는?",
+          "explanation": "가장 큰 수는 863입니다. 그다음에는 백의 자리 8을 유지하고 남은 숫자를 3과 6의 순서로 놓은 836이 옵니다.",
           "options": [
             {
               "id": "664ba395-7842-45f1-a6ab-7e5c2d9fb0c2",
               "displayOrder": 1,
-              "text": "207",
+              "text": "638",
               "isCorrect": false
             },
             {
               "id": "5aef6f03-94c2-4f19-bf0c-91c55ae04aa8",
               "displayOrder": 2,
-              "text": "270",
+              "text": "683",
               "isCorrect": false
             },
             {
               "id": "203761f6-909a-432a-838a-ae3a3d47a099",
               "displayOrder": 3,
-              "text": "702",
-              "isCorrect": false
+              "text": "836",
+              "isCorrect": true
             },
             {
               "id": "d77e72d1-3009-45b4-959f-3965d53b3fb3",
               "displayOrder": 4,
-              "text": "720",
-              "isCorrect": true
+              "text": "863",
+              "isCorrect": false
             }
           ]
         },
@@ -1147,32 +1147,32 @@
           "id": "29c53182-563c-4465-a4fa-bc4af7f0853b",
           "displayOrder": 4,
           "weight": 1,
-          "prompt": "숫자 5와 1과 9를 한 번씩 써서 만든 가장 작은 세 자리 수는?",
-          "explanation": "가장 작은 숫자부터 백의 자리와 십의 자리와 일의 자리에 놓으면 159입니다.",
+          "prompt": "숫자 카드 0과 4와 7을 각각 한 번씩 써서 400보다 큰 세 자리 수를 만듭니다. 그중 가장 작은 수는?",
+          "explanation": "400보다 크면서 가장 작게 하려면 백의 자리에 4를 놓습니다. 남은 숫자 중 작은 0을 십의 자리에 놓으면 407입니다.",
           "options": [
             {
               "id": "651ae889-0777-444e-8ea4-e61307196ba8",
               "displayOrder": 1,
-              "text": "159",
-              "isCorrect": true
+              "text": "047",
+              "isCorrect": false
             },
             {
               "id": "9969ac21-42dc-4562-9175-c45d5a92b965",
               "displayOrder": 2,
-              "text": "195",
+              "text": "470",
               "isCorrect": false
             },
             {
               "id": "3bef1f1b-1f64-46ca-b5bd-2abb152cc64a",
               "displayOrder": 3,
-              "text": "519",
+              "text": "704",
               "isCorrect": false
             },
             {
               "id": "ba09ae27-2358-490b-af82-2a46bf3c28c2",
               "displayOrder": 4,
-              "text": "915",
-              "isCorrect": false
+              "text": "407",
+              "isCorrect": true
             }
           ]
         },
@@ -1180,31 +1180,31 @@
           "id": "1528bab3-d29c-419e-ad04-f311e8aeb846",
           "displayOrder": 5,
           "weight": 1,
-          "prompt": "블록이 100개 묶음 5개와 10개 묶음 3개와 낱개 4개 있습니다. 블록은 모두 몇 개인가요?",
-          "explanation": "100개 묶음 5개는 500개이고 10개 묶음 3개는 30개이므로 낱개 4개와 합하면 534개입니다.",
+          "prompt": "472의 십의 자리와 일의 자리 숫자를 서로 바꿨습니다. 바꾼 수를 바르게 설명한 것은?",
+          "explanation": "십의 자리 7과 일의 자리 2를 바꾸면 427입니다. 427은 420보다 크고 430보다 작습니다.",
           "options": [
             {
               "id": "19d95115-d247-408b-bed3-7b2aaffc8a8a",
               "displayOrder": 1,
-              "text": "503개",
-              "isCorrect": false
+              "text": "420보다 크고 430보다 작습니다.",
+              "isCorrect": true
             },
             {
               "id": "a2247db0-4400-4c5c-956e-f20d6687bbaa",
               "displayOrder": 2,
-              "text": "530개",
+              "text": "470보다 크고 480보다 작습니다.",
               "isCorrect": false
             },
             {
               "id": "66cb87a7-a22a-4fe9-b606-c4afd0626dd4",
               "displayOrder": 3,
-              "text": "534개",
-              "isCorrect": true
+              "text": "백의 자리 숫자가 2입니다.",
+              "isCorrect": false
             },
             {
               "id": "b9b8e099-6b1a-4d34-af54-685af19c6050",
               "displayOrder": 4,
-              "text": "543개",
+              "text": "472보다 큽니다.",
               "isCorrect": false
             }
           ]
@@ -1213,31 +1213,31 @@
           "id": "f8c47bf1-e8a1-4c3a-9b4c-b78f5307f4c1",
           "displayOrder": 6,
           "weight": 1,
-          "prompt": "두 책장에 책이 각각 608권과 680권 있습니다. 책이 더 많은 책장의 책 수는?",
-          "explanation": "백의 자리 수는 같고 십의 자리에서 8이 0보다 크므로 680권이 더 많습니다.",
+          "prompt": "5□7에서 십의 자리와 일의 자리 숫자를 바꾸면 57□가 됩니다. 처음 수가 바꾼 수보다 크고 □가 짝수일 때 □에 알맞은 숫자는?",
+          "explanation": "처음 수가 더 크려면 십의 자리 □가 7보다 커야 합니다. 7보다 큰 짝수는 8이므로 □는 8입니다.",
           "options": [
             {
               "id": "d5ce7866-2d19-47c1-b7ae-9c7974283439",
               "displayOrder": 1,
-              "text": "608권",
+              "text": "6",
               "isCorrect": false
             },
             {
               "id": "830c8924-4807-40c6-9d48-3c5abe57c0ad",
               "displayOrder": 2,
-              "text": "680권",
+              "text": "8",
               "isCorrect": true
             },
             {
               "id": "dc7e189e-71b8-4b4e-811c-73a6cbb09c70",
               "displayOrder": 3,
-              "text": "688권",
+              "text": "4",
               "isCorrect": false
             },
             {
               "id": "114fa42e-0149-4f92-becb-e91f8b05ef08",
               "displayOrder": 4,
-              "text": "806권",
+              "text": "2",
               "isCorrect": false
             }
           ]
@@ -1246,31 +1246,31 @@
           "id": "d9b6e341-7437-47e9-97fc-7bb9dbcd931e",
           "displayOrder": 7,
           "weight": 1,
-          "prompt": "스티커가 100장 묶음 4개와 10장 묶음 7개와 낱장 6장 있습니다. 모두 몇 장인가요?",
-          "explanation": "100장 묶음 4개는 400장이고 10장 묶음 7개는 70장이므로 낱장 6장과 합하면 476장입니다.",
+          "prompt": "100개 묶음 3개와 10개 묶음 12개가 있습니다. 10개 묶음 10개를 100개 묶음 1개로 바꾼 결과는?",
+          "explanation": "10개 묶음 12개에서 10개를 꺼내 100개 묶음 1개로 바꿉니다. 따라서 100개 묶음은 4개가 되고 10개 묶음은 2개가 남습니다.",
           "options": [
             {
               "id": "3a8c0167-d41b-4be2-b227-6758565f356c",
               "displayOrder": 1,
-              "text": "406장",
+              "text": "100개 묶음 3개와 10개 묶음 2개",
               "isCorrect": false
             },
             {
               "id": "cda1fc49-8fdd-4f11-abb2-3625a4f54cbd",
               "displayOrder": 2,
-              "text": "467장",
+              "text": "100개 묶음 3개와 10개 묶음 12개",
               "isCorrect": false
             },
             {
               "id": "bebb3ecc-ddf7-400d-9398-3351e17638c4",
               "displayOrder": 3,
-              "text": "476장",
+              "text": "100개 묶음 4개와 10개 묶음 2개",
               "isCorrect": true
             },
             {
               "id": "a3b98a0a-dc6c-47fe-959f-32d5fad60657",
               "displayOrder": 4,
-              "text": "706장",
+              "text": "100개 묶음 4개와 10개 묶음 12개",
               "isCorrect": false
             }
           ]
@@ -1279,31 +1279,31 @@
           "id": "1311529f-6cfd-4e86-8f69-2003816ed4bc",
           "displayOrder": 8,
           "weight": 1,
-          "prompt": "구슬이 100개 묶음 8개와 낱개 4개 있고 10개 묶음은 없습니다. 구슬은 모두 몇 개인가요?",
-          "explanation": "100개 묶음 8개는 800개이고 10개 묶음은 없으므로 낱개 4개와 합하면 804개입니다.",
+          "prompt": "400+90+10에서 10개 묶음을 바르게 교환해 같은 수로 나타낸 것은?",
+          "explanation": "90과 10을 합하면 10개 묶음이 10개입니다. 이를 100개 묶음 1개로 바꾸면 400과 합해 100개 묶음 5개가 됩니다.",
           "options": [
             {
               "id": "6e81fb46-6e55-4765-a6b7-5b2379acc984",
               "displayOrder": 1,
-              "text": "840개",
-              "isCorrect": false
+              "text": "100개 묶음 5개",
+              "isCorrect": true
             },
             {
               "id": "be3fab36-1ab9-45a6-a06e-188174884468",
               "displayOrder": 2,
-              "text": "804개",
-              "isCorrect": true
+              "text": "100개 묶음 4개와 10개 묶음 9개",
+              "isCorrect": false
             },
             {
               "id": "2043397a-55a0-4551-84d8-c90d703329aa",
               "displayOrder": 3,
-              "text": "84개",
+              "text": "100개 묶음 4개와 낱개 10개",
               "isCorrect": false
             },
             {
               "id": "99b0a0dc-d83a-46e2-bf8b-1489ce4c6f37",
               "displayOrder": 4,
-              "text": "800개",
+              "text": "100개 묶음 5개와 10개 묶음 1개",
               "isCorrect": false
             }
           ]
@@ -1312,32 +1312,32 @@
           "id": "81025ee1-0713-452e-b075-43427981ca8b",
           "displayOrder": 9,
           "weight": 1,
-          "prompt": "352를 바르게 설명한 것은?",
-          "explanation": "3은 백의 자리에 있으므로 300을 나타냅니다.",
+          "prompt": "민수는 507에서 십의 자리 0을 빼고 57이라고 읽었습니다. 잘못된 생각을 바르게 고친 것은?",
+          "explanation": "십의 자리 0은 십 묶음이 없다는 뜻이지 다른 숫자의 자리를 옮기지 않습니다. 7은 일의 자리에 그대로 있으므로 507입니다.",
           "options": [
             {
               "id": "e99280be-9024-431a-899a-cec925619cbf",
               "displayOrder": 1,
-              "text": "백의 자리 숫자 3은 300을 나타냅니다.",
-              "isCorrect": true
+              "text": "5는 백의 자리이고 7은 십의 자리이므로 570입니다.",
+              "isCorrect": false
             },
             {
               "id": "182e6c76-4ebf-4f49-99ab-1d327e463a9b",
               "displayOrder": 2,
-              "text": "십의 자리 숫자 5는 5를 나타냅니다.",
+              "text": "0인 자리는 지워도 되므로 57이 맞습니다.",
               "isCorrect": false
             },
             {
               "id": "71823cd7-8600-43b8-9563-276f8e716782",
               "displayOrder": 3,
-              "text": "일의 자리 숫자는 2이므로 20을 나타냅니다.",
+              "text": "0은 일의 자리가 없다는 뜻이므로 500입니다.",
               "isCorrect": false
             },
             {
               "id": "0e412d7f-1f5c-4bfa-9395-5a9f8ec9656a",
               "displayOrder": 4,
-              "text": "352는 백이 5개인 수입니다.",
-              "isCorrect": false
+              "text": "0은 십이 없다는 뜻이지만 7은 일의 자리에 남으므로 507입니다.",
+              "isCorrect": true
             }
           ]
         },
@@ -1345,31 +1345,31 @@
           "id": "7fa874b1-15d0-401f-bcb3-45b1902d1f63",
           "displayOrder": 10,
           "weight": 1,
-          "prompt": "406을 잘못 설명한 것은?",
-          "explanation": "406의 십의 자리 숫자는 0이므로 십의 자리 숫자가 6이라는 설명이 잘못되었습니다.",
+          "prompt": "지수는 682와 619를 일의 자리부터 비교해 619가 더 크다고 했습니다. 잘못된 비교를 바르게 고친 것은?",
+          "explanation": "세 자리 수는 백의 자리부터 비교합니다. 백의 자리 6은 같고 십의 자리에서 8이 1보다 크므로 682가 더 큽니다.",
           "options": [
             {
               "id": "552ead57-d823-4be1-afb2-91774f82533f",
               "displayOrder": 1,
-              "text": "백의 자리 숫자는 4입니다.",
+              "text": "일의 자리 9가 2보다 크므로 619가 더 큽니다.",
               "isCorrect": false
             },
             {
               "id": "3cec4b35-6b83-4d5e-bc0e-3c2102709902",
               "displayOrder": 2,
-              "text": "십의 자리 숫자는 6입니다.",
+              "text": "백의 자리는 같고 십의 자리 8이 1보다 크므로 682가 더 큽니다.",
               "isCorrect": true
             },
             {
               "id": "487d6df1-03fb-4e9a-bdde-9933f99b7aa6",
               "displayOrder": 3,
-              "text": "일의 자리 숫자는 6입니다.",
+              "text": "백의 자리 6이 같으므로 두 수의 크기는 같습니다.",
               "isCorrect": false
             },
             {
               "id": "4fd24492-9f0d-4480-a130-a2b842dd9f02",
               "displayOrder": 4,
-              "text": "400과 6을 합한 수입니다.",
+              "text": "십의 자리보다 일의 자리를 먼저 비교해야 합니다.",
               "isCorrect": false
             }
           ]

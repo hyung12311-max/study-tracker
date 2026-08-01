@@ -35,6 +35,8 @@ test("recommendation SQL is deterministic, additive, exact, and conflict-safe", 
   assert.match(verification, /learning_recommendation_profile_classification/);
   assert.match(verification, /grade2_recommendation_fixture_v1_question_weights_exact/);
   assert.match(verification, /grade2_recommendation_fixture_v1_pass_threshold_contract/);
+  assert.match(verification, /grade2_recommendation_fixture_v1_make_ten_unit_sort_order_preserved/);
+  assert.match(verification, /grade2_recommendation_fixture_v1_course_unit_sort_orders_unique/);
   assert.match(verification, /elementary_2/);
   assert.match(verification, /'ready'/);
 
@@ -42,7 +44,7 @@ test("recommendation SQL is deterministic, additive, exact, and conflict-safe", 
   assert.match(rollback, /recommendation metadata is missing or changed/);
   assert.match(rollback, /delete from public\.learning_unit_recommendation_metadata/);
   assert.doesNotMatch(rollback, /delete from public\.learning_courses/);
-  for (const artifact of [migration, verification, rollback]) assert.doesNotMatch(artifact, /make[_ -]ten/i);
+  for (const artifact of [migration, rollback]) assert.doesNotMatch(artifact, /make[_ -]ten/i);
   assert.ok(rollback.indexOf("delete from public.learning_unit_recommendation_metadata") < rollback.indexOf("delete from public.learning_question_options"));
 });
 

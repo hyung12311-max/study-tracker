@@ -8,7 +8,12 @@ const { encodeCsv, parseCsv, resolveAllowedOutput, validateAuthoredText } = requ
 const { generateTemplateCsv, QUESTION_HEADERS, STAGES, UNIT_HEADERS } = require("../scripts/generate-learning-content-csv-template");
 const { deterministicUuid, importUnit } = require("../scripts/import-learning-content-csv");
 const { validateLearningContent } = require("../scripts/validate-learning-content");
-const { generateMigration, generateRollback, generateVerification } = require("../scripts/generate-learning-content-migration");
+const {
+  generateMigration,
+  generateRollback,
+  generateVerification,
+  resolveUnitSortOrder,
+} = require("../scripts/generate-learning-content-migration");
 
 const root = path.join(__dirname, "..");
 const curriculum = JSON.parse(fs.readFileSync(path.join(root, "content/learning/curriculum/math/grade-2-2022.json"), "utf8"));
@@ -96,15 +101,29 @@ test("importer creates deterministic 4/40/160 content accepted by existing tools
   const verification = generateVerification(first);
   const rollback = generateRollback(first);
   assert.match(migration, /Content-only and additive/);
+  assert.match(migration, /'grade2-three-digit-numbers', '세 자리 수를 알아봐요', 2\);/);
+  assert.match(migration, /unit sort order already exists/);
   assert.doesNotMatch(migration, /insert into public\.learning_courses/i);
   assert.doesNotMatch(migration, /make[_ -]ten/i);
   assert.doesNotMatch(generateMigration(first), /insert into public\.(?:learning_assignments|learning_attempts|learning_stage_first_passes|sticker_transactions)/i);
   assert.match(verification, /grade2-three-digit-numbers v1 content verification/);
   assert.match(verification, /grade2_three_digit_numbers_v1_question_weights_exact/);
   assert.match(verification, /grade2_three_digit_numbers_v1_pass_threshold_contract/);
-  assert.doesNotMatch(verification, /make[_ -]ten/i);
+  assert.match(verification, /grade2_three_digit_numbers_v1_make_ten_unit_sort_order_preserved/);
+  assert.match(verification, /grade2_three_digit_numbers_v1_course_unit_sort_orders_unique/);
   assert.match(rollback, /where content_version_id =/);
   assert.doesNotMatch(rollback, /make[_ -]ten/i);
+});
+
+test("generator reserves math-core sort order 1 for Make Ten without changing other courses", () => {
+  const grade2 = importUnit({ curriculum, ...preparedRows(), unitSlug: "grade2-three-digit-numbers" });
+  const makeTen = JSON.parse(fs.readFileSync(path.join(root, "content/learning/math/make-ten-v1.json"), "utf8"));
+  const anotherCourse = structuredClone(grade2);
+  anotherCourse.course.id = "00000000-0000-4000-8000-000000000099";
+
+  assert.equal(resolveUnitSortOrder(makeTen), 1);
+  assert.equal(resolveUnitSortOrder(grade2), 2);
+  assert.equal(resolveUnitSortOrder(anotherCourse), 1);
 });
 
 test("importer injects recommendation only from the selected curriculum unit", () => {
