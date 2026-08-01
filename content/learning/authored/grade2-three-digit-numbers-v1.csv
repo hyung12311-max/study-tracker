@@ -1,0 +1,41 @@
+﻿unit_slug,content_version,stage,question_order,question_text,option_1,option_2,option_3,option_4,correct_option,explanation,weight,skill_code,review_status,review_note
+grade2-three-digit-numbers,v1,seed,1,347을 읽은 것은?,삼백사십칠,삼백칠십사,사백삼십칠,삼백사십,1,347은 백의 자리 3과 십의 자리 4와 일의 자리 7로 이루어져 삼백사십칠이라고 읽습니다.,1,read-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,2,608을 읽은 것은?,육백팔,육백팔십,육십팔,팔백육,1,608은 백이 6개이고 십이 0개이며 일이 8개이므로 육백팔이라고 읽습니다.,1,read-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,3,오백이십구를 숫자로 쓴 것은?,592,509,529,259,3,오백은 500이고 이십은 20이며 구는 9이므로 529입니다.,1,write-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,4,칠백사를 숫자로 쓴 것은?,740,714,407,704,4,칠백사는 700과 4를 합한 수이므로 704입니다.,1,write-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,5,백이 4개이고 십이 2개이며 일이 6개인 수는?,246,462,426,406,3,백 4개는 400이고 십 2개는 20이며 일 6개는 6이므로 426입니다.,1,represent-hundreds-tens-ones,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,6,백이 7개이고 십이 0개이며 일이 3개인 수는?,730,73,700,703,4,700에 십 묶음은 없고 일 3개를 더하므로 703입니다.,1,represent-hundreds-tens-ones,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,7,백 묶음 9개와 십 묶음 5개가 나타내는 수는?,905,590,950,95,3,백 묶음 9개는 900이고 십 묶음 5개는 50이므로 950입니다.,1,represent-hundreds-tens-ones,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,8,352의 백의 자리 숫자는?,2,5,300,3,4,352에서 백의 자리에 있는 숫자는 3입니다.,1,identify-place-value,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,9,681에서 십의 자리 숫자 8이 나타내는 값은?,8,80,800,60,2,8은 십의 자리에 있으므로 8이 나타내는 값은 80입니다.,1,identify-place-value,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,seed,10,407의 일의 자리 숫자는?,0,4,7,40,3,407에서 일의 자리에 있는 숫자는 7입니다.,1,identify-place-value,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,1,300과 40과 8을 합한 수는?,348,384,438,308,1,300과 40과 8을 합하면 348입니다.,1,compose-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,2,백이 6개이고 일이 5개이며 십은 없는 수는?,650,65,600,605,4,백 6개는 600이고 십은 0개이며 일 5개를 더하므로 605입니다.,1,compose-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,3,백이 2개이고 십이 9개이며 일이 0개인 수는?,209,920,29,290,4,200과 90을 합하고 일은 더하지 않으므로 290입니다.,1,compose-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,4,572를 바르게 나눈 것은?,500+70+2,500+7+2,50+70+2,500+72+2,1,572는 백 5개와 십 7개와 일 2개이므로 500+70+2입니다.,1,decompose-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,5,406을 바르게 나눈 것은?,400+60,40+6,400+6,400+60+6,3,406은 백 4개와 십 0개와 일 6개이므로 400+6입니다.,1,decompose-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,6,830을 바르게 나눈 것은?,800+3,80+30,800+30+3,800+30,4,830은 백 8개와 십 3개와 일 0개이므로 800+30입니다.,1,decompose-three-digit-number,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,7,764에서 숫자 7이 나타내는 값은?,7,70,700,760,3,7은 백의 자리에 있으므로 700을 나타냅니다.,1,value-of-digit,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,8,295에서 숫자 9가 나타내는 값은?,9,900,20,90,4,9는 십의 자리에 있으므로 90을 나타냅니다.,1,value-of-digit,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,9,509의 십의 자리 숫자는?,0,5,9,50,1,509에는 십 묶음이 없으므로 십의 자리 숫자는 0입니다.,1,understand-zero-placeholder,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,leaf,10,470을 나타내는 식은?,400+7,400+70,40+70,400+70+7,2,470은 백 4개와 십 7개와 일 0개이므로 400+70입니다.,1,understand-zero-placeholder,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,1,438과 483 중 더 큰 수는?,438,483,두 수는 같습니다,알 수 없습니다,2,백의 자리 수가 같으므로 십의 자리를 비교하면 8이 3보다 커서 483이 더 큽니다.,1,compare-three-digit-numbers,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,2,705와 750 중 더 작은 수는?,705,750,두 수는 같습니다,알 수 없습니다,1,백의 자리 수가 같고 십의 자리에서 0이 5보다 작으므로 705가 더 작습니다.,1,compare-three-digit-numbers,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,3,629보다 큰 수는?,592,620,628,692,4,692는 백의 자리 수가 같고 십의 자리 9가 2보다 크므로 629보다 큽니다.,1,compare-three-digit-numbers,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,4,312와 321과 213을 작은 수부터 놓은 것은?,312 → 321 → 213,213 → 312 → 321,213 → 321 → 312,321 → 312 → 213,2,백의 자리부터 비교하면 213이 가장 작고 이어서 312와 321의 순서입니다.,1,order-three-digit-numbers,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,5,546과 465와 564를 큰 수부터 놓은 것은?,564 → 546 → 465,546 → 564 → 465,465 → 546 → 564,564 → 465 → 546,1,백의 자리가 5인 수들이 먼저이고 그중 564가 546보다 크므로 564 → 546 → 465입니다.,1,order-three-digit-numbers,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,6,808과 880과 800을 작은 수부터 놓은 것은?,800 → 808 → 880,808 → 800 → 880,880 → 808 → 800,800 → 880 → 808,1,백의 자리 수는 같고 십과 일의 자리를 차례로 비교하면 800 → 808 → 880입니다.,1,order-three-digit-numbers,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,7,500의 바로 앞 수는?,499,501,490,400,1,500보다 1 작은 수는 499이므로 바로 앞 수는 499입니다.,1,find-predecessor-successor,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,8,799의 바로 뒤 수는?,798,790,800,899,3,799보다 1 큰 수는 800이므로 바로 뒤 수는 800입니다.,1,find-predecessor-successor,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,9,320 → 330 → □ → 350에서 □에 알맞은 수는?,335,340,345,360,2,10씩 커지는 배열이므로 330 다음은 340입니다.,1,complete-number-sequence,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,tree,10,905 → □ → 915 → 920에서 □에 알맞은 수는?,906,908,910,925,3,5씩 커지는 배열이므로 905 다음은 910입니다.,1,complete-number-sequence,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,1,백의 자리 숫자가 4이고 십의 자리 숫자가 0이며 일의 자리 숫자가 6인 수는?,460,406,46,400,2,각 자리의 숫자를 차례로 놓으면 406입니다.,1,apply-place-value,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,2,백이 3개이고 십이 8개이며 일이 2개인 수보다 1 큰 수는?,382,383,392,482,2,백 3개와 십 8개와 일 2개인 수는 382이고 그보다 1 큰 수는 383입니다.,1,apply-place-value,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,3,숫자 2와 0과 7을 한 번씩 써서 만든 가장 큰 세 자리 수는?,207,270,702,720,4,가장 큰 숫자부터 백의 자리와 십의 자리와 일의 자리에 놓으면 720입니다.,1,apply-number-comparison,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,4,숫자 5와 1과 9를 한 번씩 써서 만든 가장 작은 세 자리 수는?,159,195,519,915,1,가장 작은 숫자부터 백의 자리와 십의 자리와 일의 자리에 놓으면 159입니다.,1,apply-number-comparison,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,5,블록이 100개 묶음 5개와 10개 묶음 3개와 낱개 4개 있습니다. 블록은 모두 몇 개인가요?,503개,530개,534개,543개,3,100개 묶음 5개는 500개이고 10개 묶음 3개는 30개이므로 낱개 4개와 합하면 534개입니다.,1,solve-three-digit-number-context,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,6,두 책장에 책이 각각 608권과 680권 있습니다. 책이 더 많은 책장의 책 수는?,608권,680권,688권,806권,2,백의 자리 수는 같고 십의 자리에서 8이 0보다 크므로 680권이 더 많습니다.,1,solve-three-digit-number-context,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,7,스티커가 100장 묶음 4개와 10장 묶음 7개와 낱장 6장 있습니다. 모두 몇 장인가요?,406장,467장,476장,706장,3,100장 묶음 4개는 400장이고 10장 묶음 7개는 70장이므로 낱장 6장과 합하면 476장입니다.,1,solve-three-digit-number-context,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,8,구슬이 100개 묶음 8개와 낱개 4개 있고 10개 묶음은 없습니다. 구슬은 모두 몇 개인가요?,840개,804개,84개,800개,2,100개 묶음 8개는 800개이고 10개 묶음은 없으므로 낱개 4개와 합하면 804개입니다.,1,solve-three-digit-number-context,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,9,352를 바르게 설명한 것은?,백의 자리 숫자 3은 300을 나타냅니다.,십의 자리 숫자 5는 5를 나타냅니다.,일의 자리 숫자는 2이므로 20을 나타냅니다.,352는 백이 5개인 수입니다.,1,3은 백의 자리에 있으므로 300을 나타냅니다.,1,identify-place-value-error,reviewed,수학 정확성 및 아이 관점 교차검토 완료
+grade2-three-digit-numbers,v1,crown,10,406을 잘못 설명한 것은?,백의 자리 숫자는 4입니다.,십의 자리 숫자는 6입니다.,일의 자리 숫자는 6입니다.,400과 6을 합한 수입니다.,2,406의 십의 자리 숫자는 0이므로 십의 자리 숫자가 6이라는 설명이 잘못되었습니다.,1,identify-place-value-error,reviewed,수학 정확성 및 아이 관점 교차검토 완료

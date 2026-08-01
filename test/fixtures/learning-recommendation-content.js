@@ -11,7 +11,6 @@ function recommendationFixture() {
     item.id = `72000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`;
     sequence += 1;
   };
-  replaceId(fixture.course);
   replaceId(fixture.unit);
   replaceId(fixture.version);
   for (const stage of fixture.stages) {
@@ -21,8 +20,6 @@ function recommendationFixture() {
       for (const option of question.options) replaceId(option);
     }
   }
-  fixture.course.slug = "grade2-math";
-  fixture.course.internalName = "Grade 2 Math";
   fixture.unit.slug = "grade2-recommendation-fixture";
   fixture.unit.title = "테스트 단원";
   fixture.unit.displayOrder = 1;

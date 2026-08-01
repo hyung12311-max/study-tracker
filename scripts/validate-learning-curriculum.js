@@ -1,7 +1,14 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const ROOT_FIELDS = ["schemaVersion", "curriculumId", "officialNotice", "officialUrl", "officialGradeBand", "operationalGrade", "subject", "mappingDisclaimer", "units"];
+const ROOT_FIELDS = ["schemaVersion", "curriculumId", "officialNotice", "officialUrl", "officialGradeBand", "operationalGrade", "subject", "course", "mappingDisclaimer", "units"];
+const COURSE_FIELDS = ["id", "slug", "internalName", "subject"];
+const MATH_CORE_COURSE = Object.freeze({
+  id: "51000000-0000-4000-8000-000000000001",
+  slug: "math-core",
+  internalName: "수학 기초 과정",
+  subject: "수학",
+});
 const UNIT_FIELDS = ["semester", "domain", "unitOrder", "catalogOrder", "slug", "title", "internalObjective", "achievementCodes", "prerequisiteUnitSlugs", "recommendationLevel", "recommendation", "status", "sourceNote"];
 const RECOMMENDATION_FIELDS = ["subject", "recommendedStartLevelCode", "recommendedEndLevelCode", "parentSortOrder"];
 const DOMAINS = new Set(["수와 연산", "변화와 관계", "도형과 측정", "자료와 가능성"]);
@@ -39,6 +46,11 @@ function validateCurriculum(curriculum) {
   if (curriculum.officialGradeBand !== "초등학교 1~2학년군") fail("$.officialGradeBand", "must preserve the official 1~2 grade-band scope");
   if (curriculum.operationalGrade !== "초등 2") fail("$.operationalGrade", "must equal 초등 2");
   if (curriculum.subject !== "수학") fail("$.subject", "must equal 수학");
+  if (exact(curriculum.course, COURSE_FIELDS, "$.course")) {
+    for (const [field, expected] of Object.entries(MATH_CORE_COURSE)) {
+      if (curriculum.course[field] !== expected) fail(`$.course.${field}`, `must exactly match the existing math-core ${field}`);
+    }
+  }
   if (!/Study Plus/.test(curriculum.mappingDisclaimer) || !/공식 학년별 단원 순서가 아닙니다/.test(curriculum.mappingDisclaimer)) {
     fail("$.mappingDisclaimer", "must distinguish the Study Plus operating map from an official grade-specific sequence");
   }
@@ -143,4 +155,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { ACHIEVEMENT_CODES, validateCurriculum, loadAndValidateCurriculum };
+module.exports = { ACHIEVEMENT_CODES, MATH_CORE_COURSE, validateCurriculum, loadAndValidateCurriculum };

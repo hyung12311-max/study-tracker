@@ -9,6 +9,12 @@ const FORBIDDEN_CHILD_TEXT = /(학년|교육과정|커리큘럼|content version|
 const RECOMMENDATION_SUBJECTS = ["math"];
 const RECOMMENDATION_LEVELS = ["ready", "elementary_1", "elementary_2", "elementary_3", "elementary_4", "elementary_5", "elementary_6"];
 const MAX_PARENT_SORT_ORDER = 10000;
+const MATH_CORE_COURSE = Object.freeze({
+  id: "51000000-0000-4000-8000-000000000001",
+  slug: "math-core",
+  internalName: "수학 기초 과정",
+  subject: "수학",
+});
 
 const fields = Object.freeze({
   root: ["schemaVersion", "course", "unit", "version", "stages", "recommendation"],
@@ -115,6 +121,9 @@ function validateLearningContent(content) {
   }
   if (Object.hasOwn(content, "recommendation") && exactFields(content.recommendation, "$.recommendation", fields.recommendation)) {
     const recommendation = content.recommendation;
+    for (const [field, expected] of Object.entries(MATH_CORE_COURSE)) {
+      if (content.course?.[field] !== expected) fail(`$.course.${field}`, `must exactly match the existing math-core ${field} when recommendation metadata is present`);
+    }
     if (!RECOMMENDATION_SUBJECTS.includes(recommendation.subject)) {
       fail("$.recommendation.subject", "is not an allowed subject");
     }

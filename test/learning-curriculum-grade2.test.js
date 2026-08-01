@@ -18,8 +18,22 @@ test("grade 2 operating map has 12 ordered units and an explicit official-scope 
     recommendedEndLevelCode: "elementary_2",
     parentSortOrder: index + 1,
   })));
+  assert.deepEqual(source.course, {
+    id: "51000000-0000-4000-8000-000000000001",
+    slug: "math-core",
+    internalName: "수학 기초 과정",
+    subject: "수학",
+  });
   assert.match(source.mappingDisclaimer, /Study Plus/);
   assert.match(source.mappingDisclaimer, /공식 학년별 단원 순서가 아닙니다/);
+});
+
+test("all grade 2 units reuse the exact existing math-core course contract", () => {
+  for (const field of ["id", "slug", "internalName", "subject"]) {
+    const curriculum = structuredClone(source);
+    curriculum.course[field] = field === "slug" ? "math-grade2" : "wrong";
+    assert.match(validateCurriculum(curriculum).errors.join("\n"), new RegExp(`course\\.${field}: must exactly match`));
+  }
 });
 
 test("curriculum validator rejects unknown achievement codes and unknown fields", () => {

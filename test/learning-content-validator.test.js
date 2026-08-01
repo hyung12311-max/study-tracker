@@ -43,6 +43,23 @@ test("validator accepts optional exact recommendation metadata without changing 
   assert.equal(canonicalJson(source), legacyCanonical);
 });
 
+test("recommendation content must reuse the exact existing math-core identity", () => {
+  const content = clone();
+  content.recommendation = {
+    subject: "math",
+    recommendedStartLevelCode: "elementary_2",
+    recommendedEndLevelCode: "elementary_2",
+    parentSortOrder: 1,
+  };
+  content.course.id = "9b0c7ad0-6cc9-470e-9214-0c97eba89ac4";
+  content.course.slug = "math-grade2";
+  content.course.internalName = "Study Plus 초등 수학 2 운영 과정";
+  const errors = validateLearningContent(content).errors.join("\n");
+  assert.match(errors, /course\.id: must exactly match the existing math-core/);
+  assert.match(errors, /course\.slug: must exactly match the existing math-core/);
+  assert.match(errors, /course\.internalName: must exactly match the existing math-core/);
+});
+
 test("validator rejects incomplete, unknown, invalid, reversed, and unsafe recommendation metadata", () => {
   const incomplete = clone();
   incomplete.recommendation = { subject: "math" };

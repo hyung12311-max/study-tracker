@@ -21,6 +21,7 @@ test("recommendation SQL is deterministic, additive, exact, and conflict-safe", 
   assert.deepEqual(first, second);
 
   const [migration, verification, rollback] = first;
+  assert.doesNotMatch(migration, /insert into public\.learning_courses/i);
   assert.match(migration, /insert into public\.learning_unit_recommendation_metadata/);
   assert.match(migration, /recommended_start_level_code[\s\S]*recommended_end_level_code[\s\S]*parent_sort_order/);
   assert.match(migration, /where not exists[\s\S]*learning_unit_recommendation_metadata/);
@@ -32,6 +33,8 @@ test("recommendation SQL is deterministic, additive, exact, and conflict-safe", 
   assert.match(verification, /learning_recommendation_metadata_exact/);
   assert.match(verification, /learning_recommendation_latest_published_unit_once/);
   assert.match(verification, /learning_recommendation_profile_classification/);
+  assert.match(verification, /grade2_recommendation_fixture_v1_question_weights_exact/);
+  assert.match(verification, /grade2_recommendation_fixture_v1_pass_threshold_contract/);
   assert.match(verification, /elementary_2/);
   assert.match(verification, /'ready'/);
 
@@ -39,6 +42,7 @@ test("recommendation SQL is deterministic, additive, exact, and conflict-safe", 
   assert.match(rollback, /recommendation metadata is missing or changed/);
   assert.match(rollback, /delete from public\.learning_unit_recommendation_metadata/);
   assert.doesNotMatch(rollback, /delete from public\.learning_courses/);
+  for (const artifact of [migration, verification, rollback]) assert.doesNotMatch(artifact, /make[_ -]ten/i);
   assert.ok(rollback.indexOf("delete from public.learning_unit_recommendation_metadata") < rollback.indexOf("delete from public.learning_question_options"));
 });
 

@@ -87,14 +87,24 @@ test("importer creates deterministic 4/40/160 content accepted by existing tools
   const second = importUnit({ curriculum, ...secondRows, unitSlug: "grade2-three-digit-numbers" });
   assert.equal(`${JSON.stringify(first, null, 2)}\n`, `${JSON.stringify(second, null, 2)}\n`);
   assert.deepEqual(validateLearningContent(first), { valid: true, errors: [] });
+  assert.deepEqual(first.course, curriculum.course);
+  assert.deepEqual(first.course, JSON.parse(fs.readFileSync(path.join(root, "content/learning/math/make-ten-v1.json"), "utf8")).course);
   assert.deepEqual(first.recommendation, curriculum.units[0].recommendation);
   assert.deepEqual(first.stages.map((stage) => stage.questions.length), [10, 10, 10, 10]);
   assert.equal(first.stages.flatMap((stage) => stage.questions.flatMap((question) => question.options)).length, 160);
-  assert.match(generateMigration(first), /Content-only and additive/);
+  const migration = generateMigration(first);
+  const verification = generateVerification(first);
+  const rollback = generateRollback(first);
+  assert.match(migration, /Content-only and additive/);
+  assert.doesNotMatch(migration, /insert into public\.learning_courses/i);
+  assert.doesNotMatch(migration, /make[_ -]ten/i);
   assert.doesNotMatch(generateMigration(first), /insert into public\.(?:learning_assignments|learning_attempts|learning_stage_first_passes|sticker_transactions)/i);
-  assert.match(generateVerification(first), /grade2-three-digit-numbers v1 content verification/);
-  assert.doesNotMatch(generateVerification(first), /51000000-0000-4000-8000-000000000003/);
-  assert.match(generateRollback(first), /where content_version_id =/);
+  assert.match(verification, /grade2-three-digit-numbers v1 content verification/);
+  assert.match(verification, /grade2_three_digit_numbers_v1_question_weights_exact/);
+  assert.match(verification, /grade2_three_digit_numbers_v1_pass_threshold_contract/);
+  assert.doesNotMatch(verification, /make[_ -]ten/i);
+  assert.match(rollback, /where content_version_id =/);
+  assert.doesNotMatch(rollback, /make[_ -]ten/i);
 });
 
 test("importer injects recommendation only from the selected curriculum unit", () => {
@@ -114,6 +124,14 @@ test("importer injects recommendation only from the selected curriculum unit", (
   const contaminated = structuredClone(curriculum);
   contaminated.units[0].recommendation.actorId = "00000000-0000-4000-8000-000000000001";
   assert.throws(() => importUnit({ curriculum: contaminated, ...preparedRows(), unitSlug: curriculum.units[0].slug }), /actorId: is not allowed/);
+});
+
+test("importer rejects a new grade-specific course identity before content generation", () => {
+  const forbidden = structuredClone(curriculum);
+  forbidden.course.id = "9b0c7ad0-6cc9-470e-9214-0c97eba89ac4";
+  forbidden.course.slug = "math-grade2";
+  forbidden.course.internalName = "Study Plus 초등 수학 2 운영 과정";
+  assert.throws(() => importUnit({ curriculum: forbidden, ...preparedRows(), unitSlug: curriculum.units[0].slug }), /course\.(?:id|slug|internalName): must exactly match/);
 });
 
 test("deterministic UUIDs are stable, valid v4 values, and distinct across canonical keys", () => {

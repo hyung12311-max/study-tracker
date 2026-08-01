@@ -120,12 +120,7 @@ function importUnit({ curriculum, unitsRows, questionRows, unitSlug }) {
 
   const content = {
     schemaVersion: 1,
-    course: {
-      id: deterministicUuid("course", "math-grade2"),
-      slug: "math-grade2",
-      internalName: "Study Plus 초등 수학 2 운영 과정",
-      subject: "수학",
-    },
+    course: { ...curriculum.course },
     unit: {
       id: deterministicUuid("unit", unitSlug),
       slug: unitSlug,

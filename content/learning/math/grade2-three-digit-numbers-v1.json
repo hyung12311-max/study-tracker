@@ -1,0 +1,1380 @@
+{
+  "schemaVersion": 1,
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
+  "unit": {
+    "id": "fe8d3391-2563-4d3a-8b9b-89e19dbf0d79",
+    "slug": "grade2-three-digit-numbers",
+    "title": "세 자리 수를 알아봐요",
+    "displayOrder": 1
+  },
+  "version": {
+    "id": "376377cb-4093-4f29-bc92-5ca42b27a726",
+    "label": "v1",
+    "number": 1
+  },
+  "recommendation": {
+    "subject": "math",
+    "recommendedStartLevelCode": "elementary_2",
+    "recommendedEndLevelCode": "elementary_2",
+    "parentSortOrder": 1
+  },
+  "stages": [
+    {
+      "id": "4d22bc1a-413c-42a0-8dc4-5b9b00b4bd79",
+      "difficulty": "seed",
+      "title": "입문",
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "74cb7602-51a7-485d-a955-6cda8dca913c",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "347을 읽은 것은?",
+          "explanation": "347은 백의 자리 3과 십의 자리 4와 일의 자리 7로 이루어져 삼백사십칠이라고 읽습니다.",
+          "options": [
+            {
+              "id": "a5a2f5a3-c7a5-44ec-be13-298d0fee24df",
+              "displayOrder": 1,
+              "text": "삼백사십칠",
+              "isCorrect": true
+            },
+            {
+              "id": "dd57e04e-928f-4e8f-bfeb-11968e6722ee",
+              "displayOrder": 2,
+              "text": "삼백칠십사",
+              "isCorrect": false
+            },
+            {
+              "id": "efebe57c-0a01-46f9-92fb-2a95b2cf0925",
+              "displayOrder": 3,
+              "text": "사백삼십칠",
+              "isCorrect": false
+            },
+            {
+              "id": "78e6c0b6-26c1-4d45-bcdf-aea7d6495316",
+              "displayOrder": 4,
+              "text": "삼백사십",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "d52ef689-0ec4-4f00-8652-c3d149c8b4d6",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "608을 읽은 것은?",
+          "explanation": "608은 백이 6개이고 십이 0개이며 일이 8개이므로 육백팔이라고 읽습니다.",
+          "options": [
+            {
+              "id": "d12f6874-a422-4a38-828b-7b97e8cb58de",
+              "displayOrder": 1,
+              "text": "육백팔",
+              "isCorrect": true
+            },
+            {
+              "id": "ddd55a35-01c9-437e-8c57-5c76143927db",
+              "displayOrder": 2,
+              "text": "육백팔십",
+              "isCorrect": false
+            },
+            {
+              "id": "8e0246e9-3f12-4eb8-a989-575d2a2ee46d",
+              "displayOrder": 3,
+              "text": "육십팔",
+              "isCorrect": false
+            },
+            {
+              "id": "84e9fdbb-19c6-4424-b9bb-c6ebb31ac3c2",
+              "displayOrder": 4,
+              "text": "팔백육",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "7ae7a5ad-57be-4c25-88b4-eb69693aa38f",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "오백이십구를 숫자로 쓴 것은?",
+          "explanation": "오백은 500이고 이십은 20이며 구는 9이므로 529입니다.",
+          "options": [
+            {
+              "id": "1f741532-fcb4-4195-a570-4869fea1ef39",
+              "displayOrder": 1,
+              "text": "592",
+              "isCorrect": false
+            },
+            {
+              "id": "08e202d0-a02e-477e-a60a-eb881b1d1f6b",
+              "displayOrder": 2,
+              "text": "509",
+              "isCorrect": false
+            },
+            {
+              "id": "202a2494-a986-4070-8d3a-34a7d85c882a",
+              "displayOrder": 3,
+              "text": "529",
+              "isCorrect": true
+            },
+            {
+              "id": "a18f62ef-6038-4456-abd2-70444c9476a6",
+              "displayOrder": 4,
+              "text": "259",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "b3ee2305-6096-4854-8da1-6ee50bba443c",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "칠백사를 숫자로 쓴 것은?",
+          "explanation": "칠백사는 700과 4를 합한 수이므로 704입니다.",
+          "options": [
+            {
+              "id": "89378ac2-7fac-4687-88ae-62a38349b2b7",
+              "displayOrder": 1,
+              "text": "740",
+              "isCorrect": false
+            },
+            {
+              "id": "121c59c9-3793-43aa-b808-397209d2c731",
+              "displayOrder": 2,
+              "text": "714",
+              "isCorrect": false
+            },
+            {
+              "id": "173865a8-378e-4ab1-a11a-8dfdeb9a7e4e",
+              "displayOrder": 3,
+              "text": "407",
+              "isCorrect": false
+            },
+            {
+              "id": "44918797-fb15-4f9f-b9ac-275f9c2130d1",
+              "displayOrder": 4,
+              "text": "704",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "418c89a8-fa82-4972-a286-672d8c7a5765",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "백이 4개이고 십이 2개이며 일이 6개인 수는?",
+          "explanation": "백 4개는 400이고 십 2개는 20이며 일 6개는 6이므로 426입니다.",
+          "options": [
+            {
+              "id": "e3643260-12cb-49e9-b39c-b6b99e479d25",
+              "displayOrder": 1,
+              "text": "246",
+              "isCorrect": false
+            },
+            {
+              "id": "c4658349-658c-43ed-a7b1-e450de1eac6c",
+              "displayOrder": 2,
+              "text": "462",
+              "isCorrect": false
+            },
+            {
+              "id": "244596f5-f822-40e0-8e11-5028ec0ee2bc",
+              "displayOrder": 3,
+              "text": "426",
+              "isCorrect": true
+            },
+            {
+              "id": "d4280586-baae-480f-8353-387d712cd2d0",
+              "displayOrder": 4,
+              "text": "406",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "8ee31fab-9744-4a60-bc14-e832b87bcc7e",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "백이 7개이고 십이 0개이며 일이 3개인 수는?",
+          "explanation": "700에 십 묶음은 없고 일 3개를 더하므로 703입니다.",
+          "options": [
+            {
+              "id": "96fd0453-184c-4674-9538-ab103edaa4c3",
+              "displayOrder": 1,
+              "text": "730",
+              "isCorrect": false
+            },
+            {
+              "id": "989c0021-bf9f-4dd3-89e1-d8997d4e22b1",
+              "displayOrder": 2,
+              "text": "73",
+              "isCorrect": false
+            },
+            {
+              "id": "1ea5f709-ed6e-4f01-8132-9474f0df8015",
+              "displayOrder": 3,
+              "text": "700",
+              "isCorrect": false
+            },
+            {
+              "id": "57c239b9-b4f2-4276-9d50-3fff9582e221",
+              "displayOrder": 4,
+              "text": "703",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "55025c0a-1104-416e-9f30-587b6882747a",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "백 묶음 9개와 십 묶음 5개가 나타내는 수는?",
+          "explanation": "백 묶음 9개는 900이고 십 묶음 5개는 50이므로 950입니다.",
+          "options": [
+            {
+              "id": "7e8abbe9-c2b0-4ab0-a6fa-6d335b9b2245",
+              "displayOrder": 1,
+              "text": "905",
+              "isCorrect": false
+            },
+            {
+              "id": "bdc380e8-bf94-4a48-be62-56e85aea5544",
+              "displayOrder": 2,
+              "text": "590",
+              "isCorrect": false
+            },
+            {
+              "id": "a3bd958a-c9d7-445d-b17e-3be6f5fae9e6",
+              "displayOrder": 3,
+              "text": "950",
+              "isCorrect": true
+            },
+            {
+              "id": "85aa9948-cd3a-43da-926a-88a1a58adf38",
+              "displayOrder": 4,
+              "text": "95",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "30aec327-ca9c-47d5-b510-df173ceead4b",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "352의 백의 자리 숫자는?",
+          "explanation": "352에서 백의 자리에 있는 숫자는 3입니다.",
+          "options": [
+            {
+              "id": "0616980e-6180-422a-aabc-c2f2cd35b3cf",
+              "displayOrder": 1,
+              "text": "2",
+              "isCorrect": false
+            },
+            {
+              "id": "4d72bd98-b5ab-4dcb-b545-948cc3cf46c7",
+              "displayOrder": 2,
+              "text": "5",
+              "isCorrect": false
+            },
+            {
+              "id": "34bbee10-fe6c-4db0-9911-2a66f71f891f",
+              "displayOrder": 3,
+              "text": "300",
+              "isCorrect": false
+            },
+            {
+              "id": "07807354-8132-4823-a1b6-0e3c50810a8a",
+              "displayOrder": 4,
+              "text": "3",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "2e8187a3-bcc6-4eca-b142-d992cd6d6ed0",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "681에서 십의 자리 숫자 8이 나타내는 값은?",
+          "explanation": "8은 십의 자리에 있으므로 8이 나타내는 값은 80입니다.",
+          "options": [
+            {
+              "id": "170cfba9-9ffd-4258-8b7d-dbe72f2cd7cd",
+              "displayOrder": 1,
+              "text": "8",
+              "isCorrect": false
+            },
+            {
+              "id": "70f3c035-0a67-4516-a0ea-2a5ffdb6dfe1",
+              "displayOrder": 2,
+              "text": "80",
+              "isCorrect": true
+            },
+            {
+              "id": "691c525d-57cd-48e4-9507-c506cfb36261",
+              "displayOrder": 3,
+              "text": "800",
+              "isCorrect": false
+            },
+            {
+              "id": "3c90d2de-6f3c-477e-89e6-af143480dc61",
+              "displayOrder": 4,
+              "text": "60",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "fbef1249-082f-4d04-8603-a1eb1b1e217b",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "407의 일의 자리 숫자는?",
+          "explanation": "407에서 일의 자리에 있는 숫자는 7입니다.",
+          "options": [
+            {
+              "id": "0325256e-878b-4dcb-a942-4bf0b6f1e8db",
+              "displayOrder": 1,
+              "text": "0",
+              "isCorrect": false
+            },
+            {
+              "id": "38804556-fa0c-4559-b846-a1339b5b96fe",
+              "displayOrder": 2,
+              "text": "4",
+              "isCorrect": false
+            },
+            {
+              "id": "fd510e2c-99a5-405d-9db3-a699a10c4b60",
+              "displayOrder": 3,
+              "text": "7",
+              "isCorrect": true
+            },
+            {
+              "id": "7f8d395f-6c0e-4538-b88e-038d53617dfe",
+              "displayOrder": 4,
+              "text": "40",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6fc97490-b295-4bcd-a138-36d53c5a7464",
+      "difficulty": "leaf",
+      "title": "기초",
+      "displayOrder": 2,
+      "questions": [
+        {
+          "id": "2bb440ab-b0e5-4c62-85ef-8ac911682f7f",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "300과 40과 8을 합한 수는?",
+          "explanation": "300과 40과 8을 합하면 348입니다.",
+          "options": [
+            {
+              "id": "042cb4a2-affe-43e1-a151-9b41e63a7af3",
+              "displayOrder": 1,
+              "text": "348",
+              "isCorrect": true
+            },
+            {
+              "id": "73735389-9a58-4335-a184-c56545fd739c",
+              "displayOrder": 2,
+              "text": "384",
+              "isCorrect": false
+            },
+            {
+              "id": "224600fa-2b93-44af-8ac9-f17a6c2af42d",
+              "displayOrder": 3,
+              "text": "438",
+              "isCorrect": false
+            },
+            {
+              "id": "add99121-1ee0-4480-95d5-95d4930c924c",
+              "displayOrder": 4,
+              "text": "308",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "58641795-7646-40c6-9e91-13debbb3c9f9",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "백이 6개이고 일이 5개이며 십은 없는 수는?",
+          "explanation": "백 6개는 600이고 십은 0개이며 일 5개를 더하므로 605입니다.",
+          "options": [
+            {
+              "id": "81212197-870e-4586-b822-e9f8d91d90b8",
+              "displayOrder": 1,
+              "text": "650",
+              "isCorrect": false
+            },
+            {
+              "id": "3e125ecf-5cda-4ced-9edc-98f4914a60ea",
+              "displayOrder": 2,
+              "text": "65",
+              "isCorrect": false
+            },
+            {
+              "id": "ea27bbc6-55a0-49e5-90a1-4fcaff3e3a15",
+              "displayOrder": 3,
+              "text": "600",
+              "isCorrect": false
+            },
+            {
+              "id": "e39c0a32-8045-43fe-8cae-92385f83216a",
+              "displayOrder": 4,
+              "text": "605",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "2e3bc924-b52b-4121-8051-116932438076",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "백이 2개이고 십이 9개이며 일이 0개인 수는?",
+          "explanation": "200과 90을 합하고 일은 더하지 않으므로 290입니다.",
+          "options": [
+            {
+              "id": "5527c98e-3403-4203-8d6c-0710e3b89686",
+              "displayOrder": 1,
+              "text": "209",
+              "isCorrect": false
+            },
+            {
+              "id": "65ef7869-d62f-470f-80d8-b7c14d233773",
+              "displayOrder": 2,
+              "text": "920",
+              "isCorrect": false
+            },
+            {
+              "id": "24a25e17-bbd7-4764-b202-3be06368850f",
+              "displayOrder": 3,
+              "text": "29",
+              "isCorrect": false
+            },
+            {
+              "id": "aae0ade9-8127-4fd7-8ca1-7f8377b84084",
+              "displayOrder": 4,
+              "text": "290",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "135de36a-13b2-4743-92b7-f2292508b397",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "572를 바르게 나눈 것은?",
+          "explanation": "572는 백 5개와 십 7개와 일 2개이므로 500+70+2입니다.",
+          "options": [
+            {
+              "id": "d90eb8d6-339b-49f3-8c42-e9650e9552b7",
+              "displayOrder": 1,
+              "text": "500+70+2",
+              "isCorrect": true
+            },
+            {
+              "id": "218f7a78-fb7a-4f61-8fd6-2cc67dadbde6",
+              "displayOrder": 2,
+              "text": "500+7+2",
+              "isCorrect": false
+            },
+            {
+              "id": "1562be98-54c8-4439-b288-a750b83f1759",
+              "displayOrder": 3,
+              "text": "50+70+2",
+              "isCorrect": false
+            },
+            {
+              "id": "0a858041-a23e-457e-b5cd-b4656082b9a2",
+              "displayOrder": 4,
+              "text": "500+72+2",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "c50e3414-c0e6-4053-9a65-b38a451e362c",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "406을 바르게 나눈 것은?",
+          "explanation": "406은 백 4개와 십 0개와 일 6개이므로 400+6입니다.",
+          "options": [
+            {
+              "id": "be28320d-86f2-4034-bfb5-6a98a5e9f7c6",
+              "displayOrder": 1,
+              "text": "400+60",
+              "isCorrect": false
+            },
+            {
+              "id": "71ad5840-439f-46c7-b00c-139dc2a71496",
+              "displayOrder": 2,
+              "text": "40+6",
+              "isCorrect": false
+            },
+            {
+              "id": "e8862274-19c6-4c5d-b818-8bf43cfbdbaa",
+              "displayOrder": 3,
+              "text": "400+6",
+              "isCorrect": true
+            },
+            {
+              "id": "71a3ada4-4268-475d-beab-e7a079166348",
+              "displayOrder": 4,
+              "text": "400+60+6",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "7f42a33f-10d9-4a54-96c9-5f12f73e0237",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "830을 바르게 나눈 것은?",
+          "explanation": "830은 백 8개와 십 3개와 일 0개이므로 800+30입니다.",
+          "options": [
+            {
+              "id": "fc2fa835-d913-4d7f-a0e6-51df155570b8",
+              "displayOrder": 1,
+              "text": "800+3",
+              "isCorrect": false
+            },
+            {
+              "id": "ab0f8899-90e8-4a28-a804-7fa876fb480b",
+              "displayOrder": 2,
+              "text": "80+30",
+              "isCorrect": false
+            },
+            {
+              "id": "b4ae66c8-5fc0-4283-a3cf-f7a87ee63692",
+              "displayOrder": 3,
+              "text": "800+30+3",
+              "isCorrect": false
+            },
+            {
+              "id": "a6084c2c-a4b5-4b00-9dbd-692d4e6280eb",
+              "displayOrder": 4,
+              "text": "800+30",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "cfb0057a-b980-4963-9630-727d02904c3e",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "764에서 숫자 7이 나타내는 값은?",
+          "explanation": "7은 백의 자리에 있으므로 700을 나타냅니다.",
+          "options": [
+            {
+              "id": "51fcb87d-d77c-4201-a69a-927fd5e12d95",
+              "displayOrder": 1,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "735b58f5-2b41-4414-a69b-78582ac811aa",
+              "displayOrder": 2,
+              "text": "70",
+              "isCorrect": false
+            },
+            {
+              "id": "dec9e40a-5db7-4330-b26d-236610f2e8e4",
+              "displayOrder": 3,
+              "text": "700",
+              "isCorrect": true
+            },
+            {
+              "id": "63239d6c-5de5-4353-9d6d-c8615d43f0d2",
+              "displayOrder": 4,
+              "text": "760",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e0bcbacd-8014-4ab4-9e46-df227d25a04f",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "295에서 숫자 9가 나타내는 값은?",
+          "explanation": "9는 십의 자리에 있으므로 90을 나타냅니다.",
+          "options": [
+            {
+              "id": "4bcf9e34-9ec0-452c-a94a-12451a759e69",
+              "displayOrder": 1,
+              "text": "9",
+              "isCorrect": false
+            },
+            {
+              "id": "ce4bb6c4-4c5e-497c-b58e-5663be3514d9",
+              "displayOrder": 2,
+              "text": "900",
+              "isCorrect": false
+            },
+            {
+              "id": "7110d75a-fbc6-42f3-abc9-7f61edd9e64d",
+              "displayOrder": 3,
+              "text": "20",
+              "isCorrect": false
+            },
+            {
+              "id": "e301d273-cc16-48bf-ae83-d2327647cccb",
+              "displayOrder": 4,
+              "text": "90",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "61720902-0df0-4b58-8470-bb251b4b6062",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "509의 십의 자리 숫자는?",
+          "explanation": "509에는 십 묶음이 없으므로 십의 자리 숫자는 0입니다.",
+          "options": [
+            {
+              "id": "e8b011e3-d3ea-4164-bbda-8997184aa542",
+              "displayOrder": 1,
+              "text": "0",
+              "isCorrect": true
+            },
+            {
+              "id": "56ef1403-de19-4233-b683-b3c010667937",
+              "displayOrder": 2,
+              "text": "5",
+              "isCorrect": false
+            },
+            {
+              "id": "71e3bfa1-9e43-4a87-bde2-0e583658a64f",
+              "displayOrder": 3,
+              "text": "9",
+              "isCorrect": false
+            },
+            {
+              "id": "618e9cc1-8d0f-4ba3-9866-0d2702bf9683",
+              "displayOrder": 4,
+              "text": "50",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "ffe15a79-6f93-42d3-bbcc-fa5b8b29d0b4",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "470을 나타내는 식은?",
+          "explanation": "470은 백 4개와 십 7개와 일 0개이므로 400+70입니다.",
+          "options": [
+            {
+              "id": "74363334-09d1-4cc5-8f8e-28c5cb364e3f",
+              "displayOrder": 1,
+              "text": "400+7",
+              "isCorrect": false
+            },
+            {
+              "id": "1e6c5e82-5d8a-4828-a695-f3de7fd9d59d",
+              "displayOrder": 2,
+              "text": "400+70",
+              "isCorrect": true
+            },
+            {
+              "id": "ee8e5d27-d78f-41a1-8b54-bbe0a093f3df",
+              "displayOrder": 3,
+              "text": "40+70",
+              "isCorrect": false
+            },
+            {
+              "id": "98638495-4343-4cdc-a318-7cc00e5552d7",
+              "displayOrder": 4,
+              "text": "400+70+7",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cd4d5705-d872-417a-8d78-3a1f11463e37",
+      "difficulty": "tree",
+      "title": "심화",
+      "displayOrder": 3,
+      "questions": [
+        {
+          "id": "d35086fd-24e4-44a1-9013-590ac84ae7a9",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "438과 483 중 더 큰 수는?",
+          "explanation": "백의 자리 수가 같으므로 십의 자리를 비교하면 8이 3보다 커서 483이 더 큽니다.",
+          "options": [
+            {
+              "id": "232b8072-1a3d-43cb-851d-a24f05da136b",
+              "displayOrder": 1,
+              "text": "438",
+              "isCorrect": false
+            },
+            {
+              "id": "38e1e779-a816-40df-814f-69916a956bc1",
+              "displayOrder": 2,
+              "text": "483",
+              "isCorrect": true
+            },
+            {
+              "id": "b7d28c98-0a26-4342-9d17-28b884368a76",
+              "displayOrder": 3,
+              "text": "두 수는 같습니다",
+              "isCorrect": false
+            },
+            {
+              "id": "115bfe1c-4c10-4f45-958b-afde22cf7410",
+              "displayOrder": 4,
+              "text": "알 수 없습니다",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "684be076-b409-4422-a53c-fa82ccadef81",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "705와 750 중 더 작은 수는?",
+          "explanation": "백의 자리 수가 같고 십의 자리에서 0이 5보다 작으므로 705가 더 작습니다.",
+          "options": [
+            {
+              "id": "e3b704ce-3050-4341-9b62-09c4f31e64b8",
+              "displayOrder": 1,
+              "text": "705",
+              "isCorrect": true
+            },
+            {
+              "id": "7753c30e-49e7-4d36-aa7f-7b2f741f52b6",
+              "displayOrder": 2,
+              "text": "750",
+              "isCorrect": false
+            },
+            {
+              "id": "971534c8-fff8-42d6-8e6c-df9c3c3cda96",
+              "displayOrder": 3,
+              "text": "두 수는 같습니다",
+              "isCorrect": false
+            },
+            {
+              "id": "255e9f8e-874f-4381-a8f4-a487faeabae5",
+              "displayOrder": 4,
+              "text": "알 수 없습니다",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "6a0b6177-848d-41be-8ee0-33c97584f654",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "629보다 큰 수는?",
+          "explanation": "692는 백의 자리 수가 같고 십의 자리 9가 2보다 크므로 629보다 큽니다.",
+          "options": [
+            {
+              "id": "d39cd555-4634-4a80-b86f-54951e908cc3",
+              "displayOrder": 1,
+              "text": "592",
+              "isCorrect": false
+            },
+            {
+              "id": "3e965309-f182-403c-a752-85b6cf72e726",
+              "displayOrder": 2,
+              "text": "620",
+              "isCorrect": false
+            },
+            {
+              "id": "3b841d61-d523-43c9-8be0-f996c5489097",
+              "displayOrder": 3,
+              "text": "628",
+              "isCorrect": false
+            },
+            {
+              "id": "d2a7c1ec-20fd-4e4c-a584-b017510b7696",
+              "displayOrder": 4,
+              "text": "692",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "aab9216b-3e1c-4640-9344-802fedc1c218",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "312와 321과 213을 작은 수부터 놓은 것은?",
+          "explanation": "백의 자리부터 비교하면 213이 가장 작고 이어서 312와 321의 순서입니다.",
+          "options": [
+            {
+              "id": "486be5d0-2f52-4295-a6ce-46c5360e7dcc",
+              "displayOrder": 1,
+              "text": "312 → 321 → 213",
+              "isCorrect": false
+            },
+            {
+              "id": "81765c53-0f50-4b3a-81d2-6cd67bdc9897",
+              "displayOrder": 2,
+              "text": "213 → 312 → 321",
+              "isCorrect": true
+            },
+            {
+              "id": "f9b74b36-7bb8-49ee-b77d-cc7470dd9d32",
+              "displayOrder": 3,
+              "text": "213 → 321 → 312",
+              "isCorrect": false
+            },
+            {
+              "id": "9e4ce6cd-8684-41c9-8352-b278c8c73e19",
+              "displayOrder": 4,
+              "text": "321 → 312 → 213",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "855c16ea-7bed-40f3-8566-dd9306212efc",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "546과 465와 564를 큰 수부터 놓은 것은?",
+          "explanation": "백의 자리가 5인 수들이 먼저이고 그중 564가 546보다 크므로 564 → 546 → 465입니다.",
+          "options": [
+            {
+              "id": "3c46c202-94da-4ca2-9ce6-bf45dae44078",
+              "displayOrder": 1,
+              "text": "564 → 546 → 465",
+              "isCorrect": true
+            },
+            {
+              "id": "62a0200e-594a-4d8c-b1c6-f98002edaecf",
+              "displayOrder": 2,
+              "text": "546 → 564 → 465",
+              "isCorrect": false
+            },
+            {
+              "id": "77876f7d-4eaa-4d9d-8e5d-b2342161d060",
+              "displayOrder": 3,
+              "text": "465 → 546 → 564",
+              "isCorrect": false
+            },
+            {
+              "id": "63d074fe-cb53-402c-85ee-fb9fb81e5842",
+              "displayOrder": 4,
+              "text": "564 → 465 → 546",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "cb364720-372d-4cd4-832f-8c81e3f6627c",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "808과 880과 800을 작은 수부터 놓은 것은?",
+          "explanation": "백의 자리 수는 같고 십과 일의 자리를 차례로 비교하면 800 → 808 → 880입니다.",
+          "options": [
+            {
+              "id": "b0523aa9-296c-4638-97b7-2a2ebdbab489",
+              "displayOrder": 1,
+              "text": "800 → 808 → 880",
+              "isCorrect": true
+            },
+            {
+              "id": "4a70d9bd-6f3d-4e2d-b303-a9b781b90203",
+              "displayOrder": 2,
+              "text": "808 → 800 → 880",
+              "isCorrect": false
+            },
+            {
+              "id": "4b89f109-055b-4712-8de9-c09b0b10a3dd",
+              "displayOrder": 3,
+              "text": "880 → 808 → 800",
+              "isCorrect": false
+            },
+            {
+              "id": "076e51a5-5e7c-47c2-9a17-ec43cdb9bf1e",
+              "displayOrder": 4,
+              "text": "800 → 880 → 808",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "cb16dc05-188e-4398-961c-005bc4965faf",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "500의 바로 앞 수는?",
+          "explanation": "500보다 1 작은 수는 499이므로 바로 앞 수는 499입니다.",
+          "options": [
+            {
+              "id": "41df98d9-b4a2-4286-93a5-e505a9700046",
+              "displayOrder": 1,
+              "text": "499",
+              "isCorrect": true
+            },
+            {
+              "id": "53b41d35-8133-4d0c-b0f0-4942cbdd3f58",
+              "displayOrder": 2,
+              "text": "501",
+              "isCorrect": false
+            },
+            {
+              "id": "9dcb7639-d697-45e7-bfd8-fa214d756f1c",
+              "displayOrder": 3,
+              "text": "490",
+              "isCorrect": false
+            },
+            {
+              "id": "5612898f-2718-4eb3-bcdf-649574396d20",
+              "displayOrder": 4,
+              "text": "400",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "0d5a52ef-ef0b-4987-b7ce-d074ff26d762",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "799의 바로 뒤 수는?",
+          "explanation": "799보다 1 큰 수는 800이므로 바로 뒤 수는 800입니다.",
+          "options": [
+            {
+              "id": "ae6dcae9-abcf-42b6-8b1d-8ed97e4123b1",
+              "displayOrder": 1,
+              "text": "798",
+              "isCorrect": false
+            },
+            {
+              "id": "ca30bafb-cdca-41a5-90df-d785174c88fd",
+              "displayOrder": 2,
+              "text": "790",
+              "isCorrect": false
+            },
+            {
+              "id": "9644c3d3-229e-4d8e-aedd-c784d5fc2c8f",
+              "displayOrder": 3,
+              "text": "800",
+              "isCorrect": true
+            },
+            {
+              "id": "25c6d4e7-0599-4960-b665-1ebc0688cac9",
+              "displayOrder": 4,
+              "text": "899",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a0d84d53-0a52-4837-8601-41b4d7463441",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "320 → 330 → □ → 350에서 □에 알맞은 수는?",
+          "explanation": "10씩 커지는 배열이므로 330 다음은 340입니다.",
+          "options": [
+            {
+              "id": "7704f91b-6a8d-4725-bcdc-43091a887472",
+              "displayOrder": 1,
+              "text": "335",
+              "isCorrect": false
+            },
+            {
+              "id": "2b87a589-f4d3-4d8b-8271-1aee9e82b6d3",
+              "displayOrder": 2,
+              "text": "340",
+              "isCorrect": true
+            },
+            {
+              "id": "d88a1f39-a664-4a36-8b1a-50b8ad0684a1",
+              "displayOrder": 3,
+              "text": "345",
+              "isCorrect": false
+            },
+            {
+              "id": "ee60fad6-bca2-41e9-b619-1cb0b4a5c83c",
+              "displayOrder": 4,
+              "text": "360",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "5d1da955-d9e2-44f4-a5ef-8005e56be778",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "905 → □ → 915 → 920에서 □에 알맞은 수는?",
+          "explanation": "5씩 커지는 배열이므로 905 다음은 910입니다.",
+          "options": [
+            {
+              "id": "8c41d846-cf14-4850-955b-1d94a0acf48d",
+              "displayOrder": 1,
+              "text": "906",
+              "isCorrect": false
+            },
+            {
+              "id": "3468c0d4-0798-4f36-9ac5-515340f111b9",
+              "displayOrder": 2,
+              "text": "908",
+              "isCorrect": false
+            },
+            {
+              "id": "c7102c58-b5b0-4ef0-a46c-9583d190e9df",
+              "displayOrder": 3,
+              "text": "910",
+              "isCorrect": true
+            },
+            {
+              "id": "efce1265-281f-4884-ba96-8e288305c46d",
+              "displayOrder": 4,
+              "text": "925",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2494eb5c-86c4-47f8-8ae2-1d7b8026c240",
+      "difficulty": "crown",
+      "title": "최상위 도전!",
+      "displayOrder": 4,
+      "questions": [
+        {
+          "id": "463be537-521e-4655-8298-c3d647ec5694",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "백의 자리 숫자가 4이고 십의 자리 숫자가 0이며 일의 자리 숫자가 6인 수는?",
+          "explanation": "각 자리의 숫자를 차례로 놓으면 406입니다.",
+          "options": [
+            {
+              "id": "8ffb6318-adda-4457-b592-6b20e3760d45",
+              "displayOrder": 1,
+              "text": "460",
+              "isCorrect": false
+            },
+            {
+              "id": "062dc9c1-5495-472e-8366-ceec2f53c05e",
+              "displayOrder": 2,
+              "text": "406",
+              "isCorrect": true
+            },
+            {
+              "id": "6bd1fff6-ff21-40ad-9444-1017b146a7b5",
+              "displayOrder": 3,
+              "text": "46",
+              "isCorrect": false
+            },
+            {
+              "id": "51f06edf-013d-4231-bf3a-deb611db98c3",
+              "displayOrder": 4,
+              "text": "400",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "b79b2ebe-3137-42e5-aadd-0711d2364b08",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "백이 3개이고 십이 8개이며 일이 2개인 수보다 1 큰 수는?",
+          "explanation": "백 3개와 십 8개와 일 2개인 수는 382이고 그보다 1 큰 수는 383입니다.",
+          "options": [
+            {
+              "id": "c864f71a-d92c-48a1-90fb-afabf04245f7",
+              "displayOrder": 1,
+              "text": "382",
+              "isCorrect": false
+            },
+            {
+              "id": "027dcaf8-b7d8-42f4-b6d7-af6a49b02b3e",
+              "displayOrder": 2,
+              "text": "383",
+              "isCorrect": true
+            },
+            {
+              "id": "12d6f81c-bbee-431a-97a9-dc6822f8d196",
+              "displayOrder": 3,
+              "text": "392",
+              "isCorrect": false
+            },
+            {
+              "id": "b3ba38d7-3554-4684-a9f0-a6c6c519f2f7",
+              "displayOrder": 4,
+              "text": "482",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "dd91a344-f3e7-4084-ac0b-a2b4aa835633",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "숫자 2와 0과 7을 한 번씩 써서 만든 가장 큰 세 자리 수는?",
+          "explanation": "가장 큰 숫자부터 백의 자리와 십의 자리와 일의 자리에 놓으면 720입니다.",
+          "options": [
+            {
+              "id": "664ba395-7842-45f1-a6ab-7e5c2d9fb0c2",
+              "displayOrder": 1,
+              "text": "207",
+              "isCorrect": false
+            },
+            {
+              "id": "5aef6f03-94c2-4f19-bf0c-91c55ae04aa8",
+              "displayOrder": 2,
+              "text": "270",
+              "isCorrect": false
+            },
+            {
+              "id": "203761f6-909a-432a-838a-ae3a3d47a099",
+              "displayOrder": 3,
+              "text": "702",
+              "isCorrect": false
+            },
+            {
+              "id": "d77e72d1-3009-45b4-959f-3965d53b3fb3",
+              "displayOrder": 4,
+              "text": "720",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "29c53182-563c-4465-a4fa-bc4af7f0853b",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "숫자 5와 1과 9를 한 번씩 써서 만든 가장 작은 세 자리 수는?",
+          "explanation": "가장 작은 숫자부터 백의 자리와 십의 자리와 일의 자리에 놓으면 159입니다.",
+          "options": [
+            {
+              "id": "651ae889-0777-444e-8ea4-e61307196ba8",
+              "displayOrder": 1,
+              "text": "159",
+              "isCorrect": true
+            },
+            {
+              "id": "9969ac21-42dc-4562-9175-c45d5a92b965",
+              "displayOrder": 2,
+              "text": "195",
+              "isCorrect": false
+            },
+            {
+              "id": "3bef1f1b-1f64-46ca-b5bd-2abb152cc64a",
+              "displayOrder": 3,
+              "text": "519",
+              "isCorrect": false
+            },
+            {
+              "id": "ba09ae27-2358-490b-af82-2a46bf3c28c2",
+              "displayOrder": 4,
+              "text": "915",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1528bab3-d29c-419e-ad04-f311e8aeb846",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "블록이 100개 묶음 5개와 10개 묶음 3개와 낱개 4개 있습니다. 블록은 모두 몇 개인가요?",
+          "explanation": "100개 묶음 5개는 500개이고 10개 묶음 3개는 30개이므로 낱개 4개와 합하면 534개입니다.",
+          "options": [
+            {
+              "id": "19d95115-d247-408b-bed3-7b2aaffc8a8a",
+              "displayOrder": 1,
+              "text": "503개",
+              "isCorrect": false
+            },
+            {
+              "id": "a2247db0-4400-4c5c-956e-f20d6687bbaa",
+              "displayOrder": 2,
+              "text": "530개",
+              "isCorrect": false
+            },
+            {
+              "id": "66cb87a7-a22a-4fe9-b606-c4afd0626dd4",
+              "displayOrder": 3,
+              "text": "534개",
+              "isCorrect": true
+            },
+            {
+              "id": "b9b8e099-6b1a-4d34-af54-685af19c6050",
+              "displayOrder": 4,
+              "text": "543개",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f8c47bf1-e8a1-4c3a-9b4c-b78f5307f4c1",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "두 책장에 책이 각각 608권과 680권 있습니다. 책이 더 많은 책장의 책 수는?",
+          "explanation": "백의 자리 수는 같고 십의 자리에서 8이 0보다 크므로 680권이 더 많습니다.",
+          "options": [
+            {
+              "id": "d5ce7866-2d19-47c1-b7ae-9c7974283439",
+              "displayOrder": 1,
+              "text": "608권",
+              "isCorrect": false
+            },
+            {
+              "id": "830c8924-4807-40c6-9d48-3c5abe57c0ad",
+              "displayOrder": 2,
+              "text": "680권",
+              "isCorrect": true
+            },
+            {
+              "id": "dc7e189e-71b8-4b4e-811c-73a6cbb09c70",
+              "displayOrder": 3,
+              "text": "688권",
+              "isCorrect": false
+            },
+            {
+              "id": "114fa42e-0149-4f92-becb-e91f8b05ef08",
+              "displayOrder": 4,
+              "text": "806권",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "d9b6e341-7437-47e9-97fc-7bb9dbcd931e",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "스티커가 100장 묶음 4개와 10장 묶음 7개와 낱장 6장 있습니다. 모두 몇 장인가요?",
+          "explanation": "100장 묶음 4개는 400장이고 10장 묶음 7개는 70장이므로 낱장 6장과 합하면 476장입니다.",
+          "options": [
+            {
+              "id": "3a8c0167-d41b-4be2-b227-6758565f356c",
+              "displayOrder": 1,
+              "text": "406장",
+              "isCorrect": false
+            },
+            {
+              "id": "cda1fc49-8fdd-4f11-abb2-3625a4f54cbd",
+              "displayOrder": 2,
+              "text": "467장",
+              "isCorrect": false
+            },
+            {
+              "id": "bebb3ecc-ddf7-400d-9398-3351e17638c4",
+              "displayOrder": 3,
+              "text": "476장",
+              "isCorrect": true
+            },
+            {
+              "id": "a3b98a0a-dc6c-47fe-959f-32d5fad60657",
+              "displayOrder": 4,
+              "text": "706장",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1311529f-6cfd-4e86-8f69-2003816ed4bc",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "구슬이 100개 묶음 8개와 낱개 4개 있고 10개 묶음은 없습니다. 구슬은 모두 몇 개인가요?",
+          "explanation": "100개 묶음 8개는 800개이고 10개 묶음은 없으므로 낱개 4개와 합하면 804개입니다.",
+          "options": [
+            {
+              "id": "6e81fb46-6e55-4765-a6b7-5b2379acc984",
+              "displayOrder": 1,
+              "text": "840개",
+              "isCorrect": false
+            },
+            {
+              "id": "be3fab36-1ab9-45a6-a06e-188174884468",
+              "displayOrder": 2,
+              "text": "804개",
+              "isCorrect": true
+            },
+            {
+              "id": "2043397a-55a0-4551-84d8-c90d703329aa",
+              "displayOrder": 3,
+              "text": "84개",
+              "isCorrect": false
+            },
+            {
+              "id": "99b0a0dc-d83a-46e2-bf8b-1489ce4c6f37",
+              "displayOrder": 4,
+              "text": "800개",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "81025ee1-0713-452e-b075-43427981ca8b",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "352를 바르게 설명한 것은?",
+          "explanation": "3은 백의 자리에 있으므로 300을 나타냅니다.",
+          "options": [
+            {
+              "id": "e99280be-9024-431a-899a-cec925619cbf",
+              "displayOrder": 1,
+              "text": "백의 자리 숫자 3은 300을 나타냅니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "182e6c76-4ebf-4f49-99ab-1d327e463a9b",
+              "displayOrder": 2,
+              "text": "십의 자리 숫자 5는 5를 나타냅니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "71823cd7-8600-43b8-9563-276f8e716782",
+              "displayOrder": 3,
+              "text": "일의 자리 숫자는 2이므로 20을 나타냅니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "0e412d7f-1f5c-4bfa-9395-5a9f8ec9656a",
+              "displayOrder": 4,
+              "text": "352는 백이 5개인 수입니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "7fa874b1-15d0-401f-bcb3-45b1902d1f63",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "406을 잘못 설명한 것은?",
+          "explanation": "406의 십의 자리 숫자는 0이므로 십의 자리 숫자가 6이라는 설명이 잘못되었습니다.",
+          "options": [
+            {
+              "id": "552ead57-d823-4be1-afb2-91774f82533f",
+              "displayOrder": 1,
+              "text": "백의 자리 숫자는 4입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "3cec4b35-6b83-4d5e-bc0e-3c2102709902",
+              "displayOrder": 2,
+              "text": "십의 자리 숫자는 6입니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "487d6df1-03fb-4e9a-bdde-9933f99b7aa6",
+              "displayOrder": 3,
+              "text": "일의 자리 숫자는 6입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "4fd24492-9f0d-4480-a130-a2b842dd9f02",
+              "displayOrder": 4,
+              "text": "400과 6을 합한 수입니다.",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

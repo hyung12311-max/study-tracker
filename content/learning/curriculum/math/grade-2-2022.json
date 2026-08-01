@@ -6,6 +6,12 @@
   "officialGradeBand": "초등학교 1~2학년군",
   "operationalGrade": "초등 2",
   "subject": "수학",
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
   "mappingDisclaimer": "이 파일은 1~2학년군 성취기준을 참고한 Study Plus 초등 2 콘텐츠 운영 지도이며, 국가 교육과정의 공식 학년별 단원 순서가 아닙니다.",
   "units": [
     {
