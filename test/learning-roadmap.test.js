@@ -126,6 +126,7 @@ test("parent roadmap merges the curriculum order with published and assignment s
       availability: "published",
       publishedVersion: { contentVersionId: MAKE_TEN_V2, versionNumber: 2, stageCount: 4 },
       assignmentState: "completed",
+      userStatus: "completed",
       unitCode: "make-ten",
       displayTitle: "10을 만들어요",
       position: "before-curriculum",
@@ -135,7 +136,8 @@ test("parent roadmap merges the curriculum order with published and assignment s
     assert.deepEqual(units.map((unit) => unit.curriculumOrder), Array.from({ length: 12 }, (_, index) => index + 1));
     assert.equal(units[0].unitCode, "grade2-three-digit-numbers");
     assert.equal(units[0].availability, "published");
-    assert.equal(units[0].assignmentState, "active");
+    assert.equal(units[0].assignmentState, "completed");
+    assert.equal(units[0].userStatus, "completed");
     assert.deepEqual(units[0].publishedVersion, {
       contentVersionId: GRADE2_V1,
       versionNumber: 1,
@@ -146,12 +148,32 @@ test("parent roadmap merges the curriculum order with published and assignment s
     assert.equal(units[1].availability, "preparing");
     assert.equal(units[1].publishedVersion, null);
     assert.equal(units[1].assignmentState, "unassigned");
+    assert.equal(units[1].userStatus, "preparing");
     assert.deepEqual(units[2].prerequisiteUnitCodes, ["grade2-three-digit-numbers"]);
     assert.equal(queried.some((path) => /learning_questions|learning_question_options/.test(path)), false);
     assert.equal(response.headers["Cache-Control"], "no-store");
   } finally {
     restore();
   }
+});
+
+test("roadmap exposes one user status with completed, active, and cancelled precedence", () => {
+  const states = roadmapHandler.assignmentStates([
+    { unit_id: "available", status: "cancelled" },
+    { unit_id: "assigned", status: "cancelled" },
+    { unit_id: "assigned", status: "active" },
+    { unit_id: "completed", status: "active" },
+    { unit_id: "completed", status: "completed" },
+  ]);
+  const version = { id: GRADE2_V1 };
+  assert.equal(states.get("available"), undefined);
+  assert.equal(states.get("assigned"), "active");
+  assert.equal(states.get("completed"), "completed");
+  assert.equal(roadmapHandler.userStatus(null, "active"), "preparing");
+  assert.equal(roadmapHandler.userStatus(version, "unassigned"), "available");
+  assert.equal(roadmapHandler.userStatus(version, "active"), "assigned");
+  assert.equal(roadmapHandler.userStatus(version, "completed"), "completed");
+  assert.equal(roadmapHandler.userStatus(version, "cancelled"), "available");
 });
 
 test("child cannot access parent roadmap metadata", async () => {

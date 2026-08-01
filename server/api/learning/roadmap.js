@@ -2,7 +2,7 @@ const curriculum = require("../../../content/learning/curriculum/math/grade-2-20
 const learning = require("./_utils");
 
 const PREPARATION_UNIT_CODES = Object.freeze(["make-ten"]);
-const ASSIGNMENT_STATE_RANK = Object.freeze({ cancelled: 1, completed: 2, active: 3 });
+const ASSIGNMENT_STATE_RANK = Object.freeze({ active: 1, completed: 2 });
 
 function latestPublishedVersions(rows) {
   const latest = new Map();
@@ -34,6 +34,13 @@ function publishedVersionDto(version, stageCount) {
     versionNumber: Number(version.version_no),
     stageCount,
   };
+}
+
+function userStatus(version, assignmentState) {
+  if (!version) return "preparing";
+  if (assignmentState === "completed") return "completed";
+  if (assignmentState === "active") return "assigned";
+  return "available";
 }
 
 async function roadmap(request) {
@@ -87,6 +94,7 @@ async function roadmap(request) {
 
   function dbState(unit) {
     const version = unit && latestByUnit.get(String(unit.id));
+    const assignmentState = unit ? assignmentByUnit.get(String(unit.id)) || "unassigned" : "unassigned";
     return {
       unitId: unit ? String(unit.id) : null,
       availability: version ? "published" : "preparing",
@@ -94,7 +102,8 @@ async function roadmap(request) {
         version,
         version ? stageCounts.get(String(version.id)) || 0 : 0
       ),
-      assignmentState: unit ? assignmentByUnit.get(String(unit.id)) || "unassigned" : "unassigned",
+      assignmentState,
+      userStatus: userStatus(version, assignmentState),
     };
   }
 
@@ -140,3 +149,5 @@ module.exports = async function learningRoadmap(request, response) {
 };
 
 module.exports.roadmap = roadmap;
+module.exports.assignmentStates = assignmentStates;
+module.exports.userStatus = userStatus;

@@ -42,11 +42,12 @@ test("learning UI isolates cache and stale responses by family actor and selecte
 
 test("parent and child have separate learning and attempt areas", () => {
   assert.match(html, /id="parentPanelLearning"/);
-  assert.match(html, /id="learningCatalogList"/);
   assert.match(html, /id="learningProfileForm"/);
-  assert.match(html, /id="learningRecommendedList"/);
   assert.match(html, /id="learningRoadmap"/);
-  assert.match(html, /id="learningAssignmentList"/);
+  assert.match(html, /id="learningRoadmapDetail"/);
+  assert.match(html, /id="learningRoadmapDetailBody"/);
+  assert.doesNotMatch(html, /id="learningCatalogList"|id="learningRecommendedList"/);
+  assert.doesNotMatch(html, /id="learningAssignmentList"/);
   assert.match(html, /id="childLearningSection"/);
   assert.match(html, /id="childLearningAssignmentList"/);
   assert.match(html, /id="childLearningAttemptPanel"/);
@@ -61,7 +62,7 @@ test("parent profile and recommendation UI stays identity-scoped and manual", ()
   assert.match(learning, /requestJson\(`\/api\/learning\/profile\$\{query\}`/);
   assert.match(learning, /body: JSON\.stringify\(\{ assignedMemberId, subject: "수학", level \}\)/);
   assert.match(learning, /profile = null;[\s\S]*profileReady = false;/);
-  assert.match(learning, /catalog\.filter\(\(item\) => item\.recommended\)/);
+  assert.match(learning, /catalog\.some\(\(catalogItem\) => catalogItem\.unitId === item\.unitId && catalogItem\.recommended\)/);
   assert.match(learning, /learning-recommendation-badge/);
   assert.doesNotMatch(learning, /elementary_[1-6]|learning_member_subject_profiles|upsert_learning_member_subject_profile/);
 });
@@ -83,13 +84,58 @@ test("parent roadmap renders foundation separately and the curriculum order from
   assert.match(learning, /roadmap\.preparationUnits/);
   assert.match(learning, /roadmap\.curriculumUnits/);
   assert.match(learning, /item\.curriculumOrder/);
-  assert.match(learning, /roadmapAvailabilityLabels/);
+  assert.match(learning, /roadmapStatusLabels/);
   assert.match(learning, /preparing: "준비 중"/);
   assert.doesNotMatch(learning, /grade2-(?:three-digit-numbers|shapes|addition-subtraction|measuring-length)/);
 });
 
+test("roadmap cards show one authoritative status without conflicting assignment metadata", () => {
+  const card = learning.match(/function roadmapCard\(item, preparation = false\)[\s\S]*?\n  function roadmapStages/)?.[0] || "";
+  assert.match(learning, /available: "배정 가능"/);
+  assert.match(learning, /assigned: "배정됨"/);
+  assert.match(learning, /completed: "완료"/);
+  assert.equal((card.match(/learning-roadmap-status/g) || []).length, 1);
+  assert.doesNotMatch(card, /미배정|진행 중|초등 2|단계|선행 단원|data-learning-action="assign"/);
+  assert.match(card, /data-learning-action="select-roadmap-unit"/);
+  assert.match(card, /aria-pressed="\$\{selected\}"/);
+  assert.match(card, /✓ 선택됨/);
+});
+
+test("roadmap uses one selection-driven detail and never auto-opens a recommendation", () => {
+  const detail = learning.match(/function renderRoadmapDetail\(\)[\s\S]*?\n  function renderRoadmap\(\)/)?.[0] || "";
+  assert.match(html, /학습할 단원을 선택해 주세요\./);
+  assert.match(learning, /let selectedRoadmapUnitCode = ""/);
+  assert.match(learning, /button\.dataset\.learningAction === "select-roadmap-unit"/);
+  assert.match(learning, /selectedRoadmapUnitCode = button\.dataset\.unitCode/);
+  assert.match(learning, /data-unit-code="\$\{escapeHtml\(item\.unitCode\)\}"/);
+  assert.match(detail, /selectedRoadmapItem\(\)/);
+  assert.match(detail, /item\.userStatus === "preparing"/);
+  assert.match(detail, /아직 문제를 준비하고 있어요\. 콘텐츠가 공개되면 배정할 수 있습니다\./);
+  assert.match(detail, /item\.userStatus === "available" && catalogItem/);
+  assert.match(detail, /data-learning-action="assign"/);
+  assert.match(detail, /item\.userStatus === "assigned"/);
+  assert.match(detail, /이미 배정된 단원입니다\./);
+  assert.match(detail, /완료한 단원입니다\./);
+  assert.doesNotMatch(learning, /selectedRoadmapUnitCode\s*=\s*[^;]*recommended/);
+});
+
+test("roadmap detail keeps four-stage previews and responsive master-detail styles", () => {
+  assert.match(learning, /function roadmapStages\(stages = \[\], assignment = null\)/);
+  assert.match(learning, /stageDisplayTitle\(stage\)/);
+  assert.match(learning, /title !== label \? `\$\{label\} · \$\{title\}` : title/);
+  assert.match(styles, /\.learning-roadmap-stage-list\s*\{[^}]*repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*\.learning-roadmap-stage-list\s*\{[^}]*repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(styles, /@media \(max-width: 360px\)[\s\S]*\.learning-roadmap-stage-list\s*\{[^}]*minmax\(0,1fr\)/);
+  assert.match(styles, /\.learning-roadmap-card:focus-visible/);
+  assert.match(styles, /\.learning-roadmap-card\[aria-pressed="true"\]/);
+  assert.doesNotMatch(html, /현재 배정 및 진행 상태/);
+  assert.match(learning, /roadmapStages\(stages, assignment\)/);
+  assert.match(learning, /data-learning-action="cancel"/);
+  assert.match(learning, /data-learning-action="abandon-attempt"/);
+});
+
 test("stage cards show one canonical display title instead of duplicate difficulty and title", () => {
-  const stageList = learning.match(/function stageList\(stages = \[\], assignment, parent\)[\s\S]*?\n  function catalogCard/)?.[0] || "";
+  const stageList = learning.match(/function stageList\(stages = \[\], assignment, parent\)[\s\S]*?\n  function roadmapCard/)?.[0] || "";
   assert.match(learning, /function stageDisplayTitle\(stage\)/);
   assert.match(stageList, /<strong>\$\{escapeHtml\(stageDisplayTitle\(stage\)\)\}<\/strong>/);
   assert.doesNotMatch(stageList, /<span>\$\{escapeHtml\(difficultyLabels\[stage\.difficulty\]/);
@@ -200,8 +246,8 @@ test("parent reset is confirmed and scoped to selected child", () => {
   assert.match(learning, /requestGeneration === generation && requestIdentity === identity\(\)/);
 });
 
-test("catalog and assignment empty states are explicit", () => {
-  assert.match(learning, /현재 배정 가능한 문제풀이 단원이 없습니다/);
+test("roadmap selection and assignment empty states are explicit", () => {
+  assert.match(learning, /학습할 단원을 선택해 주세요/);
   assert.match(learning, /아직 배정된 문제풀이 단원이 없습니다/);
   assert.match(learning, /담당 자녀를 선택하면/);
 });

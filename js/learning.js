@@ -19,16 +19,11 @@ const assignmentStatusLabels = {
   cancelled: "배정 취소",
 };
 
-const roadmapAvailabilityLabels = {
-  published: "배정 가능",
+const roadmapStatusLabels = {
   preparing: "준비 중",
-};
-
-const roadmapAssignmentLabels = {
-  unassigned: "미배정",
-  active: "진행 중",
+  available: "배정 가능",
+  assigned: "배정됨",
   completed: "완료",
-  cancelled: "배정 취소",
 };
 
 function escapeHtml(value) {
@@ -42,7 +37,9 @@ function escapeHtml(value) {
 
 function stageDisplayTitle(stage) {
   const title = String(stage?.title || "").trim();
-  return title || difficultyLabels[stage?.difficulty] || "단계";
+  const label = difficultyLabels[stage?.difficulty] || "";
+  if (!title) return label || "단계";
+  return label && title !== label ? `${label} · ${title}` : title;
 }
 
 export function initLearning({
@@ -57,6 +54,8 @@ export function initLearning({
   let generation = 0;
   let catalog = [];
   let roadmap = null;
+  let selectedRoadmapUnitCode = "";
+  let roadmapSelectionIdentity = "";
   let assignments = [];
   let profile = null;
   let profileReady = false;
@@ -93,41 +92,69 @@ export function initLearning({
     `).join("")}</ol>`;
   }
 
-  function catalogCard(item) {
-    const key = `assign:${item.contentVersionId}`;
-    const busy = pending.has(key);
-    return `<article class="learning-card">
-      <header><div><small>${escapeHtml(item.course.subjectName)} · ${escapeHtml(item.course.internalName)}</small><h4>${escapeHtml(item.unitTitle)}</h4></div><span class="${item.recommended ? "learning-recommendation-badge" : ""}">${item.recommended ? "추천" : `${item.stageCount}단계`}</span></header>
-      ${stageList(item.stages, item, true)}
-      <button type="button" class="primary" data-learning-action="assign" data-unit-id="${item.unitId}" data-version-id="${item.contentVersionId}" ${item.alreadyAssigned || busy ? "disabled" : ""}>
-        ${item.alreadyAssigned ? "배정됨" : busy ? "배정 중…" : "이 단원 배정"}
-      </button>
-    </article>`;
+  function roadmapCard(item, preparation = false) {
+    const selected = selectedRoadmapUnitCode === item.unitCode;
+    const recommended = catalog.some((catalogItem) => catalogItem.unitId === item.unitId && catalogItem.recommended);
+    const status = roadmapStatusLabels[item.userStatus] || "준비 중";
+    return `<button type="button" class="learning-roadmap-card learning-roadmap-card-${escapeHtml(item.userStatus)}" data-learning-action="select-roadmap-unit" data-unit-code="${escapeHtml(item.unitCode)}" aria-pressed="${selected}" aria-controls="learningRoadmapDetailBody">
+      <span class="learning-roadmap-card-head">
+        <span class="learning-roadmap-position">${preparation ? "기초 준비" : `${item.curriculumOrder}`}</span>
+        <span class="learning-roadmap-status">${escapeHtml(status)}</span>
+      </span>
+      <strong>${escapeHtml(item.displayTitle)}</strong>
+      ${recommended ? '<span class="learning-recommendation-badge">추천</span>' : ""}
+      ${selected ? '<span class="learning-roadmap-selected-indicator" aria-hidden="true">✓ 선택됨</span>' : ""}
+    </button>`;
   }
 
-  function roadmapCard(item, preparation = false) {
-    const preparing = item.availability !== "published";
-    const assignmentLabel = roadmapAssignmentLabels[item.assignmentState] || "미배정";
-    const stageCount = item.publishedVersion?.stageCount || 0;
-    const prerequisiteCount = item.prerequisiteUnitCodes?.length || 0;
-    return `<article class="learning-roadmap-card${preparing ? " learning-roadmap-card-preparing" : ""}">
-      <header>
-        <span class="learning-roadmap-position">${preparation ? "기초 준비" : `${item.curriculumOrder}`}</span>
-        <span class="learning-roadmap-availability">${escapeHtml(roadmapAvailabilityLabels[item.availability] || "준비 중")}</span>
-      </header>
-      <h6>${escapeHtml(item.displayTitle)}</h6>
-      <div class="learning-roadmap-meta">
-        <span>${escapeHtml(assignmentLabel)}</span>
-        ${preparing ? "" : `<span>${escapeHtml(item.recommendationLevel || "")}</span>`}
-        ${stageCount ? `<span>${stageCount}단계</span>` : ""}
-        ${prerequisiteCount ? `<span>선행 단원 ${prerequisiteCount}개</span>` : ""}
-      </div>
+  function roadmapStages(stages = [], assignment = null) {
+    return `<ol class="learning-roadmap-stage-list">${stages.map((stage) => `<li><strong>${escapeHtml(stageDisplayTitle(stage))}</strong>${stage.status ? `<span>${escapeHtml(stageStatusLabels[stage.status] || "잠김")}</span>` : ""}${assignment && stage.attempt?.status === "in_progress" ? `<button type="button" class="delete-btn" data-learning-action="abandon-attempt" data-assignment-id="${assignment.id}" data-attempt-id="${stage.attempt.id}">응시 초기화</button>` : ""}</li>`).join("")}</ol>`;
+  }
+
+  function selectedRoadmapItem() {
+    return [...(roadmap?.preparationUnits || []), ...(roadmap?.curriculumUnits || [])]
+      .find((item) => item.unitCode === selectedRoadmapUnitCode) || null;
+  }
+
+  function renderRoadmapDetail() {
+    const body = document.querySelector("#learningRoadmapDetailBody");
+    if (!body) return;
+    const item = selectedRoadmapItem();
+    if (!item) {
+      body.innerHTML = '<p class="learning-empty">학습할 단원을 선택해 주세요.</p>';
+      return;
+    }
+    const catalogItem = catalog.find((entry) => entry.unitId === item.unitId) || null;
+    const matchingAssignments = assignments.filter((entry) => entry.unitId === item.unitId);
+    const assignment = item.userStatus === "completed"
+      ? matchingAssignments.find((entry) => entry.status === "completed")
+      : matchingAssignments.find((entry) => entry.status === "active");
+    const stages = assignment?.stages || catalogItem?.stages || [];
+    const status = roadmapStatusLabels[item.userStatus] || "준비 중";
+    const key = catalogItem ? `assign:${catalogItem.contentVersionId}` : "";
+    const busy = key && pending.has(key);
+    if (item.userStatus === "preparing") {
+      body.innerHTML = `<article class="learning-roadmap-detail-card"><header><h6>${escapeHtml(item.displayTitle)}</h6><span class="learning-roadmap-status">${status}</span></header><p>아직 문제를 준비하고 있어요. 콘텐츠가 공개되면 배정할 수 있습니다.</p></article>`;
+      return;
+    }
+    const cancelKey = assignment ? `cancel:${assignment.id}` : "";
+    const cancelling = cancelKey && pending.has(cancelKey);
+    const action = item.userStatus === "available" && catalogItem
+      ? `<button type="button" class="primary" data-learning-action="assign" data-unit-id="${catalogItem.unitId}" data-version-id="${catalogItem.contentVersionId}" ${busy ? "disabled" : ""}>${busy ? "배정 중…" : "이 단원 배정"}</button>`
+      : item.userStatus === "assigned"
+        ? `<div class="learning-roadmap-detail-actions"><p class="learning-roadmap-assigned-note">이미 배정된 단원입니다.</p>${assignment ? `<button type="button" class="delete-btn" data-learning-action="cancel" data-assignment-id="${assignment.id}" ${cancelling ? "disabled" : ""}>${cancelling ? "취소 중…" : "배정 취소"}</button>` : ""}</div>`
+        : '<p class="learning-roadmap-completed-note">완료한 단원입니다.</p>';
+    body.innerHTML = `<article class="learning-roadmap-detail-card">
+      <header><div><small>${escapeHtml(roadmap.course?.subject || "")} · ${escapeHtml(roadmap.course?.displayName || "")}</small><h6>${escapeHtml(item.displayTitle)}</h6></div><span class="learning-roadmap-status">${status}</span></header>
+      ${roadmapStages(stages, assignment)}
+      ${action}
     </article>`;
   }
 
   function renderRoadmap() {
     const container = document.querySelector("#learningRoadmap");
     if (!container) return;
+    renderRoadmapDetail();
     if (loading) {
       container.innerHTML = '<p class="learning-empty">교육 단원 맵을 불러오는 중입니다.</p>';
       return;
@@ -157,6 +184,7 @@ export function initLearning({
         <h5>초등 2학년 정규 12단원</h5>
         <div class="learning-roadmap-grid">${curriculumUnits.map((item) => roadmapCard(item)).join("")}</div>
       </section>`;
+    renderRoadmapDetail();
   }
 
   function renderProfile() {
@@ -183,40 +211,6 @@ export function initLearning({
       status.textContent = profile ? `${profile.subject} · ${profile.level} 기준으로 추천합니다.` : "설정 전입니다. 부모님이 시작 기준을 선택해 주세요.";
     }
     save.textContent = saving ? "저장 중…" : "저장";
-  }
-
-  function renderCatalog() {
-    const list = document.querySelector("#learningCatalogList");
-    const recommendedList = document.querySelector("#learningRecommendedList");
-    if (!list || !recommendedList) return;
-    if (loading) {
-      list.innerHTML = '<p class="learning-empty">배정 가능한 단원을 불러오는 중입니다.</p>';
-      recommendedList.innerHTML = '<p class="learning-empty">추천 단원을 확인하는 중입니다.</p>';
-      return;
-    }
-    if (error) {
-      list.innerHTML = `<p class="learning-error">${escapeHtml(error)}</p>`;
-      recommendedList.innerHTML = "";
-      return;
-    }
-    if (!selectedAssignee()) {
-      list.innerHTML = '<p class="learning-empty">담당 자녀를 선택하면 배정 가능한 단원을 확인할 수 있어요.</p>';
-      recommendedList.innerHTML = '<p class="learning-empty">담당 자녀를 선택해 주세요.</p>';
-      return;
-    }
-    if (!catalog.length) {
-      list.innerHTML = '<p class="learning-empty">현재 배정 가능한 문제풀이 단원이 없습니다.</p>';
-      recommendedList.innerHTML = '<p class="learning-empty">현재 추천 가능한 단원이 없습니다.</p>';
-      return;
-    }
-    const recommended = catalog.filter((item) => item.recommended);
-    const others = catalog.filter((item) => !item.recommended);
-    recommendedList.innerHTML = recommended.length
-      ? recommended.map(catalogCard).join("")
-      : `<p class="learning-empty">${profile ? "현재 기준에 맞는 추천 단원이 없습니다." : "학습 기준을 설정하면 추천 단원을 먼저 보여 드려요."}</p>`;
-    list.innerHTML = others.length
-      ? others.map(catalogCard).join("")
-      : '<p class="learning-empty">추천 외 다른 단원이 없습니다.</p>';
   }
 
   function renderAssignments(parent) {
@@ -370,9 +364,7 @@ export function initLearning({
     const childSection = document.querySelector("#childLearningSection");
     if (childSection) childSection.hidden = member?.role !== "child";
     renderRoadmap();
-    renderCatalog();
     renderProfile();
-    renderAssignments(true);
     renderAssignments(false);
     renderAttempt();
     const parentPanel = document.querySelector("#parentPanelLearning");
@@ -560,6 +552,10 @@ export function initLearning({
     const member = currentMember();
     const requestIdentity = identity();
     const requestGeneration = ++generation;
+    if (roadmapSelectionIdentity !== requestIdentity) {
+      selectedRoadmapUnitCode = "";
+      roadmapSelectionIdentity = requestIdentity;
+    }
     if (attemptIdentity && attemptIdentity !== requestIdentity) {
       attempt = null;
       attemptContext = null;
@@ -738,6 +734,11 @@ export function initLearning({
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-learning-action]");
     if (!button || button.disabled) return;
+    if (button.dataset.learningAction === "select-roadmap-unit") {
+      selectedRoadmapUnitCode = button.dataset.unitCode || "";
+      roadmapSelectionIdentity = identity();
+      renderRoadmap();
+    }
     if (button.dataset.learningAction === "assign") assign(button);
     if (button.dataset.learningAction === "cancel") cancel(button);
     if (button.dataset.learningAction === "start-attempt" || button.dataset.learningAction === "retry-attempt") startAttempt(button);
@@ -781,6 +782,8 @@ export function initLearning({
       generation += 1;
       catalog = [];
       roadmap = null;
+      selectedRoadmapUnitCode = "";
+      roadmapSelectionIdentity = "";
       assignments = [];
       profile = null;
       profileReady = false;
