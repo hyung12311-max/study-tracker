@@ -21,6 +21,7 @@ test("learning UI uses only authenticated server APIs and explicit selected assi
 
 test("Vercel API router exposes assignment and scoped attempt routes", () => {
   assert.match(router, /"learning\/catalog": learningCatalog/);
+  assert.match(router, /"learning\/roadmap": learningRoadmap/);
   assert.match(router, /"learning\/profile": learningProfile/);
   assert.match(router, /"learning\/assignments": learningAssignments/);
   assert.match(router, /\^learning\\\/assignments\\\/\(\[0-9a-f-\]\+\)\\\/cancel\$/);
@@ -44,6 +45,7 @@ test("parent and child have separate learning and attempt areas", () => {
   assert.match(html, /id="learningCatalogList"/);
   assert.match(html, /id="learningProfileForm"/);
   assert.match(html, /id="learningRecommendedList"/);
+  assert.match(html, /id="learningRoadmap"/);
   assert.match(html, /id="learningAssignmentList"/);
   assert.match(html, /id="childLearningSection"/);
   assert.match(html, /id="childLearningAssignmentList"/);
@@ -70,6 +72,27 @@ test("child cards do not render course, grade, or content version metadata", () 
   assert.match(renderAssignments, /parentMeta/);
   assert.doesNotMatch(renderAssignments, /grade|contentVersionId|version_no|internal_name/);
   assert.match(renderAssignments, /stageList\(assignment\.stages, assignment, parent\)/);
+  assert.match(learning, /member\.role === "parent"[\s\S]*\/api\/learning\/roadmap/);
+  assert.match(learning, /Promise\.resolve\(\{ roadmap: null \}\)/);
+});
+
+test("parent roadmap renders foundation separately and the curriculum order from the server model", () => {
+  assert.match(learning, /function renderRoadmap\(\)/);
+  assert.match(learning, /<h5>기초 준비<\/h5>/);
+  assert.match(learning, /<h5>초등 2학년 정규 12단원<\/h5>/);
+  assert.match(learning, /roadmap\.preparationUnits/);
+  assert.match(learning, /roadmap\.curriculumUnits/);
+  assert.match(learning, /item\.curriculumOrder/);
+  assert.match(learning, /roadmapAvailabilityLabels/);
+  assert.match(learning, /preparing: "준비 중"/);
+  assert.doesNotMatch(learning, /grade2-(?:three-digit-numbers|shapes|addition-subtraction|measuring-length)/);
+});
+
+test("stage cards show one canonical display title instead of duplicate difficulty and title", () => {
+  const stageList = learning.match(/function stageList\(stages = \[\], assignment, parent\)[\s\S]*?\n  function catalogCard/)?.[0] || "";
+  assert.match(learning, /function stageDisplayTitle\(stage\)/);
+  assert.match(stageList, /<strong>\$\{escapeHtml\(stageDisplayTitle\(stage\)\)\}<\/strong>/);
+  assert.doesNotMatch(stageList, /<span>\$\{escapeHtml\(difficultyLabels\[stage\.difficulty\]/);
 });
 
 test("learning mutations use CSRF, duplicate-click guards, and refresh only current identity", () => {

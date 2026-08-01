@@ -19,6 +19,18 @@ const assignmentStatusLabels = {
   cancelled: "배정 취소",
 };
 
+const roadmapAvailabilityLabels = {
+  published: "배정 가능",
+  preparing: "준비 중",
+};
+
+const roadmapAssignmentLabels = {
+  unassigned: "미배정",
+  active: "진행 중",
+  completed: "완료",
+  cancelled: "배정 취소",
+};
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -26,6 +38,11 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function stageDisplayTitle(stage) {
+  const title = String(stage?.title || "").trim();
+  return title || difficultyLabels[stage?.difficulty] || "단계";
 }
 
 export function initLearning({
@@ -39,6 +56,7 @@ export function initLearning({
 }) {
   let generation = 0;
   let catalog = [];
+  let roadmap = null;
   let assignments = [];
   let profile = null;
   let profileReady = false;
@@ -65,8 +83,7 @@ export function initLearning({
   function stageList(stages = [], assignment, parent) {
     return `<ol class="learning-stage-list">${stages.map((stage) => `
       <li class="learning-stage learning-stage-${escapeHtml(stage.status || "locked")}">
-        <span>${escapeHtml(difficultyLabels[stage.difficulty] || "단계")}</span>
-        <strong>${escapeHtml(stage.title)}</strong>
+        <strong>${escapeHtml(stageDisplayTitle(stage))}</strong>
         <div class="learning-stage-actions">
           <small>${stageStatusLabels[stage.status] || "잠김"}</small>
           ${parent && stage.attempt?.status === "in_progress" ? `<button type="button" class="delete-btn" data-learning-action="abandon-attempt" data-assignment-id="${assignment.id}" data-attempt-id="${stage.attempt.id}">응시 초기화</button>` : ""}
@@ -86,6 +103,60 @@ export function initLearning({
         ${item.alreadyAssigned ? "배정됨" : busy ? "배정 중…" : "이 단원 배정"}
       </button>
     </article>`;
+  }
+
+  function roadmapCard(item, preparation = false) {
+    const preparing = item.availability !== "published";
+    const assignmentLabel = roadmapAssignmentLabels[item.assignmentState] || "미배정";
+    const stageCount = item.publishedVersion?.stageCount || 0;
+    const prerequisiteCount = item.prerequisiteUnitCodes?.length || 0;
+    return `<article class="learning-roadmap-card${preparing ? " learning-roadmap-card-preparing" : ""}">
+      <header>
+        <span class="learning-roadmap-position">${preparation ? "기초 준비" : `${item.curriculumOrder}`}</span>
+        <span class="learning-roadmap-availability">${escapeHtml(roadmapAvailabilityLabels[item.availability] || "준비 중")}</span>
+      </header>
+      <h6>${escapeHtml(item.displayTitle)}</h6>
+      <div class="learning-roadmap-meta">
+        <span>${escapeHtml(assignmentLabel)}</span>
+        ${preparing ? "" : `<span>${escapeHtml(item.recommendationLevel || "")}</span>`}
+        ${stageCount ? `<span>${stageCount}단계</span>` : ""}
+        ${prerequisiteCount ? `<span>선행 단원 ${prerequisiteCount}개</span>` : ""}
+      </div>
+    </article>`;
+  }
+
+  function renderRoadmap() {
+    const container = document.querySelector("#learningRoadmap");
+    if (!container) return;
+    if (loading) {
+      container.innerHTML = '<p class="learning-empty">교육 단원 맵을 불러오는 중입니다.</p>';
+      return;
+    }
+    if (error) {
+      container.innerHTML = `<p class="learning-error">${escapeHtml(error)}</p>`;
+      return;
+    }
+    if (!selectedAssignee()) {
+      container.innerHTML = '<p class="learning-empty">담당 자녀를 선택하면 교육 단원 맵을 확인할 수 있어요.</p>';
+      return;
+    }
+    if (!roadmap) {
+      container.innerHTML = '<p class="learning-empty">교육 단원 맵을 확인할 수 없습니다.</p>';
+      return;
+    }
+    const preparation = roadmap.preparationUnits || [];
+    const curriculumUnits = roadmap.curriculumUnits || [];
+    container.innerHTML = `
+      <section class="learning-roadmap-group">
+        <h5>기초 준비</h5>
+        <div class="learning-roadmap-grid">${preparation.length
+          ? preparation.map((item) => roadmapCard(item, true)).join("")
+          : '<p class="learning-empty">표시할 기초 준비 단원이 없습니다.</p>'}</div>
+      </section>
+      <section class="learning-roadmap-group">
+        <h5>초등 2학년 정규 12단원</h5>
+        <div class="learning-roadmap-grid">${curriculumUnits.map((item) => roadmapCard(item)).join("")}</div>
+      </section>`;
   }
 
   function renderProfile() {
@@ -298,6 +369,7 @@ export function initLearning({
     const parent = member?.role === "parent";
     const childSection = document.querySelector("#childLearningSection");
     if (childSection) childSection.hidden = member?.role !== "child";
+    renderRoadmap();
     renderCatalog();
     renderProfile();
     renderAssignments(true);
@@ -499,6 +571,7 @@ export function initLearning({
       announcedRewardAttempts.clear();
     }
     catalog = [];
+    roadmap = null;
     assignments = [];
     profile = null;
     profileReady = false;
@@ -517,6 +590,7 @@ export function initLearning({
     const cached = !force && cache.get(requestIdentity);
     if (cached) {
       catalog = cached.catalog;
+      roadmap = cached.roadmap;
       assignments = cached.assignments;
       profile = cached.profile;
       profileReady = true;
@@ -531,24 +605,27 @@ export function initLearning({
       const requests = member.role === "parent"
           ? [
             requestJson(`/api/learning/profile${query}`, { headers: authHeaders(), cache: "no-store" }),
+            requestJson(`/api/learning/roadmap${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/catalog${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/assignments${query}`, { headers: authHeaders(), cache: "no-store" }),
           ]
-        : [Promise.resolve({ profile: null }), Promise.resolve({ catalog: [] }), requestJson("/api/learning/assignments", {
+        : [Promise.resolve({ profile: null }), Promise.resolve({ roadmap: null }), Promise.resolve({ catalog: [] }), requestJson("/api/learning/assignments", {
             headers: authHeaders(),
             cache: "no-store",
           })];
-      const [profileData, catalogData, assignmentData] = await Promise.all(requests);
+      const [profileData, roadmapData, catalogData, assignmentData] = await Promise.all(requests);
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       catalog = catalogData.catalog || [];
+      roadmap = roadmapData.roadmap || null;
       assignments = assignmentData.assignments || [];
       profile = profileData.profile || null;
       profileReady = true;
-      cache.set(requestIdentity, { catalog, assignments, profile });
+      cache.set(requestIdentity, { catalog, roadmap, assignments, profile });
       error = "";
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       catalog = [];
+      roadmap = null;
       assignments = [];
       error = cause.message || "문제풀이 학습 정보를 불러오지 못했습니다.";
     } finally {
@@ -703,6 +780,7 @@ export function initLearning({
     reset() {
       generation += 1;
       catalog = [];
+      roadmap = null;
       assignments = [];
       profile = null;
       profileReady = false;
