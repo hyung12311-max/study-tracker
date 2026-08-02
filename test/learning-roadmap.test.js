@@ -13,6 +13,8 @@ const GRADE2_UNIT_ID = "52000000-0000-4000-8000-000000000002";
 const MAKE_TEN_V1 = "53000000-0000-4000-8000-000000000001";
 const MAKE_TEN_V2 = "53000000-0000-4000-8000-000000000002";
 const GRADE2_V1 = "53000000-0000-4000-8000-000000000003";
+const MAKE_TEN_ASSIGNMENT = "54000000-0000-4000-8000-000000000001";
+const GRADE2_ASSIGNMENT = "54000000-0000-4000-8000-000000000002";
 
 function responseCapture() {
   return {
@@ -97,10 +99,14 @@ test("parent roadmap merges the curriculum order with published and assignment s
       assert.match(path, new RegExp(`family_id=eq\\.${FAMILY_ID}`));
       assert.match(path, new RegExp(`assigned_member_id=eq\\.${CHILD_ID}`));
       return [
-        { unit_id: MAKE_TEN_UNIT_ID, status: "completed" },
-        { unit_id: GRADE2_UNIT_ID, status: "completed" },
-        { unit_id: GRADE2_UNIT_ID, status: "active" },
+        { id: MAKE_TEN_ASSIGNMENT, unit_id: MAKE_TEN_UNIT_ID, status: "completed", completed_at: "2026-07-01T00:00:00Z" },
+        { id: GRADE2_ASSIGNMENT, unit_id: GRADE2_UNIT_ID, status: "completed", completed_at: "2026-07-02T00:00:00Z" },
+        { id: "54000000-0000-4000-8000-000000000003", unit_id: GRADE2_UNIT_ID, status: "active", completed_at: null },
       ];
+    }
+    if (path.startsWith("learning_assignment_plans?")) {
+      assert.match(path, new RegExp(`family_id=eq\\.${FAMILY_ID}`));
+      return [{ assignment_id: GRADE2_ASSIGNMENT, plan_state: "active", planned_start_date: "2026-06-01", target_completion_date: "2026-07-05", revision: 3 }];
     }
     if (path.startsWith("learning_stages?")) {
       return [
@@ -127,6 +133,12 @@ test("parent roadmap merges the curriculum order with published and assignment s
       publishedVersion: { contentVersionId: MAKE_TEN_V2, versionNumber: 2, stageCount: 4 },
       assignmentState: "completed",
       userStatus: "completed",
+      hasPlan: false,
+      planState: null,
+      plannedStartDate: null,
+      unitTargetCompletionDate: null,
+      currentRevision: null,
+      targetStatus: "legacy",
       unitCode: "make-ten",
       displayTitle: "10을 만들어요",
       position: "before-curriculum",
@@ -138,6 +150,9 @@ test("parent roadmap merges the curriculum order with published and assignment s
     assert.equal(units[0].availability, "published");
     assert.equal(units[0].assignmentState, "completed");
     assert.equal(units[0].userStatus, "completed");
+    assert.equal(units[0].hasPlan, true);
+    assert.equal(units[0].currentRevision, 3);
+    assert.equal(units[0].targetStatus, "completed");
     assert.deepEqual(units[0].publishedVersion, {
       contentVersionId: GRADE2_V1,
       versionNumber: 1,
@@ -149,6 +164,7 @@ test("parent roadmap merges the curriculum order with published and assignment s
     assert.equal(units[1].publishedVersion, null);
     assert.equal(units[1].assignmentState, "unassigned");
     assert.equal(units[1].userStatus, "preparing");
+    assert.equal(units[1].hasPlan, false);
     assert.deepEqual(units[2].prerequisiteUnitCodes, ["grade2-three-digit-numbers"]);
     assert.equal(queried.some((path) => /learning_questions|learning_question_options/.test(path)), false);
     assert.equal(response.headers["Cache-Control"], "no-store");

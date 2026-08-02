@@ -219,6 +219,31 @@ test("child start is self-scoped, idempotent, and projects every ordered questio
   } finally { restore(); }
 });
 
+test("paused planning blocks only a new official attempt with a stable error", async () => {
+  const restore = replaceUtils(mocks({
+    body: { requestId: REQUEST_ID },
+    supabaseFetch: async (path) => {
+      if (path.startsWith("learning_assignments?")) return [{ id: ASSIGNMENT_ID, content_version_id: VERSION_ID, status: "active" }];
+      if (path.startsWith("learning_stages?")) return [{ id: STAGE_ID }];
+      if (path.startsWith("learning_stage_progress?")) return [{ status: "unlocked" }];
+      if (path === "rpc/start_or_resume_learning_attempt") {
+        const error = new Error("db");
+        error.supabaseCode = "55000";
+        error.supabaseMessage = "LEARNING_PLAN_PAUSED";
+        throw error;
+      }
+      return [];
+    },
+  }));
+  try {
+    const response = responseCapture();
+    await startHandler(request("POST", { requestId: REQUEST_ID }, { assignmentId: ASSIGNMENT_ID, stageId: STAGE_ID }), response);
+    assert.equal(response.statusCode, 409);
+    assert.equal(response.body.code, "LEARNING_PLAN_PAUSED");
+    assert.doesNotMatch(JSON.stringify(response.body), /55000|SQL|P000/);
+  } finally { restore(); }
+});
+
 test("attempt GET is child self-scoped and hides other-family attempts", async () => {
   for (const found of [true, false]) {
     const restore = replaceUtils(mocks({

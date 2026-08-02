@@ -37,6 +37,7 @@ const learningCatalog = require("../server/api/learning/catalog");
 const learningRoadmap = require("../server/api/learning/roadmap");
 const learningProfile = require("../server/api/learning/profile");
 const learningAssignments = require("../server/api/learning/assignments");
+const learningPlans = require("../server/api/learning/plans");
 const learningAssignmentCancel = require("../server/api/learning/assignments/[assignmentId]/cancel");
 const learningAttemptStart = require("../server/api/learning/assignments/[assignmentId]/stages/[stageId]/attempts");
 const learningAttempt = require("../server/api/learning/attempts/[attemptId]");
@@ -85,6 +86,7 @@ const routes = Object.freeze({
   "learning/roadmap": learningRoadmap,
   "learning/profile": learningProfile,
   "learning/assignments": learningAssignments,
+  "learning/plans": learningPlans,
 });
 
 function routeKey(request) {
@@ -104,6 +106,8 @@ module.exports = async function apiRouter(request, response) {
   const key = routeKey(request);
   let handler = routes[key];
   const cancelMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/cancel$/i);
+  const planStateMatch = key.match(/^learning\/plans\/([0-9a-f-]+)\/(pause|resume)$/i);
+  const planMatch = key.match(/^learning\/plans\/([0-9a-f-]+)$/i);
   const startMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/stages\/([0-9a-f-]+)\/attempts$/i);
   const answerMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)\/answers$/i);
   const finalizeMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)\/finalize$/i);
@@ -112,6 +116,14 @@ module.exports = async function apiRouter(request, response) {
   if (!handler && cancelMatch) {
     request.query = { ...(request.query || {}), assignmentId: cancelMatch[1] };
     handler = learningAssignmentCancel;
+  }
+  if (!handler && planStateMatch) {
+    request.query = { ...(request.query || {}), planId: planStateMatch[1] };
+    handler = planStateMatch[2].toLowerCase() === "pause" ? learningPlans.pause : learningPlans.resume;
+  }
+  if (!handler && planMatch) {
+    request.query = { ...(request.query || {}), planId: planMatch[1] };
+    handler = learningPlans.item;
   }
   if (!handler && startMatch) {
     request.query = { ...(request.query || {}), assignmentId: startMatch[1], stageId: startMatch[2] };

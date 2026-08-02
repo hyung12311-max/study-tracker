@@ -285,6 +285,59 @@ test("parent creates assignments with session family and actor after published u
   }
 });
 
+test("parent atomically creates an assignment with an optional canonical plan", async () => {
+  const requestId = "88888888-8888-4888-8888-888888888888";
+  const planId = "99999999-9999-4999-8999-999999999999";
+  const plan = {
+    plannedStartDate: "2026-08-01",
+    unitTargetCompletionDate: "2026-08-10",
+    timezone: "Asia/Seoul",
+    stageTargets: [
+      { stageId: STAGE_ONE, displayOrder: 1, targetDate: "2026-08-03" },
+      { stageId: STAGE_TWO, displayOrder: 2, targetDate: "2026-08-08" },
+    ],
+    requestId,
+  };
+  let atomicPayload;
+  const restore = replaceUtils(baseMocks({
+    body: { assignedMemberId: CHILD_ID, unitId: UNIT_ID, contentVersionId: VERSION_ID, plan },
+    supabaseFetch: async (path, options = {}) => {
+      const child = childScope(path);
+      if (child) return child;
+      if (path.startsWith("learning_content_versions?")) return [{ id: VERSION_ID, unit_id: UNIT_ID, status: "published" }];
+      if (path === "rpc/create_learning_assignment_with_plan") {
+        atomicPayload = JSON.parse(options.body);
+        return [{
+          assignment_id: ASSIGNMENT_ID,
+          plan_id: planId,
+          plan_revision: 1,
+          plan_state: "active",
+          planned_start_date: "2026-08-01",
+          target_completion_date: "2026-08-10",
+          timezone_name: "Asia/Seoul",
+          paused_at: null,
+          stage_targets: atomicPayload.p_stage_targets,
+        }];
+      }
+      return scopedListFetch(path);
+    },
+  }));
+  try {
+    const response = responseCapture();
+    await assignmentHandler(request("POST", "/api/learning/assignments"), response);
+    assert.equal(response.statusCode, 201);
+    assert.equal(response.body.assignment.id, ASSIGNMENT_ID);
+    assert.equal(response.body.assignment.plan.id, planId);
+    assert.equal(response.body.assignment.plan.currentRevision, 1);
+    assert.equal(atomicPayload.p_family_id, FAMILY_ID);
+    assert.equal(atomicPayload.p_actor_member_id, PARENT_ID);
+    assert.equal(atomicPayload.p_request_id, requestId);
+    assert.equal(atomicPayload.p_stage_targets.length, 2);
+  } finally {
+    restore();
+  }
+});
+
 test("assignment mutations require JSON, CSRF, and matching Origin before body or RPC", async () => {
   for (const headers of [
     { "x-study-csrf": "" },

@@ -27,6 +27,20 @@ function assignmentStates(rows) {
   return states;
 }
 
+function representativeAssignments(rows) {
+  const assignments = new Map();
+  for (const row of rows || []) {
+    const unitId = String(row.unit_id);
+    const status = String(row.status || "");
+    if (!ASSIGNMENT_STATE_RANK[status]) continue;
+    const current = assignments.get(unitId);
+    if (!current || ASSIGNMENT_STATE_RANK[status] > ASSIGNMENT_STATE_RANK[current.status]) {
+      assignments.set(unitId, row);
+    }
+  }
+  return assignments;
+}
+
 function publishedVersionDto(version, stageCount) {
   if (!version) return null;
   return {
@@ -76,7 +90,7 @@ async function roadmap(request) {
       `learning_content_versions?select=id,unit_id,version_no&unit_id=in.(${learning.inFilter(unitIds)})&status=eq.published&order=unit_id.asc,version_no.desc`
     ),
     learning.u.supabaseFetch(
-      `learning_assignments?select=unit_id,status&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}&unit_id=in.(${learning.inFilter(unitIds)})&order=assigned_at.desc`
+      `learning_assignments?select=id,unit_id,status,completed_at&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}&unit_id=in.(${learning.inFilter(unitIds)})&order=assigned_at.desc`
     ),
   ]) : [[], []];
   const latestByUnit = latestPublishedVersions(versions);
@@ -91,10 +105,21 @@ async function roadmap(request) {
   }
   const unitByCode = new Map(units.map((unit) => [String(unit.unit_code), unit]));
   const assignmentByUnit = assignmentStates(assignments);
+  const assignmentRecordByUnit = representativeAssignments(assignments);
+  const assignmentIds = learning.idList(assignments);
+  const plans = assignmentIds.length ? await learning.u.supabaseFetch(
+    `learning_assignment_plans?select=assignment_id,plan_state,planned_start_date,target_completion_date,revision&` +
+    `family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}` +
+    `&assignment_id=in.(${learning.inFilter(assignmentIds)})`
+  ) : [];
+  const planByAssignment = new Map((plans || []).map((plan) => [String(plan.assignment_id), plan]));
 
   function dbState(unit) {
     const version = unit && latestByUnit.get(String(unit.id));
     const assignmentState = unit ? assignmentByUnit.get(String(unit.id)) || "unassigned" : "unassigned";
+    const assignment = unit ? assignmentRecordByUnit.get(String(unit.id)) : null;
+    const plan = assignment && planByAssignment.get(String(assignment.id));
+    const status = userStatus(version, assignmentState);
     return {
       unitId: unit ? String(unit.id) : null,
       availability: version ? "published" : "preparing",
@@ -103,7 +128,15 @@ async function roadmap(request) {
         version ? stageCounts.get(String(version.id)) || 0 : 0
       ),
       assignmentState,
-      userStatus: userStatus(version, assignmentState),
+      userStatus: plan?.plan_state === "paused" && assignmentState === "active" ? "paused" : status,
+      hasPlan: Boolean(plan),
+      planState: plan?.plan_state || null,
+      plannedStartDate: plan?.planned_start_date || null,
+      unitTargetCompletionDate: plan?.target_completion_date || null,
+      currentRevision: plan ? Number(plan.revision) : null,
+      targetStatus: plan
+        ? (assignmentState === "completed" ? "completed" : plan.plan_state)
+        : (assignment ? "legacy" : null),
     };
   }
 
@@ -150,4 +183,5 @@ module.exports = async function learningRoadmap(request, response) {
 
 module.exports.roadmap = roadmap;
 module.exports.assignmentStates = assignmentStates;
+module.exports.representativeAssignments = representativeAssignments;
 module.exports.userStatus = userStatus;

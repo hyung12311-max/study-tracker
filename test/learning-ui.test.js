@@ -24,6 +24,10 @@ test("Vercel API router exposes assignment and scoped attempt routes", () => {
   assert.match(router, /"learning\/roadmap": learningRoadmap/);
   assert.match(router, /"learning\/profile": learningProfile/);
   assert.match(router, /"learning\/assignments": learningAssignments/);
+  assert.match(router, /"learning\/plans": learningPlans/);
+  assert.match(router, /planStateMatch/);
+  assert.match(router, /learningPlans\.pause/);
+  assert.match(router, /learningPlans\.resume/);
   assert.match(router, /\^learning\\\/assignments\\\/\(\[0-9a-f-\]\+\)\\\/cancel\$/);
   assert.match(router, /assignmentId: cancelMatch\[1\]/);
   assert.match(router, /start_or_resume_learning_attempt|learningAttemptStart/);

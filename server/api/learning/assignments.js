@@ -1,4 +1,5 @@
 const learning = require("./_utils");
+const planning = require("./plans");
 
 async function listForScope(claims, assignedMemberId, viewerRole) {
   const assignments = await learning.u.supabaseFetch(
@@ -89,7 +90,7 @@ async function createAssignment(request) {
   learning.requireMutationGuard(request);
   const body = learning.exactBody(
     await learning.u.readJson(request),
-    new Set(["assignedMemberId", "unitId", "contentVersionId"])
+    new Set(["assignedMemberId", "unitId", "contentVersionId", "plan"])
   );
   const { claims, assignedMemberId } = await learning.parentScope(request, body.assignedMemberId);
   const unitId = learning.uuid(body.unitId, "INVALID_UNIT_ID");
@@ -100,15 +101,43 @@ async function createAssignment(request) {
   if (!version) {
     throw learning.u.err("배정할 단원을 찾을 수 없습니다.", 404, "LEARNING_CONTENT_NOT_FOUND");
   }
-  const rows = await learning.u.supabaseFetch("rpc/create_learning_assignment", {
-    method: "POST",
-    body: JSON.stringify({
-      p_family_id: claims.family,
-      p_actor_member_id: claims.sub,
-      p_assigned_member_id: assignedMemberId,
-      p_content_version_id: contentVersionId,
-    }),
-  });
+  let rows;
+  if (body.plan === undefined) {
+    rows = await learning.u.supabaseFetch("rpc/create_learning_assignment", {
+      method: "POST",
+      body: JSON.stringify({
+        p_family_id: claims.family,
+        p_actor_member_id: claims.sub,
+        p_assigned_member_id: assignedMemberId,
+        p_content_version_id: contentVersionId,
+      }),
+    });
+  } else {
+    const plan = learning.exactBody(
+      body.plan,
+      new Set(["plannedStartDate", "unitTargetCompletionDate", "timezone", "stageTargets", "requestId"])
+    );
+    const payload = planning.planPayload(plan);
+    try {
+      rows = await learning.u.supabaseFetch("rpc/create_learning_assignment_with_plan", {
+        method: "POST",
+        body: JSON.stringify({
+          p_family_id: claims.family,
+          p_actor_member_id: claims.sub,
+          p_assigned_member_id: assignedMemberId,
+          p_content_version_id: contentVersionId,
+          p_planned_start_date: payload.plannedStartDate,
+          p_target_completion_date: payload.unitTargetCompletionDate,
+          p_timezone_name: payload.timezone,
+          p_stage_targets: payload.stageTargets,
+          p_request_id: payload.requestId,
+        }),
+      });
+    } catch (error) {
+      error.isPlanningError = true;
+      throw error;
+    }
+  }
   const createdId = String((rows?.[0] || rows)?.assignment_id || "");
   if (!createdId) {
     throw learning.u.err("문제풀이 학습을 배정하지 못했습니다.", 500, "ASSIGNMENT_CREATE_FAILED");
@@ -118,6 +147,7 @@ async function createAssignment(request) {
   if (!assignment) {
     throw learning.u.err("생성된 문제풀이 학습을 확인하지 못했습니다.", 500, "ASSIGNMENT_READBACK_FAILED");
   }
+  if (body.plan !== undefined) assignment.plan = planning.planResultDto(rows?.[0] || rows);
   return assignment;
 }
 
@@ -129,7 +159,9 @@ module.exports = async function learningAssignments(request, response) {
     }
     return learning.send(response, 201, { ok: true, assignment: await createAssignment(request) });
   } catch (error) {
-    return learning.safeError(response, error);
+    return error.isPlanningError
+      ? learning.planningError(response, error)
+      : learning.safeError(response, error);
   }
 };
 

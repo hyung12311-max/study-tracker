@@ -23,6 +23,58 @@ function uuid(value, code = "INVALID_LEARNING_ID") {
   return value;
 }
 
+function date(value, code = "INVALID_PLAN_DATE") {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw u.err("학습 계획 날짜를 확인해 주세요.", 400, code);
+  }
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+    throw u.err("학습 계획 날짜를 확인해 주세요.", 400, code);
+  }
+  return value;
+}
+
+function timezone(value) {
+  if (typeof value !== "string" || !value || value.length > 100 || value.trim() !== value) {
+    throw u.err("학습 계획 시간대를 확인해 주세요.", 400, "INVALID_PLAN_TIMEZONE");
+  }
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format();
+  } catch {
+    throw u.err("학습 계획 시간대를 확인해 주세요.", 400, "INVALID_PLAN_TIMEZONE");
+  }
+  return value;
+}
+
+function revision(value) {
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw u.err("학습 계획 revision을 확인해 주세요.", 400, "INVALID_PLAN_REVISION");
+  }
+  return value;
+}
+
+function stageTargets(value, plannedStartDate, targetCompletionDate) {
+  if (!Array.isArray(value) || value.length < 1) {
+    throw u.err("단계별 목표일을 모두 입력해 주세요.", 400, "INVALID_STAGE_TARGETS");
+  }
+  return value.map((target, index) => {
+    exactBody(target, new Set(["stageId", "displayOrder", "targetDate"]));
+    const displayOrder = target.displayOrder;
+    if (!Number.isSafeInteger(displayOrder) || displayOrder < 1 || displayOrder !== index + 1) {
+      throw u.err("단계 순서를 확인해 주세요.", 400, "INVALID_STAGE_TARGETS");
+    }
+    const targetDate = date(target.targetDate, "INVALID_STAGE_TARGET_DATE");
+    if (targetDate < plannedStartDate || targetDate > targetCompletionDate) {
+      throw u.err("단계 목표일 범위를 확인해 주세요.", 400, "INVALID_STAGE_TARGET_DATE");
+    }
+    return {
+      stage_id: uuid(target.stageId, "INVALID_STAGE_ID"),
+      display_order: displayOrder,
+      target_date: targetDate,
+    };
+  });
+}
+
 function exactBody(value, allowed) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw u.err("문제풀이 학습 요청 형식이 올바르지 않습니다.", 400, "INVALID_LEARNING_REQUEST");
@@ -164,6 +216,30 @@ function safeError(response, error) {
   });
 }
 
+function planningError(response, error) {
+  const message = String(error.supabaseMessage || "");
+  const named = [
+    ["PLAN_LOCKED_AFTER_COMPLETION", 409, "PLAN_LOCKED_AFTER_COMPLETION", "완료된 단원의 계획은 변경할 수 없습니다."],
+    ["PLAN_REVISION_CONFLICT", 409, "PLAN_REVISION_CONFLICT", "학습 계획이 변경되었습니다. 다시 확인해 주세요."],
+    ["IDEMPOTENCY_CONFLICT", 409, "IDEMPOTENCY_CONFLICT", "같은 요청 ID가 다른 내용으로 사용되었습니다."],
+    ["LEARNING_PLAN_PAUSED", 409, "LEARNING_PLAN_PAUSED", "일시 중지된 계획에서는 새 문제풀이를 시작할 수 없습니다."],
+  ].find(([token]) => message.includes(token));
+  if (named) return send(response, named[1], { ok: false, code: named[2], error: named[3] });
+  const mappings = {
+    "22004": [400, "INVALID_PLAN_REQUEST", "학습 계획 요청 값을 확인해 주세요."],
+    "22023": [400, "INVALID_PLAN_REQUEST", "학습 계획 날짜 또는 시간대를 확인해 주세요."],
+    "23505": [409, "PLAN_EXISTS", "이미 학습 계획이 있거나 활성 배정이 존재합니다."],
+    "23514": [400, "INVALID_STAGE_TARGETS", "단계별 목표일을 확인해 주세요."],
+    "40001": [409, "PLAN_REVISION_CONFLICT", "학습 계획이 변경되었습니다. 다시 확인해 주세요."],
+    "42501": [403, "LEARNING_ACCESS_DENIED", "학습 계획에 접근할 권한이 없습니다."],
+    "55000": [409, "PLAN_STATE_CONFLICT", "현재 상태에서는 학습 계획을 변경할 수 없습니다."],
+    P0002: [404, "PLAN_NOT_FOUND", "학습 계획 또는 배정을 찾을 수 없습니다."],
+  };
+  const mapping = mappings[error.supabaseCode];
+  if (mapping) return send(response, mapping[0], { ok: false, code: mapping[1], error: mapping[2] });
+  return safeError(response, error);
+}
+
 function idList(rows, key = "id") {
   return [...new Set((rows || []).map((row) => String(row[key])).filter(Boolean))];
 }
@@ -195,6 +271,13 @@ function profileDto(row) {
 }
 
 function attemptError(response, error, fallbackCode = "ATTEMPT_STATE_CONFLICT") {
+  if (error.supabaseCode === "55000" && String(error.supabaseMessage || "").includes("LEARNING_PLAN_PAUSED")) {
+    return send(response, 409, {
+      ok: false,
+      error: "일시 중지된 계획에서는 새 문제풀이를 시작할 수 없습니다.",
+      code: "LEARNING_PLAN_PAUSED",
+    });
+  }
   const mappings = {
     "22004": [400, "INVALID_ATTEMPT_REQUEST", "문제풀이 요청 값을 확인해 주세요."],
     "23505": [409, "ANSWER_CONFLICT", "이미 제출한 답안과 요청 내용이 다릅니다."],
@@ -217,16 +300,21 @@ module.exports = {
   allow,
   attemptError,
   assignmentReadScope,
+  date,
   exactBody,
   idList,
   inFilter,
   levelCode,
   parentScope,
+  planningError,
   profileDto,
   requireMutationGuard,
+  revision,
   safeError,
   send,
+  stageTargets,
   subjectCode,
+  timezone,
   u,
   uuid,
 };
