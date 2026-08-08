@@ -1,0 +1,58 @@
+begin transaction read only;
+
+with expected(skill_code, subject_code, display_name, description) as (
+  values
+    ('add-without-regrouping', 'math', '받아올림 없는 덧셈', '일의 자리와 십의 자리를 같은 자리끼리 더하여 받아올림 없는 덧셈을 계산합니다.'),
+    ('add-with-regrouping', 'math', '받아올림 있는 덧셈', '일의 자리의 합이 10을 넘을 때 받아올림하여 두 자리 수의 덧셈을 계산합니다.'),
+    ('subtract-without-regrouping', 'math', '받아내림 없는 뺄셈', '일의 자리와 십의 자리를 같은 자리끼리 빼어 받아내림 없는 뺄셈을 계산합니다.'),
+    ('subtract-with-regrouping', 'math', '받아내림 있는 뺄셈', '일의 자리에서 뺄 수 없을 때 십의 자리에서 받아내림하여 계산합니다.'),
+    ('model-addition-situation', 'math', '덧셈 상황을 식으로 나타내기', '두 수량을 모으거나 늘리는 상황을 덧셈식으로 나타내고 해결합니다.'),
+    ('model-subtraction-situation', 'math', '뺄셈 상황을 식으로 나타내기', '전체에서 일부를 빼거나 두 수량의 차이를 구하는 상황을 뺄셈식으로 나타냅니다.'),
+    ('compare-calculation-results', 'math', '계산 결과 비교하기', '덧셈과 뺄셈을 정확히 계산하여 두 결과의 크기를 비교합니다.'),
+    ('find-missing-number', 'math', '빈칸의 수 찾기', '덧셈과 뺄셈의 관계를 이용하여 식의 빈칸에 들어갈 수를 찾습니다.'),
+    ('correct-calculation-reasoning', 'math', '덧셈·뺄셈 풀이 바로잡기', '받아올림과 받아내림 등의 계산 오류를 찾고 올바른 이유와 결과로 고칩니다.')
+), checks(check_order, check_name, passed) as (
+  values
+    (1, 'grade2 addition subtraction definitions exact',
+      (select count(*) from expected) = 9
+      and not exists (
+        select 1 from expected
+        left join public.learning_skill_definitions actual using (skill_code)
+        where actual.skill_code is null
+          or actual.subject_code <> expected.subject_code
+          or actual.display_name <> expected.display_name
+          or actual.description is distinct from expected.description
+          or actual.curriculum_code is not null
+      )),
+    (2, 'grade2 addition subtraction skill codes valid',
+      not exists (select 1 from expected where skill_code !~ '^[a-z0-9]+([._-][a-z0-9]+)*$')),
+    (3, 'skill definitions remain force rls',
+      (select relrowsecurity and relforcerowsecurity
+       from pg_catalog.pg_class where oid = 'public.learning_skill_definitions'::regclass)),
+    (4, 'browser roles remain blocked',
+      not has_table_privilege('anon','public.learning_skill_definitions','SELECT,INSERT,UPDATE,DELETE')
+      and not has_table_privilege('authenticated','public.learning_skill_definitions','SELECT,INSERT,UPDATE,DELETE')),
+    (5, 'service role remains read only',
+      has_table_privilege('service_role','public.learning_skill_definitions','SELECT')
+      and not has_table_privilege('service_role','public.learning_skill_definitions','INSERT,UPDATE,DELETE')),
+    (6, 'skill definitions remain outside realtime',
+      not exists (
+        select 1 from pg_catalog.pg_publication_tables
+        where schemaname = 'public' and tablename = 'learning_skill_definitions'
+      ))
+)
+select check_order, check_name, passed,
+  jsonb_build_object('summary', false) as result_data
+from checks
+union all
+select 999, 'grade2 addition subtraction skill verification summary', bool_and(passed),
+  jsonb_build_object(
+    'summary', true,
+    'total_checks', count(*),
+    'passed_checks', count(*) filter (where passed),
+    'failed_checks', count(*) filter (where not passed)
+  )
+from checks
+order by check_order;
+
+rollback;
