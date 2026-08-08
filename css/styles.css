@@ -825,6 +825,21 @@ h2 {
 .learning-mistake-card>button{width:100%;margin-top:12px}
 .learning-mistake-solution{margin-top:12px;padding:11px;border-radius:11px;background:#edf8ef;color:#315e3a}
 .learning-mistake-solution p{margin:6px 0 0;line-height:1.5}
+.learning-review-queue-section{margin:20px 0;padding:20px;border:1px solid #ded8ef;border-radius:18px;background:#f9f7ff}
+.learning-review-queue-group+.learning-review-queue-group{margin-top:18px}
+.learning-review-queue-group>h5{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:1rem}
+.learning-review-queue-group>h5 span{display:inline-flex;min-width:24px;justify-content:center;padding:3px 7px;border-radius:999px;background:#e8e3fa;color:#57468f;font-size:.74rem}
+.learning-review-queue-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.learning-review-queue-card{min-width:0;padding:15px;border:1px solid #e2ddef;border-radius:14px;background:#fff}
+.learning-review-queue-card>header{display:flex;align-items:center;justify-content:space-between;gap:9px;color:#655985;font-size:.78rem}
+.learning-review-queue-card h5{margin:12px 0 6px;font-size:1rem}
+.learning-review-queue-card p{margin:0;color:#65708a;font-size:.86rem}
+.learning-review-queue-card>footer{display:grid;gap:10px;margin-top:14px}
+.learning-review-priority{padding:4px 8px;border-radius:999px;background:#eeeaff;color:#5a4994;font-weight:800}
+.learning-review-queue-wait{color:#65708a;font-size:.82rem;font-weight:800}
+.learning-review-schedule-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.learning-review-schedule-actions>span{margin-right:2px;color:#65708a;font-size:.75rem;font-weight:800}
+.learning-review-schedule-actions button{padding:6px 9px;font-size:.75rem}
 .learning-review-actions{display:flex;align-items:center;gap:12px;margin:0 0 14px}
 .learning-review-actions p{margin:0;color:#65708a;font-size:.82rem}
 .learning-review-workspace{position:fixed;inset:0;z-index:120;overflow-y:auto;padding:clamp(18px,4vw,48px);background:rgba(248,246,255,.98)}
@@ -840,8 +855,8 @@ h2 {
 .learning-review-status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#ece8ff;color:#58489a;font-size:.76rem;font-weight:800}
 .learning-review-card footer{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
 @keyframes learning-analysis-pulse{50%{opacity:.55}}
-@media (max-width:960px){.learning-analysis-grid,.learning-recommendation-list,.learning-mistake-list{grid-template-columns:1fr}.learning-analysis-heading{align-items:flex-start;flex-direction:column}}
-@media (max-width:480px){.learning-analysis-section,.learning-mistakes-section{padding:14px}.learning-score-summary dl,.learning-mistakes-filters{grid-template-columns:1fr}.learning-review-actions,.learning-review-workspace>header{align-items:stretch;flex-direction:column}.learning-review-workspace{padding:14px}.learning-review-card footer{flex-direction:column}}
+@media (max-width:960px){.learning-analysis-grid,.learning-recommendation-list,.learning-mistake-list,.learning-review-queue-list{grid-template-columns:1fr}.learning-analysis-heading{align-items:flex-start;flex-direction:column}}
+@media (max-width:480px){.learning-analysis-section,.learning-mistakes-section,.learning-review-queue-section{padding:14px}.learning-score-summary dl,.learning-mistakes-filters{grid-template-columns:1fr}.learning-review-actions,.learning-review-workspace>header{align-items:stretch;flex-direction:column}.learning-review-workspace{padding:14px}.learning-review-card footer{flex-direction:column}}
 
 .learning-section { display: grid; gap: 18px; }
 .learning-profile-form { display: grid; grid-template-columns: minmax(180px,1fr) minmax(180px,260px) auto; gap: 14px; align-items: end; padding: 16px; border-radius: 16px; background: #f5f7ff; }

@@ -7,6 +7,7 @@ import { initRewardStore } from "./reward-store.js";
 import { initLearning } from "./learning.js";
 import { initLearningAnalysis } from "./learning-analysis.js";
 import { initLearningMistakes } from "./learning-mistakes.js";
+import { initLearningReviewQueue } from "./learning-review-queue.js";
 
 const PARENT_PASSWORD = "1234";
 const BUILD_VERSION = "v39";
@@ -824,6 +825,7 @@ let planAssignees = [];
 let learningController = null;
 let learningAnalysisController = null;
 let learningMistakesController = null;
+let learningReviewQueueController = null;
 
 function planAssigneeStorageKey() {
   const familyId = familyChatController?.currentMember()?.family_id;
@@ -947,6 +949,7 @@ async function handlePlanAssigneeChange() {
     learningController?.reset();
     learningAnalysisController?.reset();
     learningMistakesController?.reset();
+    learningReviewQueueController?.reset();
     render();
     return;
   }
@@ -970,6 +973,7 @@ async function handlePlanAssigneeChange() {
     reloadFromRemote({ essentialOnly: false }),
     learningController?.refresh({ force: true }),
     learningAnalysisController?.refresh(),
+    learningReviewQueueController?.refresh(),
   ]);
 }
 
@@ -2667,6 +2671,7 @@ function enterParentMode() {
   loadStickerRewardSettings();
   learningController?.refresh();
   learningAnalysisController?.refresh();
+  learningReviewQueueController?.refresh();
   showToast("부모 모드로 전환했어요.");
 }
 
@@ -2950,6 +2955,13 @@ async function initApp() {
     currentMember: () => familyChatController?.currentMember(),
     selectedAssignee: selectedPlanAssignee,
   });
+  learningReviewQueueController ||= initLearningReviewQueue({
+    requestJson,
+    authHeaders: familyAuthHeaders,
+    currentMember: () => familyChatController?.currentMember(),
+    selectedAssignee: selectedPlanAssignee,
+    openReview: (item) => learningMistakesController?.openQueueItem(item),
+  });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
@@ -2966,11 +2978,13 @@ async function enterAuthenticatedApp() {
     learningController?.reset();
     learningAnalysisController?.reset();
     learningMistakesController?.reset();
+    learningReviewQueueController?.reset();
     state.formMode = "create";
     if (appReady) render();
     await loadPlanAssignees();
     const learningTask = learningController?.refresh({ force: true });
     const learningAnalysisTask = learningAnalysisController?.refresh();
+    const learningReviewQueueTask = learningReviewQueueController?.refresh();
     activeCacheKey = localDataKey();
     console.info("[startup auth]", {
       member_key: currentMember?.member_key || null,
@@ -3003,7 +3017,7 @@ async function enterAuthenticatedApp() {
           })
             .then((controller) => { rewardStoreController = controller; });
       await reloadFromRemote({ essentialOnly: true });
-      await Promise.all([learningTask, learningAnalysisTask]);
+      await Promise.all([learningTask, learningAnalysisTask, learningReviewQueueTask]);
       render();
       startupMetrics.firstContentMs ??= Math.round(performance.now() - startupStartedAt);
       await Promise.allSettled([rewardTask]);

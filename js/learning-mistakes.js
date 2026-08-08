@@ -100,14 +100,15 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
     return review.items.find((item) => !item.reviewAnswer) || review.items.at(-1);
   }
 
-  function renderReview(parent) {
+  function renderReview(reviewViewer) {
     const actions = document.querySelector("#learningReviewActions");
     const workspace = document.querySelector("#learningReviewWorkspace");
     const content = document.querySelector("#learningReviewContent");
     const abandonButton = document.querySelector("#learningReviewAbandon");
     if (!actions || !workspace || !content || !abandonButton) return;
+    const parent = currentMember()?.role === "parent";
     actions.hidden = !parent || !assignmentId || loading || failed || mistakes.length === 0;
-    workspace.hidden = !parent || (!review && !reviewLoading && !reviewFailed);
+    workspace.hidden = !reviewViewer || (!review && !reviewLoading && !reviewFailed);
     workspace.setAttribute("aria-busy", String(reviewLoading || reviewSubmitting));
     if (workspace.hidden) return;
     abandonButton.hidden = !review || review.status !== "in_progress";
@@ -155,8 +156,9 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
     const list = document.querySelector("#learningMistakesList");
     if (!section || !context || !list) return;
     const parent = currentMember()?.role === "parent";
+    const reviewViewer = parent || currentMember()?.role === "child";
     section.hidden = !parent;
-    renderReview(parent);
+    renderReview(reviewViewer);
     if (!parent) return;
     section.setAttribute("aria-busy", String(loading));
     if (!selectedAssignee()) {
@@ -267,6 +269,63 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
         }
       );
       if (requestGeneration !== generation || requestIdentity !== identity() || requestAssignmentId !== assignmentId) return;
+      review = data.review || null;
+    } catch {
+      if (requestGeneration !== generation || requestIdentity !== identity() || requestAssignmentId !== assignmentId) return;
+      reviewFailed = true;
+    } finally {
+      if (requestGeneration === generation && requestIdentity === identity() && requestAssignmentId === assignmentId) {
+        reviewLoading = false;
+        render();
+      }
+    }
+  }
+
+  async function openQueueItem(item) {
+    const member = currentMember();
+    if (!member || !item?.assignmentId || !["parent", "child"].includes(member.role)) return;
+    const assignedMemberId = member.role === "parent" ? selectedAssignee() : undefined;
+    if (member.role === "parent" && !assignedMemberId) return;
+    const requestGeneration = ++generation;
+    const requestIdentity = identity();
+    const requestAssignmentId = String(item.assignmentId);
+    const requestReviewId = item.action?.type === "resume" ? String(item.action.reviewId || "") : "";
+    assignmentId = requestAssignmentId;
+    assignmentTitle = String(item.unit?.title || "");
+    review = null;
+    reviewLoading = true;
+    reviewFailed = false;
+    reviewSubmitting = false;
+    selectedReviewOptionId = "";
+    reviewFeedback = null;
+    reviewFeedbackItemId = "";
+    render();
+    try {
+      const data = requestReviewId
+        ? await requestJson(
+          `/api/learning/mistake-reviews/${encodeURIComponent(requestReviewId)}`,
+          { headers: authHeaders(), cache: "no-store" }
+        )
+        : await requestJson(
+          `/api/learning/assignments/${encodeURIComponent(requestAssignmentId)}/mistake-reviews`,
+          {
+            method: "POST",
+            headers: { ...authHeaders(), "X-Study-CSRF": "1", "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...(assignedMemberId ? { assignedMemberId } : {}),
+              status: "all",
+              stageId: null,
+              skillCode: item.skill?.code || null,
+              requestId: crypto.randomUUID(),
+            }),
+          }
+        );
+      if (
+        requestGeneration !== generation
+        || requestIdentity !== identity()
+        || requestAssignmentId !== assignmentId
+        || (requestReviewId && requestReviewId !== String(data.review?.id || ""))
+      ) return;
       review = data.review || null;
     } catch {
       if (requestGeneration !== generation || requestIdentity !== identity() || requestAssignmentId !== assignmentId) return;
@@ -438,6 +497,7 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
 
   return {
     open,
+    openQueueItem,
     render,
     reset() {
       generation += 1;

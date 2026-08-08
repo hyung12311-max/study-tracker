@@ -74,6 +74,10 @@
             <div class="section-head">
               <div><p class="eyebrow">Learning Quest</p><h3>내 문제풀이 단원</h3></div>
             </div>
+            <section id="childLearningReviewQueueSection" class="learning-review-queue-section" aria-labelledby="childLearningReviewQueueTitle" aria-busy="false">
+              <header class="learning-analysis-heading"><div><p class="eyebrow">Review Queue</p><h4 id="childLearningReviewQueueTitle">내 반복 복습</h4></div><p>오늘 복습과 예정된 개념을 확인해요.</p></header>
+              <div id="childLearningReviewQueue" aria-live="polite"><p class="learning-analysis-loading">복습 일정을 불러오는 중입니다.</p></div>
+            </section>
             <div id="childLearningAssignmentList" class="learning-grid" aria-live="polite"></div>
             <div id="childLearningAttemptPanel" class="learning-attempt-panel" aria-live="polite" hidden></div>
           </section>
@@ -87,6 +91,11 @@
           </header>
           <div id="learningAttemptStageProgress" class="learning-stage-progress" aria-label="단계 진행"></div>
           <div id="learningAttemptFullscreenPanel" class="learning-attempt-fullscreen-panel" aria-live="polite"></div>
+        </section>
+
+        <section id="learningReviewWorkspace" class="learning-review-workspace" aria-labelledby="learningReviewTitle" aria-busy="false" hidden>
+          <header><div><p class="eyebrow">Mistake Review</p><h5 id="learningReviewTitle">오답 다시 풀기</h5></div><button type="button" class="delete-btn" id="learningReviewAbandon">복습 중단</button></header>
+          <div id="learningReviewContent" aria-live="polite"></div>
         </section>
 
         <section id="progress" class="view" aria-labelledby="progressTitle">
@@ -312,6 +321,10 @@
               </label>
               <button type="submit" class="primary" id="learningProfileSave">저장</button>
             </form>
+            <section id="parentLearningReviewQueueSection" class="learning-review-queue-section" aria-labelledby="parentLearningReviewQueueTitle" aria-busy="false">
+              <header class="learning-analysis-heading"><div><p class="eyebrow">Review Queue</p><h4 id="parentLearningReviewQueueTitle">반복 복습 일정</h4></div><p>오늘 복습, 예정 복습과 개념별 미루기를 관리합니다.</p></header>
+              <div id="parentLearningReviewQueue" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div>
+            </section>
             <section id="learningAnalysisSection" class="learning-analysis-section" aria-labelledby="learningAnalysisTitle" aria-busy="false">
               <header class="learning-analysis-heading">
                 <div><p class="eyebrow">Achievement</p><h4 id="learningAnalysisTitle">성취 분석</h4></div>
@@ -342,10 +355,6 @@
                 <p>복습 결과는 공식 점수·진도·보상에 영향을 주지 않습니다.</p>
               </div>
               <div id="learningMistakesList" aria-live="polite"><p class="learning-analysis-empty">담당 자녀와 완료한 단원을 선택해 주세요.</p></div>
-              <section id="learningReviewWorkspace" class="learning-review-workspace" aria-labelledby="learningReviewTitle" aria-busy="false" hidden>
-                <header><div><p class="eyebrow">Mistake Review</p><h5 id="learningReviewTitle">오답 다시 풀기</h5></div><button type="button" class="delete-btn" id="learningReviewAbandon">복습 중단</button></header>
-                <div id="learningReviewContent" aria-live="polite"></div>
-              </section>
             </section>
             <section class="learning-roadmap-section" aria-labelledby="learningRoadmapTitle">
               <div class="learning-roadmap-heading">

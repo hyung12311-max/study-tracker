@@ -42,6 +42,8 @@ const learningScores = require("../server/api/learning/scores");
 const learningAttemptHistory = require("../server/api/learning/attempt-history");
 const learningSkills = require("../server/api/learning/skills");
 const learningRecommendations = require("../server/api/learning/recommendations");
+const learningReviewQueue = require("../server/api/learning/review-queue");
+const learningReviewSchedule = require("../server/api/learning/review-schedule");
 const learningAssignmentCancel = require("../server/api/learning/assignments/[assignmentId]/cancel");
 const learningAssignmentMistakes = require("../server/api/learning/assignments/[assignmentId]/mistakes");
 const learningMistakeReveal = require("../server/api/learning/assignments/[assignmentId]/mistakes/[questionId]/reveal");
@@ -101,6 +103,8 @@ const routes = Object.freeze({
   "learning/attempt-history": learningAttemptHistory,
   "learning/skills": learningSkills,
   "learning/recommendations": learningRecommendations,
+  "learning/review-queue": learningReviewQueue,
+  "learning/review-schedule": learningReviewSchedule,
 });
 
 function routeKey(request) {
