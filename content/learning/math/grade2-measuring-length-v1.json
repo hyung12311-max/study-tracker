@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
+  "unit": {
+    "id": "ab61feac-d390-4542-9eea-d049b007096d",
+    "slug": "grade2-measuring-length",
+    "title": "길이를 재어 봐요",
+    "displayOrder": 4
+  },
+  "version": {
+    "id": "29ac4fe6-847f-4c01-a402-ffce3440fad7",
+    "label": "v1",
+    "number": 1
+  },
+  "recommendation": {
+    "subject": "math",
+    "recommendedStartLevelCode": "elementary_2",
+    "recommendedEndLevelCode": "elementary_2",
+    "parentSortOrder": 4
+  },
+  "stages": [
+    {
+      "id": "902ecc11-bdc2-4b6c-89df-12044de2b6b7",
+      "difficulty": "seed",
+      "title": "입문",
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "d455811a-b35c-4630-a81a-56b6ce3729fe",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "물체의 한쪽 끝을 자의 0cm 눈금에 맞추고 다른 끝이 6cm 눈금에 있습니다. 물체의 길이는?",
+          "explanation": "0cm에서 시작해 6cm 눈금에서 끝나므로 물체의 길이는 6cm입니다.",
+          "skillCode": "measure-length-with-ruler",
+          "options": [
+            {
+              "id": "10a0da2c-0db7-4011-a868-04bcf701ed03",
+              "displayOrder": 1,
+              "text": "6cm",
+              "isCorrect": true
+            },
+            {
+              "id": "71885671-1e65-40a1-8295-961957bc7b6a",
+              "displayOrder": 2,
+              "text": "5cm",
+              "isCorrect": false
+            },
+            {
+              "id": "bd4d2f2a-38bf-4c4c-8c84-5e7b130449b0",
+              "displayOrder": 3,
+              "text": "7cm",
+              "isCorrect": false
+            },
+            {
+              "id": "5a9043b5-fc3f-4755-843b-42ebac22bb16",
+              "displayOrder": 4,
+              "text": "8cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "c7e88799-6435-44f9-968d-8186202f008d",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "자의 3cm 눈금과 4cm 눈금 사이 한 칸의 길이는?",
+          "explanation": "4cm에서 3cm를 빼면 1cm이므로 두 눈금 사이 한 칸은 1cm입니다.",
+          "skillCode": "read-ruler-scale",
+          "options": [
+            {
+              "id": "1f0ea652-6ba7-424f-82b7-f81b7c28160c",
+              "displayOrder": 1,
+              "text": "2cm",
+              "isCorrect": false
+            },
+            {
+              "id": "67451159-7f3e-47cd-897c-58c7ba5487bf",
+              "displayOrder": 2,
+              "text": "1cm",
+              "isCorrect": true
+            },
+            {
+              "id": "fedd327f-5303-4333-bb38-3111dfc988b0",
+              "displayOrder": 3,
+              "text": "3cm",
+              "isCorrect": false
+            },
+            {
+              "id": "07377e6d-2110-497b-b850-5ea3ca84cdb7",
+              "displayOrder": 4,
+              "text": "4cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "af7b2b2e-3a49-4a51-9cba-3ef725e96eb9",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "공책의 짧은 쪽 길이를 나타내기에 알맞은 단위는?",
+          "explanation": "공책처럼 작은 물체의 길이는 cm로 나타내는 것이 알맞습니다.",
+          "skillCode": "choose-length-unit",
+          "options": [
+            {
+              "id": "520933ef-0d8c-429b-9785-ea9a28043b13",
+              "displayOrder": 1,
+              "text": "m",
+              "isCorrect": false
+            },
+            {
+              "id": "5b60878b-ed57-41ae-af54-ac2077e348ba",
+              "displayOrder": 2,
+              "text": "kg",
+              "isCorrect": false
+            },
+            {
+              "id": "a63e2279-34a2-486d-9b76-3d32dfe9e524",
+              "displayOrder": 3,
+              "text": "cm",
+              "isCorrect": true
+            },
+            {
+              "id": "56245314-1380-4b55-8c6a-60c9c50620a9",
+              "displayOrder": 4,
+              "text": "L",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "7f2ed8da-2739-4d88-8719-28447cddba76",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "교실 앞쪽에서 뒤쪽까지의 길이를 나타내기에 알맞은 단위는?",
+          "explanation": "교실처럼 긴 공간의 길이는 m로 나타내는 것이 알맞습니다.",
+          "skillCode": "choose-length-unit",
+          "options": [
+            {
+              "id": "84187ff8-a64c-4261-a3d2-9beba9e84583",
+              "displayOrder": 1,
+              "text": "cm",
+              "isCorrect": false
+            },
+            {
+              "id": "4f8da9f3-3054-4864-8872-f45896d8affa",
+              "displayOrder": 2,
+              "text": "kg",
+              "isCorrect": false
+            },
+            {
+              "id": "51e9a4fb-b03b-4895-828a-6cfad31e4b9a",
+              "displayOrder": 3,
+              "text": "L",
+              "isCorrect": false
+            },
+            {
+              "id": "e8b2b1e0-26ca-4ae5-8142-77474a3c0b5d",
+              "displayOrder": 4,
+              "text": "m",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "ab7431cb-3a55-4573-9f06-d820225c777d",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "빨간 리본은 8cm이고 파란 리본은 5cm입니다. 더 긴 리본은?",
+          "explanation": "8cm는 5cm보다 크므로 빨간 리본이 더 깁니다.",
+          "skillCode": "compare-lengths",
+          "options": [
+            {
+              "id": "46993b5d-6899-46d5-8dfd-14b9ff258580",
+              "displayOrder": 1,
+              "text": "8cm인 빨간 리본",
+              "isCorrect": true
+            },
+            {
+              "id": "e63e2699-ad43-4de4-adf5-ae2e77de34a4",
+              "displayOrder": 2,
+              "text": "5cm인 파란 리본",
+              "isCorrect": false
+            },
+            {
+              "id": "baa4d742-9edb-466c-879c-bac24287f155",
+              "displayOrder": 3,
+              "text": "두 리본의 길이가 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "2ce7a094-ccc3-470c-bdef-15ad34311f66",
+              "displayOrder": 4,
+              "text": "비교할 수 없습니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "84e488d3-628b-42f3-8589-60c1646bb1f5",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "연필의 한쪽 끝을 자의 0cm 눈금에 맞추었더니 다른 끝이 9cm 눈금에 있습니다. 연필의 길이는?",
+          "explanation": "0cm에서 시작해 9cm 눈금에서 끝나므로 연필의 길이는 9cm입니다.",
+          "skillCode": "measure-length-with-ruler",
+          "options": [
+            {
+              "id": "f65defa2-a1d0-4bc5-85c3-397c1da1a484",
+              "displayOrder": 1,
+              "text": "8cm",
+              "isCorrect": false
+            },
+            {
+              "id": "af2dbb15-d10d-4851-a9f1-11636f5e7526",
+              "displayOrder": 2,
+              "text": "9cm",
+              "isCorrect": true
+            },
+            {
+              "id": "1df30114-a673-4635-b982-b5d05458a9fe",
+              "displayOrder": 3,
+              "text": "10cm",
+              "isCorrect": false
+            },
+            {
+              "id": "45cda228-3fe2-40a8-90ec-a0ebf391ee42",
+              "displayOrder": 4,
+              "text": "0cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e67c66d9-9f22-40bc-bdea-140571780fa1",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "손가락 한 마디의 길이로 가장 알맞은 것은?",
+          "explanation": "손가락 한 마디는 작은 길이이므로 약 2cm가 알맞습니다.",
+          "skillCode": "estimate-length",
+          "options": [
+            {
+              "id": "463f7304-fce6-434b-b772-2893d9debf44",
+              "displayOrder": 1,
+              "text": "20m",
+              "isCorrect": false
+            },
+            {
+              "id": "c28fade8-8f30-42d9-a203-09029618266c",
+              "displayOrder": 2,
+              "text": "20cm",
+              "isCorrect": false
+            },
+            {
+              "id": "964baddb-ed7f-4593-ac4f-a5af46410f77",
+              "displayOrder": 3,
+              "text": "2cm",
+              "isCorrect": true
+            },
+            {
+              "id": "1ca46ec3-917c-4abc-95d3-e6345508317b",
+              "displayOrder": 4,
+              "text": "2m",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "8e81456d-01eb-4c15-886f-b9af817e8610",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "운동장의 긴 쪽 길이를 나타내기에 알맞은 단위는?",
+          "explanation": "운동장처럼 긴 곳의 길이는 m로 나타내는 것이 알맞습니다.",
+          "skillCode": "choose-length-unit",
+          "options": [
+            {
+              "id": "ba524343-08d2-48ec-a790-65f2cfe04c78",
+              "displayOrder": 1,
+              "text": "cm",
+              "isCorrect": false
+            },
+            {
+              "id": "b23f315e-748f-4491-ac13-2e0c48d0b9f2",
+              "displayOrder": 2,
+              "text": "kg",
+              "isCorrect": false
+            },
+            {
+              "id": "0ab08379-b08e-4116-b1e0-5d3e07ff53ba",
+              "displayOrder": 3,
+              "text": "L",
+              "isCorrect": false
+            },
+            {
+              "id": "a3134448-2dc9-4e1b-8ed8-2f9c86a1e1e5",
+              "displayOrder": 4,
+              "text": "m",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "7b586413-f98a-494e-ac26-e67b08a9a3d6",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "자의 7cm 눈금 바로 위에 점이 찍혀 있습니다. 점이 나타내는 길이는?",
+          "explanation": "점이 7cm 눈금에 있으므로 점이 나타내는 길이는 7cm입니다.",
+          "skillCode": "read-ruler-scale",
+          "options": [
+            {
+              "id": "703af5b6-55c8-4c2d-9975-be5ea60e4951",
+              "displayOrder": 1,
+              "text": "7cm",
+              "isCorrect": true
+            },
+            {
+              "id": "ef0434ec-d32e-4c0a-afc6-b215bb4624cc",
+              "displayOrder": 2,
+              "text": "6cm",
+              "isCorrect": false
+            },
+            {
+              "id": "ff9a7568-9660-4b73-99bc-e575ba7641f2",
+              "displayOrder": 3,
+              "text": "8cm",
+              "isCorrect": false
+            },
+            {
+              "id": "0ae16048-13fa-418f-9141-eb8681185eda",
+              "displayOrder": 4,
+              "text": "9cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "af2ca815-8222-4cab-b937-15a2c76b392d",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "연필은 12cm이고 지우개는 4cm입니다. 더 긴 것은?",
+          "explanation": "12cm는 4cm보다 크므로 연필이 더 깁니다.",
+          "skillCode": "compare-lengths",
+          "options": [
+            {
+              "id": "f1077315-f44a-425b-a4eb-b3f52af6534f",
+              "displayOrder": 1,
+              "text": "지우개",
+              "isCorrect": false
+            },
+            {
+              "id": "9b6bf262-289b-4a1b-9b39-9e91295a5227",
+              "displayOrder": 2,
+              "text": "연필",
+              "isCorrect": true
+            },
+            {
+              "id": "46cc91b9-1a0a-42d1-bfb8-30dae7f91c8c",
+              "displayOrder": 3,
+              "text": "두 물체의 길이가 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "855720e9-a133-4ef1-9e72-6cb5f3b36dad",
+              "displayOrder": 4,
+              "text": "비교할 수 없습니다.",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2a42e139-d700-4f69-bab7-8afbca9f01fa",
+      "difficulty": "leaf",
+      "title": "기초",
+      "displayOrder": 2,
+      "questions": [
+        {
+          "id": "4986b4a7-fcba-4521-9363-b3fc4fbf51d3",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "막대의 한쪽 끝은 자의 2cm 눈금, 다른 끝은 9cm 눈금에 있습니다. 막대의 길이는?",
+          "explanation": "끝 눈금 9cm에서 시작 눈금 2cm를 빼면 7cm입니다.",
+          "skillCode": "measure-from-nonzero-start",
+          "options": [
+            {
+              "id": "083bb00c-f42d-4ddb-9ea2-ea47ce5ae4ef",
+              "displayOrder": 1,
+              "text": "9cm",
+              "isCorrect": false
+            },
+            {
+              "id": "e5bb15e4-1f64-44cf-99c5-fcc903df3c87",
+              "displayOrder": 2,
+              "text": "11cm",
+              "isCorrect": false
+            },
+            {
+              "id": "c3cd6055-ee42-4f4f-8e83-247d43a55170",
+              "displayOrder": 3,
+              "text": "7cm",
+              "isCorrect": true
+            },
+            {
+              "id": "7857f2c0-99c2-4672-83ae-fec290352083",
+              "displayOrder": 4,
+              "text": "2cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "728d191c-68f5-4baa-9e45-5f813bcff8c9",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "종이띠의 한쪽 끝은 자의 4cm 눈금, 다른 끝은 11cm 눈금에 있습니다. 종이띠의 길이는?",
+          "explanation": "끝 눈금 11cm에서 시작 눈금 4cm를 빼면 7cm입니다.",
+          "skillCode": "measure-from-nonzero-start",
+          "options": [
+            {
+              "id": "b66d75d0-f548-4d4b-843e-c84e7846c874",
+              "displayOrder": 1,
+              "text": "11cm",
+              "isCorrect": false
+            },
+            {
+              "id": "014241cf-1160-44ce-842e-04f2c2860c53",
+              "displayOrder": 2,
+              "text": "15cm",
+              "isCorrect": false
+            },
+            {
+              "id": "aa52e8ae-63ba-4150-974b-04074b48e691",
+              "displayOrder": 3,
+              "text": "4cm",
+              "isCorrect": false
+            },
+            {
+              "id": "397fc327-e4f3-4001-917c-18f1119e6ae8",
+              "displayOrder": 4,
+              "text": "7cm",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "b5a624e9-ceda-4a45-95e2-2acba8718f39",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "빨간 끈은 14cm, 파란 끈은 9cm, 초록 끈은 12cm입니다. 가장 긴 끈은?",
+          "explanation": "14cm가 12cm와 9cm보다 크므로 빨간 끈이 가장 깁니다.",
+          "skillCode": "compare-lengths",
+          "options": [
+            {
+              "id": "b1c730a1-0b97-4853-b1df-007e37bde39d",
+              "displayOrder": 1,
+              "text": "14cm인 빨간 끈",
+              "isCorrect": true
+            },
+            {
+              "id": "b85a5ec5-5714-40f7-9126-6e9291520780",
+              "displayOrder": 2,
+              "text": "9cm인 파란 끈",
+              "isCorrect": false
+            },
+            {
+              "id": "0fe929ad-5d90-445f-9e49-339d9f4f4197",
+              "displayOrder": 3,
+              "text": "12cm인 초록 끈",
+              "isCorrect": false
+            },
+            {
+              "id": "686c3355-d10c-4bfd-bc09-5d1fa32d0d8d",
+              "displayOrder": 4,
+              "text": "세 끈의 길이가 같습니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "dd1752a1-d975-42da-89c4-85d3d8450da0",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "가 막대는 6cm, 나 막대는 5cm, 다 막대는 8cm입니다. 가장 짧은 막대는?",
+          "explanation": "5cm가 6cm와 8cm보다 작으므로 나 막대가 가장 짧습니다.",
+          "skillCode": "compare-lengths",
+          "options": [
+            {
+              "id": "496a5af3-2654-475e-a049-822833f1f30a",
+              "displayOrder": 1,
+              "text": "6cm인 가 막대",
+              "isCorrect": false
+            },
+            {
+              "id": "cce70bd9-74e3-49d3-86b9-c63df3b4e9e1",
+              "displayOrder": 2,
+              "text": "5cm인 나 막대",
+              "isCorrect": true
+            },
+            {
+              "id": "04220a2c-9c16-4d67-8538-467528605c4e",
+              "displayOrder": 3,
+              "text": "8cm인 다 막대",
+              "isCorrect": false
+            },
+            {
+              "id": "e01d956f-b4ab-49d9-840b-91e8a394beec",
+              "displayOrder": 4,
+              "text": "세 막대의 길이가 같습니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "5473fbc8-b011-4282-98ca-cc9acdf2589f",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "보통 연필 한 자루의 길이로 가장 알맞은 것은?",
+          "explanation": "연필 한 자루의 길이는 약 15cm로 어림하는 것이 알맞습니다.",
+          "skillCode": "estimate-length",
+          "options": [
+            {
+              "id": "02840bf6-0b04-4a9d-af56-0aa9eb6e04e4",
+              "displayOrder": 1,
+              "text": "15m",
+              "isCorrect": false
+            },
+            {
+              "id": "4828ec85-ed14-4132-9282-f0af10a3dad9",
+              "displayOrder": 2,
+              "text": "1cm",
+              "isCorrect": false
+            },
+            {
+              "id": "b0050fe4-7e84-495b-bf87-622ec8b753f2",
+              "displayOrder": 3,
+              "text": "15cm",
+              "isCorrect": true
+            },
+            {
+              "id": "abad7a3d-0bd1-4557-83ac-25cfc144b824",
+              "displayOrder": 4,
+              "text": "150m",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "78ae29a8-4da9-45b4-ae20-ac6a67298038",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "교실 문의 높이로 가장 알맞은 것은?",
+          "explanation": "교실 문의 높이는 사람의 키보다 조금 크므로 약 2m가 알맞습니다.",
+          "skillCode": "estimate-length",
+          "options": [
+            {
+              "id": "fb0ffa98-ceb8-4dd7-bf74-202f3e6f9273",
+              "displayOrder": 1,
+              "text": "2cm",
+              "isCorrect": false
+            },
+            {
+              "id": "33fbfe69-e632-4a64-9bd6-908cfc5f7a79",
+              "displayOrder": 2,
+              "text": "20cm",
+              "isCorrect": false
+            },
+            {
+              "id": "37084958-1181-47db-a448-e3ee02d974ef",
+              "displayOrder": 3,
+              "text": "20m",
+              "isCorrect": false
+            },
+            {
+              "id": "0105cc52-2593-4195-9a3d-ea4971c7f313",
+              "displayOrder": 4,
+              "text": "2m",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "79b95acf-a7f9-4a11-a0d1-99dce63065d3",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "자의 5cm 눈금에서 오른쪽으로 1cm씩 세 칸 이동한 눈금은?",
+          "explanation": "5cm에서 1cm씩 세 칸 이동하면 6cm, 7cm, 8cm 눈금에 차례로 닿습니다.",
+          "skillCode": "read-ruler-scale",
+          "options": [
+            {
+              "id": "00520ac9-19a7-496d-93cc-25c0f551edfe",
+              "displayOrder": 1,
+              "text": "8cm",
+              "isCorrect": true
+            },
+            {
+              "id": "86656f92-b880-4c3c-b8b3-3e8d7a2c91a6",
+              "displayOrder": 2,
+              "text": "6cm",
+              "isCorrect": false
+            },
+            {
+              "id": "ab700b87-701b-4f79-9096-39d2d26f7982",
+              "displayOrder": 3,
+              "text": "7cm",
+              "isCorrect": false
+            },
+            {
+              "id": "eba16e35-8f52-4c6a-903e-bac0a6e0aad0",
+              "displayOrder": 4,
+              "text": "9cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "0566963d-c57e-4884-ae2b-e28ecacf0544",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "줄의 한쪽 끝을 자의 0cm 눈금에 맞추었더니 다른 끝이 13cm 눈금에 있습니다. 줄의 길이는?",
+          "explanation": "0cm에서 시작해 13cm 눈금에서 끝나므로 줄의 길이는 13cm입니다.",
+          "skillCode": "measure-length-with-ruler",
+          "options": [
+            {
+              "id": "a39cf361-4951-446f-aff9-fbfe0e521b26",
+              "displayOrder": 1,
+              "text": "12cm",
+              "isCorrect": false
+            },
+            {
+              "id": "7a65dbf2-641b-4462-85f7-7c73d99a506e",
+              "displayOrder": 2,
+              "text": "13cm",
+              "isCorrect": true
+            },
+            {
+              "id": "e5fe42ba-abd2-45c5-bd85-dc038e5db8a3",
+              "displayOrder": 3,
+              "text": "14cm",
+              "isCorrect": false
+            },
+            {
+              "id": "7221ee82-94d0-4a9f-ae6c-e22079556533",
+              "displayOrder": 4,
+              "text": "0cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "7a9ae9af-6ca4-44a1-a776-37b467ce4dfa",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "자의 눈금이 8cm, 9cm, 10cm, 11cm 순서로 있습니다. 화살표가 세 번째 눈금을 가리킬 때 나타내는 길이는?",
+          "explanation": "8cm부터 세 번째 눈금은 10cm이므로 화살표가 나타내는 길이는 10cm입니다.",
+          "skillCode": "read-ruler-scale",
+          "options": [
+            {
+              "id": "4a699506-ca70-44af-afc8-0e8fd5ab352d",
+              "displayOrder": 1,
+              "text": "8cm",
+              "isCorrect": false
+            },
+            {
+              "id": "b897bb74-523e-459e-9cf3-95c1cab2c823",
+              "displayOrder": 2,
+              "text": "9cm",
+              "isCorrect": false
+            },
+            {
+              "id": "466d60a6-d133-47ba-b90e-52b9ba25733f",
+              "displayOrder": 3,
+              "text": "10cm",
+              "isCorrect": true
+            },
+            {
+              "id": "f38cd3ca-ea63-402c-8620-6e0e6039f3cc",
+              "displayOrder": 4,
+              "text": "11cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "c64e80b7-ac89-4dab-b18f-c66b51b5cfdd",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "창문의 너비가 약 1일 때 빈칸에 알맞은 단위는?",
+          "explanation": "창문의 너비는 약 1m로 나타내는 것이 알맞습니다.",
+          "skillCode": "choose-length-unit",
+          "options": [
+            {
+              "id": "11d1cce7-9b55-441a-8774-9db6cdefb9cb",
+              "displayOrder": 1,
+              "text": "cm",
+              "isCorrect": false
+            },
+            {
+              "id": "6894236c-1111-49ba-9bf3-2a908a3ae1ee",
+              "displayOrder": 2,
+              "text": "kg",
+              "isCorrect": false
+            },
+            {
+              "id": "9cca9e6e-01cb-47b3-afbb-8ce69d41de94",
+              "displayOrder": 3,
+              "text": "L",
+              "isCorrect": false
+            },
+            {
+              "id": "101fc011-130b-43ae-bdc2-db652acf4c5e",
+              "displayOrder": 4,
+              "text": "m",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "158c3fa0-e476-48d8-aa52-063429845367",
+      "difficulty": "tree",
+      "title": "심화",
+      "displayOrder": 3,
+      "questions": [
+        {
+          "id": "6943fcc1-0d74-4661-9574-a8f38b6405ab",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "리본의 시작은 자의 3cm 눈금이고 끝은 14cm 눈금입니다. 리본의 길이는?",
+          "explanation": "끝 눈금 14cm에서 시작 눈금 3cm를 빼면 11cm입니다.",
+          "skillCode": "measure-from-nonzero-start",
+          "options": [
+            {
+              "id": "32698200-85cc-410b-a94a-8aef2968083a",
+              "displayOrder": 1,
+              "text": "11cm",
+              "isCorrect": true
+            },
+            {
+              "id": "70e048d3-f75f-4444-8c28-88e09538024b",
+              "displayOrder": 2,
+              "text": "14cm",
+              "isCorrect": false
+            },
+            {
+              "id": "5242ebce-b006-45fb-89d1-dc2c408ee89b",
+              "displayOrder": 3,
+              "text": "17cm",
+              "isCorrect": false
+            },
+            {
+              "id": "9414f1af-f1fd-4fd0-92f7-37c6b20446cb",
+              "displayOrder": 4,
+              "text": "3cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "12c33111-9536-475d-9c1e-d24ccb9abde6",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "빨대의 시작은 자의 7cm 눈금이고 끝은 16cm 눈금입니다. 빨대의 길이는?",
+          "explanation": "끝 눈금 16cm에서 시작 눈금 7cm를 빼면 9cm입니다.",
+          "skillCode": "measure-from-nonzero-start",
+          "options": [
+            {
+              "id": "2dee3a9c-2faf-4082-a643-34ddfd88da7f",
+              "displayOrder": 1,
+              "text": "23cm",
+              "isCorrect": false
+            },
+            {
+              "id": "7660d51a-aa3d-4d00-8417-2d3ee43f809c",
+              "displayOrder": 2,
+              "text": "9cm",
+              "isCorrect": true
+            },
+            {
+              "id": "3613e667-1cfa-497d-b3f9-8e9c6df282e1",
+              "displayOrder": 3,
+              "text": "16cm",
+              "isCorrect": false
+            },
+            {
+              "id": "7ac2940e-2d2f-4f56-8dee-29db1b5875d5",
+              "displayOrder": 4,
+              "text": "7cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "777c9b3f-c7a2-4023-8f6b-2057b8e21f9a",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "가 막대는 0cm부터 12cm까지, 나 막대는 2cm부터 15cm까지, 다 막대는 5cm부터 16cm까지 놓였습니다. 가장 긴 막대는?",
+          "explanation": "가 막대는 12cm, 나 막대는 13cm, 다 막대는 11cm이므로 나 막대가 가장 깁니다.",
+          "skillCode": "compare-lengths",
+          "options": [
+            {
+              "id": "75b981f6-6a5b-45dc-8586-0d7272df120d",
+              "displayOrder": 1,
+              "text": "가 막대",
+              "isCorrect": false
+            },
+            {
+              "id": "8c88195f-56c7-4f2d-a614-bee52195faba",
+              "displayOrder": 2,
+              "text": "다 막대",
+              "isCorrect": false
+            },
+            {
+              "id": "c7b64d41-5e5e-4f87-a5b6-e0a51e24bca6",
+              "displayOrder": 3,
+              "text": "나 막대",
+              "isCorrect": true
+            },
+            {
+              "id": "e346cb7b-764e-4d71-9ea3-dadeb97cdfcf",
+              "displayOrder": 4,
+              "text": "세 막대의 길이가 같습니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e4914597-adff-45a6-9fe1-eb2afb0cc9ad",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "가 막대는 2cm부터 10cm까지, 나 막대는 4cm부터 13cm까지, 다 막대는 6cm부터 12cm까지 놓였습니다. 가장 짧은 막대는?",
+          "explanation": "가 막대는 8cm, 나 막대는 9cm, 다 막대는 6cm이므로 다 막대가 가장 짧습니다.",
+          "skillCode": "compare-lengths",
+          "options": [
+            {
+              "id": "374ffdfc-1b4e-486a-861c-1cb199901a4c",
+              "displayOrder": 1,
+              "text": "8cm인 가 막대",
+              "isCorrect": false
+            },
+            {
+              "id": "9eb47f92-a027-4d2a-9a4c-b2d0860ee941",
+              "displayOrder": 2,
+              "text": "9cm인 나 막대",
+              "isCorrect": false
+            },
+            {
+              "id": "d1188358-2fba-47c3-b51b-f1b2d57776e6",
+              "displayOrder": 3,
+              "text": "세 막대의 길이가 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "bab5208e-a589-488f-9149-9e6ac5a63e7d",
+              "displayOrder": 4,
+              "text": "6cm인 다 막대",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "a6ce38ea-ef4d-4bf5-b7e5-5d724b90fd08",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "테이프의 끝 눈금은 13cm이고 길이는 8cm입니다. 시작 눈금은?",
+          "explanation": "끝 눈금 13cm에서 길이 8cm를 빼면 시작 눈금은 5cm입니다.",
+          "skillCode": "infer-length-from-measurement",
+          "options": [
+            {
+              "id": "39d0ef82-9c44-494f-916a-8c4516cc84b1",
+              "displayOrder": 1,
+              "text": "5cm",
+              "isCorrect": true
+            },
+            {
+              "id": "f3a55fcd-219d-4117-9ba3-3b67841bc6f0",
+              "displayOrder": 2,
+              "text": "8cm",
+              "isCorrect": false
+            },
+            {
+              "id": "40d32ff8-4b38-4eb6-aa11-73639b278324",
+              "displayOrder": 3,
+              "text": "13cm",
+              "isCorrect": false
+            },
+            {
+              "id": "bff6c717-2cc3-4864-b091-76b61fca2cbb",
+              "displayOrder": 4,
+              "text": "21cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "7df5b633-b8f2-4dcf-ba21-c39891b6bb4d",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "끈의 시작 눈금은 4cm이고 길이는 9cm입니다. 끝 눈금은?",
+          "explanation": "시작 눈금 4cm에서 9cm만큼 이어지므로 끝 눈금은 13cm입니다.",
+          "skillCode": "infer-length-from-measurement",
+          "options": [
+            {
+              "id": "929332a6-4546-409b-9f82-3a2aa61a68bd",
+              "displayOrder": 1,
+              "text": "5cm",
+              "isCorrect": false
+            },
+            {
+              "id": "d7ec7526-3fef-4cb9-97da-2f52f83136e1",
+              "displayOrder": 2,
+              "text": "13cm",
+              "isCorrect": true
+            },
+            {
+              "id": "6ddf163f-02cc-4868-b490-07c578338f40",
+              "displayOrder": 3,
+              "text": "9cm",
+              "isCorrect": false
+            },
+            {
+              "id": "d8a8fc3d-5a72-48f2-bc39-54aea7bf220e",
+              "displayOrder": 4,
+              "text": "36cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "2bf3a716-fe4c-4b25-85b1-0d316fe1d1ad",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "부러진 자에서 물체의 양 끝이 6cm 눈금과 15cm 눈금에 있습니다. 물체의 길이는?",
+          "explanation": "끝 눈금 15cm에서 시작 눈금 6cm를 빼면 물체의 길이는 9cm입니다.",
+          "skillCode": "measure-from-nonzero-start",
+          "options": [
+            {
+              "id": "6630745e-7149-42d2-b264-20fbeeb42d8e",
+              "displayOrder": 1,
+              "text": "15cm",
+              "isCorrect": false
+            },
+            {
+              "id": "38981071-fbed-4d87-84c3-e80ae089c917",
+              "displayOrder": 2,
+              "text": "21cm",
+              "isCorrect": false
+            },
+            {
+              "id": "3e9eb578-b652-4317-9e47-d42815178462",
+              "displayOrder": 3,
+              "text": "9cm",
+              "isCorrect": true
+            },
+            {
+              "id": "5e741035-8610-4de5-8aa3-76b7f2cd1175",
+              "displayOrder": 4,
+              "text": "6cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "6382a9f8-026a-4437-b308-5b3b556da05a",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "어떤 물체의 길이는 7cm보다 길고 10cm보다 짧은 짝수입니다. 물체의 길이는?",
+          "explanation": "7cm보다 크고 10cm보다 작은 수 중 짝수는 8이므로 길이는 8cm입니다.",
+          "skillCode": "infer-length-from-measurement",
+          "options": [
+            {
+              "id": "d61e62a5-a790-4024-8df8-824ad13dfa05",
+              "displayOrder": 1,
+              "text": "7cm",
+              "isCorrect": false
+            },
+            {
+              "id": "99c0da39-bc1c-40b8-a902-074572e001a9",
+              "displayOrder": 2,
+              "text": "9cm",
+              "isCorrect": false
+            },
+            {
+              "id": "73db810a-0d1c-4bb0-9066-9a78cd9d033a",
+              "displayOrder": 3,
+              "text": "10cm",
+              "isCorrect": false
+            },
+            {
+              "id": "757fc668-ca89-4b37-990e-aea293d21f0e",
+              "displayOrder": 4,
+              "text": "8cm",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "a55763cd-ad23-4d39-96f3-58e9c60e4fe3",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "빨간 막대는 2cm부터 11cm까지, 파란 막대는 5cm부터 13cm까지 놓였습니다. 알맞은 비교는?",
+          "explanation": "빨간 막대는 9cm이고 파란 막대는 8cm이므로 빨간 막대가 1cm 더 깁니다.",
+          "skillCode": "compare-lengths",
+          "options": [
+            {
+              "id": "80e64e00-4e37-4c63-997c-37a59859c3c6",
+              "displayOrder": 1,
+              "text": "빨간 막대가 1cm 더 깁니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "d6937396-3e52-4beb-8bc4-1146daaa60e3",
+              "displayOrder": 2,
+              "text": "파란 막대가 1cm 더 깁니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "a883129c-aef0-44a7-abc5-5d8a90c820c9",
+              "displayOrder": 3,
+              "text": "두 막대의 길이가 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "595abf2a-4369-4fa1-a018-967b581fe583",
+              "displayOrder": 4,
+              "text": "비교할 수 없습니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "0b42e785-047e-437c-a070-0173b341ec8e",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "길이와 단위를 바르게 짝 지은 것은?",
+          "explanation": "복도처럼 긴 공간은 m, 연필처럼 작은 물체는 cm로 나타내는 것이 알맞습니다.",
+          "skillCode": "choose-length-unit",
+          "options": [
+            {
+              "id": "f8c25e68-5595-456c-bc29-f13b4d7d6460",
+              "displayOrder": 1,
+              "text": "복도 12cm, 연필 18m",
+              "isCorrect": false
+            },
+            {
+              "id": "59ed19d2-7e82-41b8-ae3b-beb14a0e1dca",
+              "displayOrder": 2,
+              "text": "복도 12m, 연필 18cm",
+              "isCorrect": true
+            },
+            {
+              "id": "9f232fbf-2e99-4842-9cdb-c4754659299b",
+              "displayOrder": 3,
+              "text": "복도 12kg, 연필 18kg",
+              "isCorrect": false
+            },
+            {
+              "id": "ad822337-4dab-4317-98f9-8a3419a2c54c",
+              "displayOrder": 4,
+              "text": "복도 12L, 연필 18m",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8029ea54-cecc-4e97-8932-45ae40a5a17c",
+      "difficulty": "crown",
+      "title": "최상위 도전!",
+      "displayOrder": 4,
+      "questions": [
+        {
+          "id": "b860e868-5512-439f-8d73-42346835673e",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "수아는 자의 3cm 눈금부터 11cm 눈금까지 놓인 막대의 길이를 11cm라고 했습니다. 바른 설명은?",
+          "explanation": "0cm에서 시작하지 않았으므로 끝 눈금 11cm에서 시작 눈금 3cm를 빼야 합니다. 막대의 길이는 8cm입니다.",
+          "skillCode": "correct-measurement-reasoning",
+          "options": [
+            {
+              "id": "6d4fe7a3-c8a0-474f-953d-243e7c59258d",
+              "displayOrder": 1,
+              "text": "시작 눈금 3cm를 더해 14cm입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "34e2e9d8-42ac-490c-b55d-18c4724b98dd",
+              "displayOrder": 2,
+              "text": "끝 눈금만 읽었으므로 11cm가 맞습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "cde114bf-2a53-4f28-938c-dc644b9ad000",
+              "displayOrder": 3,
+              "text": "11cm에서 3cm를 빼야 하므로 8cm입니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "711ea380-85c3-445b-8468-f78c8e7234fa",
+              "displayOrder": 4,
+              "text": "눈금 수와 관계없이 3cm입니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "affb99e5-e509-424c-8b6c-94c44c903d4d",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "책의 길이를 잴 때 자를 책의 옆에 비스듬히 놓았습니다. 올바르게 재는 방법은?",
+          "explanation": "길이를 정확히 재려면 자를 물체의 가장자리와 나란히 곧게 놓아야 합니다.",
+          "skillCode": "correct-measurement-reasoning",
+          "options": [
+            {
+              "id": "ca4980f9-682e-4802-8f0a-7d0dfd9e70af",
+              "displayOrder": 1,
+              "text": "자를 책과 멀리 떨어뜨립니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "cf95a265-cdc4-49a9-95a4-6f6c3d6ddea6",
+              "displayOrder": 2,
+              "text": "자의 뒷면만 사용합니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "cddf11db-5a41-42bf-985a-551c04fe3788",
+              "displayOrder": 3,
+              "text": "책을 접어서 잽니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "ebb276ac-e696-4573-96b2-894407274f5f",
+              "displayOrder": 4,
+              "text": "자를 책의 가장자리와 나란히 곧게 놓습니다.",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "6dc74739-176e-47c7-a67b-c9b96c41cad2",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "자의 긴 눈금에 0, 2, 4가 차례로 적혀 있습니다. 같은 간격으로 다음 긴 눈금이 나타내는 길이는?",
+          "explanation": "긴 눈금의 수가 2씩 커지므로 4 다음 긴 눈금은 6cm입니다.",
+          "skillCode": "read-ruler-scale",
+          "options": [
+            {
+              "id": "eba796d5-33c5-4cc5-9ccb-d7b40449cfc9",
+              "displayOrder": 1,
+              "text": "6cm",
+              "isCorrect": true
+            },
+            {
+              "id": "f7785695-d329-4750-af81-4a0b101cbcc9",
+              "displayOrder": 2,
+              "text": "5cm",
+              "isCorrect": false
+            },
+            {
+              "id": "5f7646a1-fef2-42e8-8753-2368320d016d",
+              "displayOrder": 3,
+              "text": "8cm",
+              "isCorrect": false
+            },
+            {
+              "id": "3253d350-0aff-475f-9229-fc45de815644",
+              "displayOrder": 4,
+              "text": "4cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "6c88e334-fb08-42fd-be41-f80579a96bb7",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "가 막대는 4cm부터 15cm까지, 나 막대는 0cm부터 12cm까지 놓였습니다. 바르게 비교한 것은?",
+          "explanation": "가 막대는 11cm이고 나 막대는 12cm이므로 나 막대가 1cm 더 깁니다.",
+          "skillCode": "correct-measurement-reasoning",
+          "options": [
+            {
+              "id": "9ceb308c-2150-42ac-9962-db7ea49aa496",
+              "displayOrder": 1,
+              "text": "가 막대가 1cm 더 깁니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "33d9d0a4-db06-4960-84c5-d858095fddf6",
+              "displayOrder": 2,
+              "text": "나 막대가 1cm 더 깁니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "5f866675-4e27-4dd8-af98-b7a215a711d4",
+              "displayOrder": 3,
+              "text": "두 막대의 길이가 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "e35cec10-e3bc-44f1-ab63-ed6bbf1e9dc7",
+              "displayOrder": 4,
+              "text": "가 막대가 4cm 더 깁니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "eaf32cbc-d9e4-4610-96ab-44022b7c2486",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "막대의 시작 눈금은 2cm이고 길이는 12cm입니다. 끝 눈금은?",
+          "explanation": "시작 눈금 2cm에서 12cm만큼 이어지므로 끝 눈금은 14cm입니다.",
+          "skillCode": "infer-length-from-measurement",
+          "options": [
+            {
+              "id": "2f8f1b69-f524-4042-9de1-b6c057c87156",
+              "displayOrder": 1,
+              "text": "10cm",
+              "isCorrect": false
+            },
+            {
+              "id": "99e714e6-c87d-468c-b624-60e78ab98a34",
+              "displayOrder": 2,
+              "text": "12cm",
+              "isCorrect": false
+            },
+            {
+              "id": "d8376516-9c10-43a8-a179-dbbf451684af",
+              "displayOrder": 3,
+              "text": "14cm",
+              "isCorrect": true
+            },
+            {
+              "id": "028e399b-81b8-4dfe-bc0b-b021a3619454",
+              "displayOrder": 4,
+              "text": "24cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "315d6ef5-296c-4fd9-8446-7ec24014fd34",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "끈의 끝 눈금은 18cm이고 길이는 11cm입니다. 시작 눈금은?",
+          "explanation": "끝 눈금 18cm에서 길이 11cm를 빼면 시작 눈금은 7cm입니다.",
+          "skillCode": "infer-length-from-measurement",
+          "options": [
+            {
+              "id": "a62ceb5d-9b8e-4aee-b05b-33be59c85da8",
+              "displayOrder": 1,
+              "text": "29cm",
+              "isCorrect": false
+            },
+            {
+              "id": "44af8e29-1588-4741-90d2-ad4ba9ffaad3",
+              "displayOrder": 2,
+              "text": "18cm",
+              "isCorrect": false
+            },
+            {
+              "id": "7f31c8c7-35f0-40c2-86ec-10c42ab1959f",
+              "displayOrder": 3,
+              "text": "11cm",
+              "isCorrect": false
+            },
+            {
+              "id": "af7bbeff-11b5-453b-ba4c-235abb0cee35",
+              "displayOrder": 4,
+              "text": "7cm",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "e05e9df5-d67a-4eb4-b07a-7de617c67bbd",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "어떤 막대의 길이는 9cm보다 길고 13cm보다 짧은 홀수입니다. 막대의 길이는?",
+          "explanation": "9cm보다 크고 13cm보다 작은 수 중 홀수는 11이므로 막대의 길이는 11cm입니다.",
+          "skillCode": "infer-length-from-measurement",
+          "options": [
+            {
+              "id": "8fda4772-2ef7-436a-a6d2-b22d32df712a",
+              "displayOrder": 1,
+              "text": "11cm",
+              "isCorrect": true
+            },
+            {
+              "id": "97bb8de1-1752-43cf-b4b2-95bcd70c0564",
+              "displayOrder": 2,
+              "text": "10cm",
+              "isCorrect": false
+            },
+            {
+              "id": "7debeae5-a3f6-4a7d-bbf6-fef8f7067461",
+              "displayOrder": 3,
+              "text": "12cm",
+              "isCorrect": false
+            },
+            {
+              "id": "bf0d4ead-aa28-4dec-9f2c-3ffe7d3d9fc5",
+              "displayOrder": 4,
+              "text": "13cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "3c24c97a-b47b-4619-b126-c52620390d6f",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "자를 사용해 물체의 길이를 재는 방법으로 옳은 것은?",
+          "explanation": "물체를 자와 나란히 놓고 한쪽 끝을 기준 눈금에 맞춘 뒤 다른 끝의 눈금을 읽어야 합니다.",
+          "skillCode": "correct-measurement-reasoning",
+          "options": [
+            {
+              "id": "f38b8592-f5e9-4e75-bde1-4ca5ecde0c1e",
+              "displayOrder": 1,
+              "text": "물체를 자와 비스듬하게 놓습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "bad79b81-8ce3-4d5b-8e35-9d86f283897f",
+              "displayOrder": 2,
+              "text": "물체의 한쪽 끝을 기준 눈금에 맞추고 자와 나란히 놓습니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "0cec3fbf-e34d-43e0-a14c-34bcdbe93e46",
+              "displayOrder": 3,
+              "text": "끝 눈금 숫자는 보지 않습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "c0a1156a-44a5-4df0-b6d1-83ba0bc6c0ba",
+              "displayOrder": 4,
+              "text": "물체를 구부려 자에 맞춥니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "286c2a44-9d61-43f9-94d5-2b2b4b575496",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "민준이는 2cm 눈금부터 10cm 눈금까지 놓인 막대의 길이를 10cm라고 했습니다. 바른 결과는?",
+          "explanation": "끝 눈금 10cm에서 시작 눈금 2cm를 빼면 막대의 길이는 8cm입니다.",
+          "skillCode": "correct-measurement-reasoning",
+          "options": [
+            {
+              "id": "361aaf20-c3ea-4a21-b0f3-87aa2c3ad4dc",
+              "displayOrder": 1,
+              "text": "12cm",
+              "isCorrect": false
+            },
+            {
+              "id": "addee060-bc1c-4fb1-8be2-781c0f53fd74",
+              "displayOrder": 2,
+              "text": "10cm",
+              "isCorrect": false
+            },
+            {
+              "id": "6a86754c-6ca7-4120-b00d-f151cfc354c9",
+              "displayOrder": 3,
+              "text": "8cm",
+              "isCorrect": true
+            },
+            {
+              "id": "0a10f919-3711-401d-9ead-f26b886a1d6b",
+              "displayOrder": 4,
+              "text": "2cm",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "583f0f27-2dfe-4f6f-b157-6a2a90152385",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "가 막대는 4cm부터 13cm까지 놓였습니다. 나 막대는 가 막대보다 2cm 더 길고 5cm 눈금에서 시작합니다. 나 막대의 끝 눈금은?",
+          "explanation": "가 막대는 9cm이고 나 막대는 11cm입니다. 나 막대가 5cm 눈금에서 시작하므로 끝 눈금은 16cm입니다.",
+          "skillCode": "infer-length-from-measurement",
+          "options": [
+            {
+              "id": "12f7af0a-0465-4d94-86be-443f7413f2dd",
+              "displayOrder": 1,
+              "text": "11cm",
+              "isCorrect": false
+            },
+            {
+              "id": "81cea5a8-293e-4792-ab18-6a82ebde080a",
+              "displayOrder": 2,
+              "text": "14cm",
+              "isCorrect": false
+            },
+            {
+              "id": "eeb30db1-3fae-469f-9944-9c36bf7511d2",
+              "displayOrder": 3,
+              "text": "15cm",
+              "isCorrect": false
+            },
+            {
+              "id": "b52666d1-52e9-4808-87c8-b7e80adee129",
+              "displayOrder": 4,
+              "text": "16cm",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
