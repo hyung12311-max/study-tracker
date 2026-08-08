@@ -96,11 +96,17 @@ test("importer creates deterministic 4/40/160 content accepted by existing tools
   assert.deepEqual(first.course, JSON.parse(fs.readFileSync(path.join(root, "content/learning/math/make-ten-v1.json"), "utf8")).course);
   assert.deepEqual(first.recommendation, curriculum.units[0].recommendation);
   assert.deepEqual(first.stages.map((stage) => stage.questions.length), [10, 10, 10, 10]);
+  assert.equal(first.stages[0].questions[0].skillCode, "test-seed-1");
+  assert.ok(first.stages.flatMap((stage) => stage.questions).every((question) => typeof question.skillCode === "string"));
   assert.equal(first.stages.flatMap((stage) => stage.questions.flatMap((question) => question.options)).length, 160);
   const migration = generateMigration(first);
   const verification = generateVerification(first);
   const rollback = generateRollback(first);
   assert.match(migration, /Content-only and additive/);
+  assert.match(migration, /learning skill metadata foundation is missing/);
+  assert.match(migration, /insert into public\.learning_question_skills/);
+  assert.match(verification, /question_skills_exact/);
+  assert.match(rollback, /delete from public\.learning_question_skills/);
   assert.match(migration, /'grade2-three-digit-numbers', '세 자리 수를 알아봐요', 2\);/);
   assert.match(migration, /unit sort order already exists/);
   assert.doesNotMatch(migration, /insert into public\.learning_courses/i);

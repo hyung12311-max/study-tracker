@@ -27,7 +27,7 @@ CSV 작성자는 course 식별자를 입력하지 않습니다.
 
 ## 5. questions CSV
 
-`grade2-math-questions.csv`에는 단원, version, 단계, 단계 내 문항 순서, 문항, 선택지 4개, 정답 번호, 해설, 가중치, 내부 skill code, 검토 상태와 메모가 들어갑니다. 문항·선택지·해설은 독창적으로 작성합니다. 실제 배포 JSON은 4단계/40문항/160선택지, 가중치 1, `reviewed`인 완성 행만 생성됩니다.
+`grade2-math-questions.csv`에는 단원, version, 단계, 단계 내 문항 순서, 문항, 선택지 4개, 정답 번호, 해설, 가중치, 내부 skill code, 검토 상태와 메모가 들어갑니다. 문항·선택지·해설은 독창적으로 작성합니다. 실제 배포 JSON은 4단계/40문항/160선택지, 가중치 1, `reviewed`인 완성 행만 생성되며 각 문항의 `skill_code`를 canonical `skillCode`로 보존합니다.
 
 ## 6. Excel 저장 형식
 
@@ -52,6 +52,8 @@ Curriculum 지도는 `node scripts/validate-learning-curriculum.js <file>`로, �
 ## 10. Migration generator
 
 검증된 JSON만 기존 `scripts/generate-learning-content-migration.js`에 전달합니다. 이 단계는 별도 검토와 승인 뒤에 수행합니다. CSV importer는 migration·assignment·attempt·reward·ACL·RLS·Realtime 변경을 만들지 않습니다.
+
+`skillCode`가 있는 콘텐츠 migration은 중앙 `learning_skill_definitions`에 이미 승인된 code가 있을 때만 문항 mapping을 생성합니다. 알 수 없는 code의 표시명을 추측하거나 자동 등록하지 않습니다. 게시 전 mapping은 콘텐츠와 함께 추가되고, 게시된 version의 mapping은 UPDATE/DELETE할 수 없습니다. 기존 JSON과 기존 생성 SQL에는 skill metadata를 소급 삽입하지 않으며, 검토된 backfill은 별도 additive migration으로 관리합니다.
 
 콘텐츠 JSON의 `recommendation`은 선택 계약입니다. 초등 2학년 CSV importer는 작성자가 추천값을 입력하게 하지 않고 curriculum map의 단원 metadata를 그대로 주입합니다. 네 필드 `subject`, `recommendedStartLevelCode`, `recommendedEndLevelCode`, `parentSortOrder`가 모두 있어야 하며 사용자·가족·자녀 식별자는 허용하지 않습니다. generator는 이 객체가 있을 때만 같은 content transaction에서 단원 단위 recommendation row를 추가하고, 기존 값이 다르면 덮어쓰지 않고 중단합니다. verification은 exact metadata와 최신 published version 추천 판정을 확인하며 rollback은 미사용 콘텐츠에서 exact metadata만 먼저 제거합니다. recommendation이 없는 기존 JSON의 세 SQL 산출물은 변경되지 않습니다.
 

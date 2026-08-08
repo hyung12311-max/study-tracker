@@ -43,6 +43,20 @@ test("validator accepts optional exact recommendation metadata without changing 
   assert.equal(canonicalJson(source), legacyCanonical);
 });
 
+test("validator accepts an optional canonical skill code without changing legacy content", () => {
+  const legacyCanonical = canonicalJson(source);
+  const content = clone();
+  content.stages[0].questions[0].skillCode = "make-ten.compose";
+  assert.deepEqual(validateLearningContent(content), { valid: true, errors: [] });
+  assert.equal(canonicalJson(source), legacyCanonical);
+
+  for (const invalid of ["Make Ten", " padded", "skill/one", "skill..one", "가르기"] ) {
+    const candidate = clone();
+    candidate.stages[0].questions[0].skillCode = invalid;
+    assert.match(validateLearningContent(candidate).errors.join("\n"), /skillCode/);
+  }
+});
+
 test("recommendation content must reuse the exact existing math-core identity", () => {
   const content = clone();
   content.recommendation = {

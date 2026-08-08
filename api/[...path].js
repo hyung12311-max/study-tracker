@@ -38,6 +38,10 @@ const learningRoadmap = require("../server/api/learning/roadmap");
 const learningProfile = require("../server/api/learning/profile");
 const learningAssignments = require("../server/api/learning/assignments");
 const learningPlans = require("../server/api/learning/plans");
+const learningScores = require("../server/api/learning/scores");
+const learningAttemptHistory = require("../server/api/learning/attempt-history");
+const learningSkills = require("../server/api/learning/skills");
+const learningRecommendations = require("../server/api/learning/recommendations");
 const learningAssignmentCancel = require("../server/api/learning/assignments/[assignmentId]/cancel");
 const learningAttemptStart = require("../server/api/learning/assignments/[assignmentId]/stages/[stageId]/attempts");
 const learningAttempt = require("../server/api/learning/attempts/[attemptId]");
@@ -87,6 +91,10 @@ const routes = Object.freeze({
   "learning/profile": learningProfile,
   "learning/assignments": learningAssignments,
   "learning/plans": learningPlans,
+  "learning/scores": learningScores,
+  "learning/attempt-history": learningAttemptHistory,
+  "learning/skills": learningSkills,
+  "learning/recommendations": learningRecommendations,
 });
 
 function routeKey(request) {

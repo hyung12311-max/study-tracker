@@ -40,6 +40,9 @@ function generateMigration(content) {
   const options = questions.flatMap((question) => [...question.options]
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map((option) => ({ ...option, questionId: question.id })));
+  const skillMappings = questions
+    .filter((question) => question.skillCode)
+    .map((question) => ({ questionId: question.id, skillCode: question.skillCode }));
   const recommendation = content.recommendation;
   const unitSortOrder = resolveUnitSortOrder(content);
   const recommendationPreflight = recommendation ? `
@@ -70,6 +73,32 @@ where not exists (
   from public.learning_unit_recommendation_metadata metadata
   where metadata.unit_id = ${quote(content.unit.id)}::uuid
 );
+
+` : "";
+  const skillPreflight = skillMappings.length ? `
+
+  if to_regclass('public.learning_skill_definitions') is null
+     or to_regclass('public.learning_question_skills') is null then
+    raise exception using errcode = 'P0002', message = 'learning skill metadata foundation is missing';
+  end if;
+
+  if exists (
+    select 1
+    from (values
+${rows([...new Set(skillMappings.map((mapping) => mapping.skillCode))].map((skillCode) => [quote(skillCode)]))}
+    ) expected_skill(skill_code)
+    where not exists (
+      select 1 from public.learning_skill_definitions definition
+      where definition.skill_code = expected_skill.skill_code
+    )
+  ) then
+    raise exception using errcode = 'P0002', message = 'learning skill definition is missing';
+  end if;` : "";
+  const skillInsert = skillMappings.length ? `insert into public.learning_question_skills (
+  question_id, skill_code, is_primary
+)
+values
+${rows(skillMappings.map((mapping) => [quote(mapping.questionId), quote(mapping.skillCode), "true"]))};
 
 ` : "";
 
@@ -161,7 +190,7 @@ begin;
 
 do $preflight$
 begin
-  ${sharedPreflight}${recommendationPreflight}
+  ${sharedPreflight}${recommendationPreflight}${skillPreflight}
 
   if exists (
     select 1 from public.learning_content_versions
@@ -205,7 +234,7 @@ insert into public.learning_question_options (id, question_id, display_order, op
 values
 ${rows(options.map((option) => [quote(option.id), quote(option.questionId), option.displayOrder, quote(option.text), option.isCorrect ? "true" : "false"]))};
 
-select (public.publish_learning_content_version(${quote(content.version.id)}::uuid)).id;
+${skillInsert}select (public.publish_learning_content_version(${quote(content.version.id)}::uuid)).id;
 
 commit;
 `;
@@ -227,6 +256,9 @@ function generateVerification(content) {
   const hash = contentHash(content);
   const expected = quote(canonicalJson(content));
   const questionCount = content.stages.reduce((sum, stage) => sum + stage.questions.length, 0);
+  const skillMappings = content.stages.flatMap((stage) => stage.questions)
+    .filter((question) => question.skillCode)
+    .map((question) => ({ questionId: question.id, skillCode: question.skillCode }));
   const optionCount = questionCount * 4;
   const questionsPerStage = content.stages[0].questions.length;
   const v2Checks = legacyMakeTen && content.version.number === 2 ? `
@@ -365,6 +397,35 @@ function generateVerification(content) {
     group by unit.course_id, unit.sort_order
     having count(*) > 1
   ) duplicate_order` : "";
+  const skillChecks = skillMappings.length ? `
+
+  union all
+  select 29, '${checkPrefix}_question_skills_exact',
+    (select count(*) from actual_skill_mappings) = ${skillMappings.length}
+      and not exists (
+        (select question_id, skill_code from expected_skill_mappings)
+        except
+        (select question_id, skill_code from actual_skill_mappings)
+      )
+      and not exists (
+        (select question_id, skill_code from actual_skill_mappings)
+        except
+        (select question_id, skill_code from expected_skill_mappings)
+      ),
+    jsonb_build_object('count', (select count(*) from actual_skill_mappings))` : "";
+  const skillCtes = skillMappings.length ? `, expected_skill_mappings as (
+  select question->>'id' as question_id, question->>'skillCode' as skill_code
+  from expected_stages stage,
+       jsonb_array_elements(stage.questions) question
+  where question ? 'skillCode'
+), actual_skill_mappings as (
+  select mapping.question_id::text as question_id, mapping.skill_code
+  from public.learning_question_skills mapping
+  join public.learning_questions question on question.id = mapping.question_id
+  join public.learning_stages stage on stage.id = question.stage_id
+  where stage.content_version_id = ${quote(content.version.id)}::uuid
+    and mapping.is_primary
+)` : "";
   const verificationLabel = legacyMakeTen
     ? (content.version.number === 1 ? "pilot content" : `${content.version.label} content`)
     : `${content.unit.slug} ${content.version.label} content`;
@@ -425,7 +486,7 @@ with expected_content as (
   join public.learning_questions question on question.id = option.question_id
   join public.learning_stages stage on stage.id = question.stage_id
   where stage.content_version_id = ${quote(content.version.id)}::uuid
-), checks(check_order, check_name, passed, result_data) as (
+)${skillCtes}, checks(check_order, check_name, passed, result_data) as (
   select 1, '${checkPrefix}_course_exact',
     count(*) = 1,
     jsonb_build_object('count', count(*))
@@ -537,7 +598,7 @@ with expected_content as (
       and to_regprocedure('public.publish_learning_content_version(uuid)') is not null
       and to_regprocedure('public.start_or_resume_learning_attempt(uuid,uuid,uuid,uuid,uuid,uuid)') is not null
       and to_regprocedure('public.finalize_learning_stage_attempt(uuid,uuid,uuid)') is not null,
-    jsonb_build_object('preserved', true)${v2Checks}${recommendationChecks}${genericChecks}
+    jsonb_build_object('preserved', true)${v2Checks}${recommendationChecks}${genericChecks}${skillChecks}
 )
 select check_order, check_name, passed, result_data
 from checks
@@ -555,6 +616,7 @@ function generateRollback(content) {
   const legacyMakeTen = content.unit.slug === "make-ten";
   const diagnostic = diagnosticName(content);
   const recommendation = content.recommendation;
+  const hasSkillMappings = content.stages.some((stage) => stage.questions.some((question) => question.skillCode));
   const sharedCleanup = content.version.number === 1 && recommendation ? `delete from public.learning_units unit
 where unit.id = ${quote(content.unit.id)}::uuid
   and unit.course_id = ${quote(content.course.id)}::uuid
@@ -610,6 +672,13 @@ where metadata.unit_id = ${quote(content.unit.id)}::uuid
   and metadata.parent_sort_order = ${recommendation.parentSortOrder};
 
 ` : "";
+  const skillDelete = hasSkillMappings ? `delete from public.learning_question_skills mapping
+using public.learning_questions question, public.learning_stages stage
+where mapping.question_id = question.id
+  and question.stage_id = stage.id
+  and stage.content_version_id = ${quote(content.version.id)}::uuid;
+
+` : "";
   const rollbackLabel = content.version.number === 1 ? "v1 pilot content" : `${content.version.label} content version`;
   const rollbackSubject = legacyMakeTen ? `Make Ten ${rollbackLabel}` : `${content.unit.slug} ${rollbackLabel}`;
   const historyMessage = legacyMakeTen
@@ -639,7 +708,7 @@ $guard$;
 
 ${recommendationDelete}select pg_catalog.set_config('session_replication_role', 'replica', true);
 
-delete from public.learning_question_options option
+${skillDelete}delete from public.learning_question_options option
 using public.learning_questions question, public.learning_stages stage
 where option.question_id = question.id
   and question.stage_id = stage.id

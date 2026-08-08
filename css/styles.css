@@ -770,6 +770,47 @@ h2 {
   word-break: keep-all;
 }
 
+.learning-analysis-section{margin:20px 0;padding:20px;border:1px solid #dfe5f2;border-radius:18px;background:#f8faff}
+.learning-analysis-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.learning-analysis-heading h4,.learning-analysis-heading p{margin:0}
+.learning-analysis-heading>p{color:#65708a;font-size:.9rem}
+.learning-analysis-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.learning-analysis-panel{min-width:0;padding:16px;border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(46,57,89,.08)}
+.learning-analysis-panel h5{margin:0 0 12px;font-size:1rem}
+.learning-analysis-empty,.learning-analysis-loading,.learning-analysis-error{margin:0;padding:18px 8px;text-align:center;color:#65708a;line-height:1.5}
+.learning-analysis-loading{animation:learning-analysis-pulse 1.2s ease-in-out infinite}
+.learning-analysis-error{color:#a43d4b}
+.learning-score-summary+ .learning-score-summary{margin-top:14px;padding-top:14px;border-top:1px solid #e9edf5}
+.learning-score-summary header{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px}
+.learning-score-summary header small{color:#7a849a}
+.learning-score-summary dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.learning-score-summary dl div{padding:9px;border-radius:10px;background:#f5f7fb}
+.learning-score-summary dt{font-size:.75rem;color:#65708a}
+.learning-score-summary dd{margin:4px 0 0;font-weight:700}
+.learning-score-summary dd small{display:block;margin-top:2px;font-size:.7rem;font-weight:400;color:#65708a}
+.learning-attempt-history,.learning-skill-summary{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.learning-attempt-history li,.learning-skill-summary li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border-radius:10px;background:#f5f7fb}
+.learning-attempt-history li>div{display:grid;gap:2px}
+.learning-attempt-history li>div:last-child{text-align:right}
+.learning-attempt-history small,.learning-attempt-history span{font-size:.75rem;color:#65708a}
+.learning-skill-summary li{display:block}
+.learning-skill-summary li>div{display:flex;justify-content:space-between;gap:8px}
+.learning-skill-summary li span{font-size:.75rem;color:#65708a}
+.learning-skill-summary li p{margin:5px 0 0;color:#65708a;font-size:.82rem}
+.learning-skill-summary li.is-weak{background:#fff0f1;box-shadow:inset 3px 0 #d95667}
+.learning-skill-summary li.is-weak span{color:#a43d4b;font-weight:700}
+.learning-recommendation-panel{margin-top:14px}
+.learning-recommendation-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:0;list-style:none}
+.learning-recommendation-list li{position:relative;padding:14px;border:1px solid #e0e6f2;border-radius:12px;background:#f8faff}
+.learning-recommendation-list li>div{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.learning-recommendation-list li>div small,.learning-recommendation-list li>small{color:#65708a}
+.learning-recommendation-list p{display:grid;gap:4px;margin:12px 0 8px}
+.learning-recommendation-list p span{color:#65708a;font-size:.84rem;line-height:1.5}
+.learning-recommendation-priority{display:inline-flex;padding:4px 8px;border-radius:999px;background:#e7e2ff;color:#5649a8;font-size:.74rem;font-weight:800}
+@keyframes learning-analysis-pulse{50%{opacity:.55}}
+@media (max-width:960px){.learning-analysis-grid,.learning-recommendation-list{grid-template-columns:1fr}.learning-analysis-heading{align-items:flex-start;flex-direction:column}}
+@media (max-width:480px){.learning-analysis-section{padding:14px}.learning-score-summary dl{grid-template-columns:1fr}}
+
 .learning-section { display: grid; gap: 18px; }
 .learning-profile-form { display: grid; grid-template-columns: minmax(180px,1fr) minmax(180px,260px) auto; gap: 14px; align-items: end; padding: 16px; border-radius: 16px; background: #f5f7ff; }
 .learning-profile-form p { margin: 5px 0 0; color: var(--muted); font-weight: 700; }

@@ -4,6 +4,7 @@ const path = require("node:path");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const SLUG = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
 const VERSION = /^v[1-9][0-9]*$/;
+const SKILL_CODE = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
 const DIFFICULTIES = ["seed", "leaf", "tree", "crown"];
 const FORBIDDEN_CHILD_TEXT = /(학년|교육과정|커리큘럼|content version|version|버전|uuid|관리자|내부용|elementary_[1-6]|\bready\b|\bmath\b)/i;
 const RECOMMENDATION_SUBJECTS = ["math"];
@@ -22,7 +23,7 @@ const fields = Object.freeze({
   unit: ["id", "slug", "title", "displayOrder"],
   version: ["id", "label", "number"],
   stage: ["id", "difficulty", "title", "displayOrder", "questions"],
-  question: ["id", "displayOrder", "weight", "prompt", "explanation", "options"],
+  question: ["id", "displayOrder", "weight", "prompt", "explanation", "skillCode", "options"],
   option: ["id", "displayOrder", "text", "isCorrect"],
   recommendation: ["subject", "recommendedStartLevelCode", "recommendedEndLevelCode", "parentSortOrder"],
 });
@@ -166,12 +167,18 @@ function validateLearningContent(content) {
     for (const [questionIndex, question] of (Array.isArray(stage.questions) ? stage.questions : []).entries()) {
       questionCount += 1;
       const questionPath = `${stagePath}.questions[${questionIndex}]`;
-      if (!exactFields(question, questionPath, fields.question)) continue;
+      if (!exactFields(question, questionPath, fields.question, ["skillCode"])) continue;
       uuid(question.id, `${questionPath}.id`);
       order(question.displayOrder, questionIndex + 1, `${questionPath}.displayOrder`);
       if (question.weight !== 1) fail(`${questionPath}.weight`, "must equal 1");
       text(question.prompt, `${questionPath}.prompt`, 300, true);
       text(question.explanation, `${questionPath}.explanation`, 400, true);
+      if (Object.hasOwn(question, "skillCode")) {
+        text(question.skillCode, `${questionPath}.skillCode`, 100);
+        if (typeof question.skillCode === "string" && !SKILL_CODE.test(question.skillCode)) {
+          fail(`${questionPath}.skillCode`, "must be a lowercase skill code");
+        }
+      }
       if (!Array.isArray(question.options) || question.options.length !== 4) {
         fail(`${questionPath}.options`, "must contain exactly 4 options");
       }

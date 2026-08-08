@@ -5,6 +5,7 @@ import { initFamilyChat } from "./family-chat.js";
 import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 import { initLearning } from "./learning.js";
+import { initLearningAnalysis } from "./learning-analysis.js";
 
 const PARENT_PASSWORD = "1234";
 const BUILD_VERSION = "v39";
@@ -820,6 +821,7 @@ let realtimeUnsubscribe = null;
 let stickerWalletSnapshot = null;
 let planAssignees = [];
 let learningController = null;
+let learningAnalysisController = null;
 
 function planAssigneeStorageKey() {
   const familyId = familyChatController?.currentMember()?.family_id;
@@ -941,6 +943,7 @@ async function handlePlanAssigneeChange() {
     resetReadingPlanForm();
     resetAcademyForm();
     learningController?.reset();
+    learningAnalysisController?.reset();
     render();
     return;
   }
@@ -963,6 +966,7 @@ async function handlePlanAssigneeChange() {
   await Promise.all([
     reloadFromRemote({ essentialOnly: false }),
     learningController?.refresh({ force: true }),
+    learningAnalysisController?.refresh(),
   ]);
 }
 
@@ -2659,6 +2663,7 @@ function enterParentMode() {
   loadNotificationPreferences();
   loadStickerRewardSettings();
   learningController?.refresh();
+  learningAnalysisController?.refresh();
   showToast("부모 모드로 전환했어요.");
 }
 
@@ -2930,6 +2935,12 @@ async function initApp() {
     showToast,
     refreshStickerWallet: () => rewardStoreController?.refresh({ silent: true }),
   });
+  learningAnalysisController ||= initLearningAnalysis({
+    requestJson,
+    authHeaders: familyAuthHeaders,
+    currentMember: () => familyChatController?.currentMember(),
+    selectedAssignee: selectedPlanAssignee,
+  });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
@@ -2944,10 +2955,12 @@ async function enterAuthenticatedApp() {
     stickerWalletSnapshot = null;
     state = emptyLocalData();
     learningController?.reset();
+    learningAnalysisController?.reset();
     state.formMode = "create";
     if (appReady) render();
     await loadPlanAssignees();
     const learningTask = learningController?.refresh({ force: true });
+    const learningAnalysisTask = learningAnalysisController?.refresh();
     activeCacheKey = localDataKey();
     console.info("[startup auth]", {
       member_key: currentMember?.member_key || null,
@@ -2980,7 +2993,7 @@ async function enterAuthenticatedApp() {
           })
             .then((controller) => { rewardStoreController = controller; });
       await reloadFromRemote({ essentialOnly: true });
-      await learningTask;
+      await Promise.all([learningTask, learningAnalysisTask]);
       render();
       startupMetrics.firstContentMs ??= Math.round(performance.now() - startupStartedAt);
       await Promise.allSettled([rewardTask]);

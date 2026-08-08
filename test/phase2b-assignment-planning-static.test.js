@@ -92,24 +92,15 @@ test("verification, fixture, and rollback cover behavior and safe removal", () =
   assert.doesNotMatch(rollback, /drop table public\.(learning_assignments|learning_attempts|learning_stage_progress|learning_stage_first_passes)/i);
 });
 
-test("frozen Phase A, content, package, and vendor files are untouched", () => {
-  const changed = require("node:child_process")
-    .execFileSync("git", ["status", "--short"], { cwd: root, encoding: "utf8" })
-    .trim()
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line) => line.slice(3).replaceAll("\\", "/"));
-  assert.deepEqual(changed.sort(), [
-    "supabase/migrations/202607310006_learning_assignment_planning_foundation.sql",
-    "supabase/rollbacks/202607310006_rollback_learning_assignment_planning_foundation.sql",
-    "supabase/verification/202607310006_learning_assignment_planning_foundation_verify.sql",
-    "test/fixtures/phase2b_assignment_planning_fixture.sql",
-    "test/phase2b-assignment-planning-static.test.js",
-  ].sort());
+test("Phase B planning routes remain while frozen content, package, and vendor files are untouched", () => {
+  const router = read("api/[...path].js");
+  assert.match(router, /const learningPlans = require\("\.\.\/server\/api\/learning\/plans"\)/);
+  assert.match(router, /"learning\/plans": learningPlans/);
+  assert.match(router, /planStateMatch[\s\S]*learningPlans\.pause[\s\S]*learningPlans\.resume/);
+  assert.match(router, /planMatch[\s\S]*handler = learningPlans\.item/);
 
   const frozen = [
     "supabase/migrations/202607310005_seed_grade2_three_digit_numbers_learning_content.sql",
-    "api/[...path].js",
     "server/api/learning/roadmap.js",
     "js/learning.js",
     "package.json",

@@ -312,6 +312,21 @@
               </label>
               <button type="submit" class="primary" id="learningProfileSave">저장</button>
             </form>
+            <section id="learningAnalysisSection" class="learning-analysis-section" aria-labelledby="learningAnalysisTitle" aria-busy="false">
+              <header class="learning-analysis-heading">
+                <div><p class="eyebrow">Achievement</p><h4 id="learningAnalysisTitle">성취 분석</h4></div>
+                <p>선택한 자녀의 완료된 문제풀이 기록을 보여줍니다.</p>
+              </header>
+              <div class="learning-analysis-grid">
+                <article class="learning-analysis-panel"><h5>점수 요약</h5><div id="learningScoreSummary" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div></article>
+                <article class="learning-analysis-panel"><h5>최근 응시 이력</h5><div id="learningAttemptHistory" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div></article>
+                <article class="learning-analysis-panel"><h5>취약 개념</h5><div id="learningSkillSummary" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div></article>
+              </div>
+              <article class="learning-analysis-panel learning-recommendation-panel">
+                <h5>보완 학습 추천</h5>
+                <div id="learningRecommendationSummary" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div>
+              </article>
+            </section>
             <section class="learning-roadmap-section" aria-labelledby="learningRoadmapTitle">
               <div class="learning-roadmap-heading">
                 <div><h4 id="learningRoadmapTitle">초등 2학년 수학 단원 맵</h4><p>기초 준비와 정규 12단원의 준비·배정 상태를 확인합니다.</p></div>

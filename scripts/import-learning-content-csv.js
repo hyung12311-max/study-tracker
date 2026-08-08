@@ -107,6 +107,7 @@ function importUnit({ curriculum, unitsRows, questionRows, unitSlug }) {
           weight: 1,
           prompt,
           explanation,
+          skillCode: row.skill_code,
           options: optionTexts.map((text, optionIndex) => ({
             id: deterministicUuid("option", unitSlug, versionLabel, difficulty, String(questionOrder), String(optionIndex + 1)),
             displayOrder: optionIndex + 1,
