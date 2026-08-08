@@ -144,10 +144,13 @@ export function initLearning({
       : item.userStatus === "assigned"
         ? `<div class="learning-roadmap-detail-actions"><p class="learning-roadmap-assigned-note">이미 배정된 단원입니다.</p>${assignment ? `<button type="button" class="delete-btn" data-learning-action="cancel" data-assignment-id="${assignment.id}" ${cancelling ? "disabled" : ""}>${cancelling ? "취소 중…" : "배정 취소"}</button>` : ""}</div>`
         : '<p class="learning-roadmap-completed-note">완료한 단원입니다.</p>';
+    const mistakesAction = assignment
+      ? `<button type="button" data-learning-mistakes-assignment="${escapeHtml(assignment.id)}" data-learning-mistakes-title="${escapeHtml(item.displayTitle)}">오답노트 보기</button>`
+      : "";
     body.innerHTML = `<article class="learning-roadmap-detail-card">
       <header><div><small>${escapeHtml(roadmap.course?.subject || "")} · ${escapeHtml(roadmap.course?.displayName || "")}</small><h6>${escapeHtml(item.displayTitle)}</h6></div><span class="learning-roadmap-status">${status}</span></header>
       ${roadmapStages(stages, assignment)}
-      ${action}
+      <div class="learning-roadmap-detail-actions">${action}${mistakesAction}</div>
     </article>`;
   }
 

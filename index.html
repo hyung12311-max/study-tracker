@@ -327,6 +327,18 @@
                 <div id="learningRecommendationSummary" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div>
               </article>
             </section>
+            <section id="learningMistakesSection" class="learning-mistakes-section" aria-labelledby="learningMistakesTitle" aria-busy="false">
+              <header class="learning-analysis-heading">
+                <div><p class="eyebrow">Mistake Notebook</p><h4 id="learningMistakesTitle">오답노트</h4></div>
+                <p id="learningMistakesContext">완료한 단원에서 오답노트를 선택해 주세요.</p>
+              </header>
+              <div id="learningMistakesFilters" class="learning-mistakes-filters" hidden>
+                <label>단계<select id="learningMistakesStageFilter"><option value="">전체</option></select></label>
+                <label>개념<select id="learningMistakesSkillFilter"><option value="">전체</option></select></label>
+                <label>복습 상태<select id="learningMistakesStatusFilter"><option value="">전체</option><option value="unreviewed">미복습</option><option value="reviewed">확인함</option></select></label>
+              </div>
+              <div id="learningMistakesList" aria-live="polite"><p class="learning-analysis-empty">담당 자녀와 완료한 단원을 선택해 주세요.</p></div>
+            </section>
             <section class="learning-roadmap-section" aria-labelledby="learningRoadmapTitle">
               <div class="learning-roadmap-heading">
                 <div><h4 id="learningRoadmapTitle">초등 2학년 수학 단원 맵</h4><p>기초 준비와 정규 12단원의 준비·배정 상태를 확인합니다.</p></div>

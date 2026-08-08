@@ -94,15 +94,24 @@ test("verification, fixture, and rollback cover behavior and safe removal", () =
 
 test("Phase B planning routes remain while frozen content, package, and vendor files are untouched", () => {
   const router = read("api/[...path].js");
+  const assignments = read("server/api/learning/assignments.js");
+  const learningUi = read("js/learning.js");
   assert.match(router, /const learningPlans = require\("\.\.\/server\/api\/learning\/plans"\)/);
   assert.match(router, /"learning\/plans": learningPlans/);
   assert.match(router, /planStateMatch[\s\S]*learningPlans\.pause[\s\S]*learningPlans\.resume/);
   assert.match(router, /planMatch[\s\S]*handler = learningPlans\.item/);
+  assert.match(assignments, /new Set\(\["plannedStartDate", "unitTargetCompletionDate", "timezone", "stageTargets", "requestId"\]\)/);
+  assert.match(assignments, /rpc\/create_learning_assignment_with_plan/);
+  assert.match(assignments, /p_family_id: claims\.family[\s\S]*p_actor_member_id: claims\.sub[\s\S]*p_assigned_member_id: assignedMemberId/);
+  assert.match(learningUi, /const requestGeneration = \+\+generation/);
+  assert.match(learningUi, /requestGeneration !== generation \|\| requestIdentity !== identity\(\)/);
+  assert.match(learningUi, /const query = assignedMemberId \? `\?assignedMemberId=\$\{encodeURIComponent\(assignedMemberId\)\}` : ""/);
+  assert.match(learningUi, /requestJson\(`\/api\/learning\/assignments\$\{query\}`/);
+  assert.match(learningUi, /data-learning-action="assign"[\s\S]*data-unit-id[\s\S]*data-version-id/);
 
   const frozen = [
     "supabase/migrations/202607310005_seed_grade2_three_digit_numbers_learning_content.sql",
     "server/api/learning/roadmap.js",
-    "js/learning.js",
     "package.json",
     "js/vendor/supabase-js.js",
   ];

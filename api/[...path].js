@@ -43,6 +43,8 @@ const learningAttemptHistory = require("../server/api/learning/attempt-history")
 const learningSkills = require("../server/api/learning/skills");
 const learningRecommendations = require("../server/api/learning/recommendations");
 const learningAssignmentCancel = require("../server/api/learning/assignments/[assignmentId]/cancel");
+const learningAssignmentMistakes = require("../server/api/learning/assignments/[assignmentId]/mistakes");
+const learningMistakeReveal = require("../server/api/learning/assignments/[assignmentId]/mistakes/[questionId]/reveal");
 const learningAttemptStart = require("../server/api/learning/assignments/[assignmentId]/stages/[stageId]/attempts");
 const learningAttempt = require("../server/api/learning/attempts/[attemptId]");
 const learningAttemptAnswer = require("../server/api/learning/attempts/[attemptId]/answers");
@@ -113,6 +115,8 @@ function routeKey(request) {
 module.exports = async function apiRouter(request, response) {
   const key = routeKey(request);
   let handler = routes[key];
+  const revealMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/mistakes\/([0-9a-f-]+)\/reveal$/i);
+  const mistakesMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/mistakes$/i);
   const cancelMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/cancel$/i);
   const planStateMatch = key.match(/^learning\/plans\/([0-9a-f-]+)\/(pause|resume)$/i);
   const planMatch = key.match(/^learning\/plans\/([0-9a-f-]+)$/i);
@@ -121,6 +125,14 @@ module.exports = async function apiRouter(request, response) {
   const finalizeMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)\/finalize$/i);
   const abandonMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)\/abandon$/i);
   const attemptMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)$/i);
+  if (!handler && revealMatch) {
+    request.query = { ...(request.query || {}), assignmentId: revealMatch[1], questionId: revealMatch[2] };
+    handler = learningMistakeReveal;
+  }
+  if (!handler && mistakesMatch) {
+    request.query = { ...(request.query || {}), assignmentId: mistakesMatch[1] };
+    handler = learningAssignmentMistakes;
+  }
   if (!handler && cancelMatch) {
     request.query = { ...(request.query || {}), assignmentId: cancelMatch[1] };
     handler = learningAssignmentCancel;

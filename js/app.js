@@ -6,6 +6,7 @@ import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 import { initLearning } from "./learning.js";
 import { initLearningAnalysis } from "./learning-analysis.js";
+import { initLearningMistakes } from "./learning-mistakes.js";
 
 const PARENT_PASSWORD = "1234";
 const BUILD_VERSION = "v39";
@@ -822,6 +823,7 @@ let stickerWalletSnapshot = null;
 let planAssignees = [];
 let learningController = null;
 let learningAnalysisController = null;
+let learningMistakesController = null;
 
 function planAssigneeStorageKey() {
   const familyId = familyChatController?.currentMember()?.family_id;
@@ -944,6 +946,7 @@ async function handlePlanAssigneeChange() {
     resetAcademyForm();
     learningController?.reset();
     learningAnalysisController?.reset();
+    learningMistakesController?.reset();
     render();
     return;
   }
@@ -2941,6 +2944,12 @@ async function initApp() {
     currentMember: () => familyChatController?.currentMember(),
     selectedAssignee: selectedPlanAssignee,
   });
+  learningMistakesController ||= initLearningMistakes({
+    requestJson,
+    authHeaders: familyAuthHeaders,
+    currentMember: () => familyChatController?.currentMember(),
+    selectedAssignee: selectedPlanAssignee,
+  });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
@@ -2956,6 +2965,7 @@ async function enterAuthenticatedApp() {
     state = emptyLocalData();
     learningController?.reset();
     learningAnalysisController?.reset();
+    learningMistakesController?.reset();
     state.formMode = "create";
     if (appReady) render();
     await loadPlanAssignees();
