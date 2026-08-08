@@ -1,0 +1,65 @@
+{
+  "version": "phase-f-v1",
+  "productionBaseUrl": "https://study-tracker-iota-two.vercel.app",
+  "unitTestsPerformNetworkRequests": false,
+  "productionMutationBudget": 0,
+  "base": {
+    "method": "GET",
+    "path": "/",
+    "expectedStatuses": [200],
+    "contentTypes": ["text/html"],
+    "markers": ["learningAnalysisSection", "learningMistakesSection", "learningReviewWorkspace"]
+  },
+  "assets": [
+    { "path": "/css/styles.css", "contentType": "text/css", "markers": [".learning-analysis-grid", ".learning-review-workspace"] },
+    { "path": "/js/app.js", "contentType": "application/javascript", "markers": ["initLearningAnalysis", "initLearningMistakes"] },
+    { "path": "/js/learning.js", "contentType": "application/javascript", "markers": ["data-learning-mistakes-assignment", "requestGeneration"] },
+    { "path": "/js/learning-analysis.js", "contentType": "application/javascript", "markers": ["/api/learning/scores", "requestIdentity"] },
+    { "path": "/js/learning-mistakes.js", "contentType": "application/javascript", "markers": ["/mistake-reviews/", "REVIEW_STATUS_LABELS"] }
+  ],
+  "readOnlyEndpoints": [
+    { "name": "planning", "method": "GET", "path": "/api/learning/plans?assignedMemberId={assignedMemberId}" },
+    { "name": "scores", "method": "GET", "path": "/api/learning/scores?assignedMemberId={assignedMemberId}" },
+    { "name": "attempt-history", "method": "GET", "path": "/api/learning/attempt-history?assignedMemberId={assignedMemberId}" },
+    { "name": "skills", "method": "GET", "path": "/api/learning/skills?assignedMemberId={assignedMemberId}" },
+    { "name": "recommendations", "method": "GET", "path": "/api/learning/recommendations?assignedMemberId={assignedMemberId}" },
+    { "name": "mistakes", "method": "GET", "path": "/api/learning/assignments/{assignmentId}/mistakes?assignedMemberId={assignedMemberId}" },
+    { "name": "mistake-review", "method": "GET", "path": "/api/learning/mistake-reviews/{reviewId}" }
+  ],
+  "unauthenticatedExpectation": {
+    "statuses": [401, 403],
+    "codes": ["AUTH_REQUIRED", "TOKEN_EXPIRED"],
+    "privatePayloadAllowed": false
+  },
+  "mutationEndpoints": [
+    { "name": "reveal", "method": "POST", "path": "/api/learning/assignments/{assignmentId}/mistakes/{questionId}/reveal", "guardOnly": true, "execute": false, "payload": null },
+    { "name": "review-start", "method": "POST", "path": "/api/learning/assignments/{assignmentId}/mistake-reviews", "guardOnly": true, "execute": false, "payload": null },
+    { "name": "review-answer", "method": "POST", "path": "/api/learning/mistake-reviews/{reviewId}/items/{itemId}/answers", "guardOnly": true, "execute": false, "payload": null },
+    { "name": "review-abandon", "method": "POST", "path": "/api/learning/mistake-reviews/{reviewId}/abandon", "guardOnly": true, "execute": false, "payload": null }
+  ],
+  "placeholderPolicy": {
+    "actualProductionIdentifiersAllowed": false,
+    "zeroUuidAllowed": false,
+    "nonNilUuidRequired": true,
+    "names": ["assignedMemberId", "assignmentId", "questionId", "reviewId", "itemId"]
+  },
+  "privateResponseDenylist": [
+    "correctAnswer",
+    "correct_option_id",
+    "explanation",
+    "family_id",
+    "source_attempt_id",
+    "service_role",
+    "sqlstate",
+    "stack",
+    "connection string",
+    "access_token",
+    "refresh_token"
+  ],
+  "authenticatedUiUat": {
+    "required": false,
+    "blocking": false,
+    "acquireCredentials": false,
+    "backlogWhenSessionUnavailable": true
+  }
+}
