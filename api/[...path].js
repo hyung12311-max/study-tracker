@@ -45,6 +45,10 @@ const learningRecommendations = require("../server/api/learning/recommendations"
 const learningAssignmentCancel = require("../server/api/learning/assignments/[assignmentId]/cancel");
 const learningAssignmentMistakes = require("../server/api/learning/assignments/[assignmentId]/mistakes");
 const learningMistakeReveal = require("../server/api/learning/assignments/[assignmentId]/mistakes/[questionId]/reveal");
+const learningMistakeReviewStart = require("../server/api/learning/assignments/[assignmentId]/mistake-reviews");
+const learningMistakeReview = require("../server/api/learning/mistake-reviews/[reviewId]");
+const learningMistakeReviewAnswer = require("../server/api/learning/mistake-reviews/[reviewId]/items/[itemId]/answers");
+const learningMistakeReviewAbandon = require("../server/api/learning/mistake-reviews/[reviewId]/abandon");
 const learningAttemptStart = require("../server/api/learning/assignments/[assignmentId]/stages/[stageId]/attempts");
 const learningAttempt = require("../server/api/learning/attempts/[attemptId]");
 const learningAttemptAnswer = require("../server/api/learning/attempts/[attemptId]/answers");
@@ -117,6 +121,10 @@ module.exports = async function apiRouter(request, response) {
   let handler = routes[key];
   const revealMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/mistakes\/([0-9a-f-]+)\/reveal$/i);
   const mistakesMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/mistakes$/i);
+  const reviewStartMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/mistake-reviews$/i);
+  const reviewMatch = key.match(/^learning\/mistake-reviews\/([0-9a-f-]+)$/i);
+  const reviewAnswerMatch = key.match(/^learning\/mistake-reviews\/([0-9a-f-]+)\/items\/([0-9a-f-]+)\/answers$/i);
+  const reviewAbandonMatch = key.match(/^learning\/mistake-reviews\/([0-9a-f-]+)\/abandon$/i);
   const cancelMatch = key.match(/^learning\/assignments\/([0-9a-f-]+)\/cancel$/i);
   const planStateMatch = key.match(/^learning\/plans\/([0-9a-f-]+)\/(pause|resume)$/i);
   const planMatch = key.match(/^learning\/plans\/([0-9a-f-]+)$/i);
@@ -132,6 +140,22 @@ module.exports = async function apiRouter(request, response) {
   if (!handler && mistakesMatch) {
     request.query = { ...(request.query || {}), assignmentId: mistakesMatch[1] };
     handler = learningAssignmentMistakes;
+  }
+  if (!handler && reviewStartMatch) {
+    request.query = { ...(request.query || {}), assignmentId: reviewStartMatch[1] };
+    handler = learningMistakeReviewStart;
+  }
+  if (!handler && reviewAnswerMatch) {
+    request.query = { ...(request.query || {}), reviewId: reviewAnswerMatch[1], itemId: reviewAnswerMatch[2] };
+    handler = learningMistakeReviewAnswer;
+  }
+  if (!handler && reviewAbandonMatch) {
+    request.query = { ...(request.query || {}), reviewId: reviewAbandonMatch[1] };
+    handler = learningMistakeReviewAbandon;
+  }
+  if (!handler && reviewMatch) {
+    request.query = { ...(request.query || {}), reviewId: reviewMatch[1] };
+    handler = learningMistakeReview;
   }
   if (!handler && cancelMatch) {
     request.query = { ...(request.query || {}), assignmentId: cancelMatch[1] };

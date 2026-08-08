@@ -337,7 +337,15 @@
                 <label>개념<select id="learningMistakesSkillFilter"><option value="">전체</option></select></label>
                 <label>복습 상태<select id="learningMistakesStatusFilter"><option value="">전체</option><option value="unreviewed">미복습</option><option value="reviewed">확인함</option></select></label>
               </div>
+              <div id="learningReviewActions" class="learning-review-actions" hidden>
+                <button type="button" class="primary" id="learningReviewStart">오답 다시 풀기</button>
+                <p>복습 결과는 공식 점수·진도·보상에 영향을 주지 않습니다.</p>
+              </div>
               <div id="learningMistakesList" aria-live="polite"><p class="learning-analysis-empty">담당 자녀와 완료한 단원을 선택해 주세요.</p></div>
+              <section id="learningReviewWorkspace" class="learning-review-workspace" aria-labelledby="learningReviewTitle" aria-busy="false" hidden>
+                <header><div><p class="eyebrow">Mistake Review</p><h5 id="learningReviewTitle">오답 다시 풀기</h5></div><button type="button" class="delete-btn" id="learningReviewAbandon">복습 중단</button></header>
+                <div id="learningReviewContent" aria-live="polite"></div>
+              </section>
             </section>
             <section class="learning-roadmap-section" aria-labelledby="learningRoadmapTitle">
               <div class="learning-roadmap-heading">

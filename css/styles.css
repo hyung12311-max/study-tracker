@@ -825,9 +825,23 @@ h2 {
 .learning-mistake-card>button{width:100%;margin-top:12px}
 .learning-mistake-solution{margin-top:12px;padding:11px;border-radius:11px;background:#edf8ef;color:#315e3a}
 .learning-mistake-solution p{margin:6px 0 0;line-height:1.5}
+.learning-review-actions{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+.learning-review-actions p{margin:0;color:#65708a;font-size:.82rem}
+.learning-review-workspace{position:fixed;inset:0;z-index:120;overflow-y:auto;padding:clamp(18px,4vw,48px);background:rgba(248,246,255,.98)}
+.learning-review-workspace>header{display:flex;align-items:center;justify-content:space-between;gap:14px;max-width:760px;margin:0 auto 18px}
+.learning-review-workspace h5{margin:2px 0;font-size:1.35rem}
+.learning-review-card{max-width:760px;margin:auto;padding:clamp(18px,4vw,32px);border:1px solid #ded8ef;border-radius:20px;background:#fff;box-shadow:0 18px 55px rgba(55,45,90,.12)}
+.learning-review-progress{display:flex;justify-content:space-between;gap:10px;color:#65708a;font-size:.84rem;font-weight:800}
+.learning-review-options{display:grid;gap:9px;margin:18px 0;padding:0;list-style:none}
+.learning-review-options label{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;padding:12px;border:1px solid #dfe2ec;border-radius:12px;cursor:pointer}
+.learning-review-options label:has(input:checked){border-color:#7864c8;background:#f3f0ff}
+.learning-review-result{margin:16px 0;padding:14px;border-radius:13px;background:#edf8ef;color:#315e3a}
+.learning-review-result.is-wrong{background:#fff0e8;color:#84451f}
+.learning-review-status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#ece8ff;color:#58489a;font-size:.76rem;font-weight:800}
+.learning-review-card footer{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
 @keyframes learning-analysis-pulse{50%{opacity:.55}}
 @media (max-width:960px){.learning-analysis-grid,.learning-recommendation-list,.learning-mistake-list{grid-template-columns:1fr}.learning-analysis-heading{align-items:flex-start;flex-direction:column}}
-@media (max-width:480px){.learning-analysis-section,.learning-mistakes-section{padding:14px}.learning-score-summary dl,.learning-mistakes-filters{grid-template-columns:1fr}}
+@media (max-width:480px){.learning-analysis-section,.learning-mistakes-section{padding:14px}.learning-score-summary dl,.learning-mistakes-filters{grid-template-columns:1fr}.learning-review-actions,.learning-review-workspace>header{align-items:stretch;flex-direction:column}.learning-review-workspace{padding:14px}.learning-review-card footer{flex-direction:column}}
 
 .learning-section { display: grid; gap: 18px; }
 .learning-profile-form { display: grid; grid-template-columns: minmax(180px,1fr) minmax(180px,260px) auto; gap: 14px; align-items: end; padding: 16px; border-radius: 16px; background: #f5f7ff; }

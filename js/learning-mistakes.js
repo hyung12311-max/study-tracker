@@ -17,6 +17,13 @@ function uniqueOptions(items, readValues, fallback) {
   return [...values.entries()].sort((left, right) => String(left[1]).localeCompare(String(right[1]), "ko"));
 }
 
+const REVIEW_STATUS_LABELS = Object.freeze({
+  unreviewed: "미복습",
+  retried_wrong: "재오답",
+  resolved: "해결",
+  repeated_wrong: "반복 오답",
+});
+
 export function initLearningMistakes({ requestJson, authHeaders, currentMember, selectedAssignee }) {
   let generation = 0;
   let assignmentId = "";
@@ -25,6 +32,13 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
   let loading = false;
   let failed = false;
   let revealFailed = false;
+  let review = null;
+  let reviewLoading = false;
+  let reviewFailed = false;
+  let reviewSubmitting = false;
+  let selectedReviewOptionId = "";
+  let reviewFeedback = null;
+  let reviewFeedbackItemId = "";
   const revealing = new Set();
   const filters = { stage: "", skill: "", status: "" };
 
@@ -81,6 +95,60 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
     </article>`;
   }
 
+  function activeReviewItem() {
+    if (!review?.items?.length) return null;
+    return review.items.find((item) => !item.reviewAnswer) || review.items.at(-1);
+  }
+
+  function renderReview(parent) {
+    const actions = document.querySelector("#learningReviewActions");
+    const workspace = document.querySelector("#learningReviewWorkspace");
+    const content = document.querySelector("#learningReviewContent");
+    const abandonButton = document.querySelector("#learningReviewAbandon");
+    if (!actions || !workspace || !content || !abandonButton) return;
+    actions.hidden = !parent || !assignmentId || loading || failed || mistakes.length === 0;
+    workspace.hidden = !parent || (!review && !reviewLoading && !reviewFailed);
+    workspace.setAttribute("aria-busy", String(reviewLoading || reviewSubmitting));
+    if (workspace.hidden) return;
+    abandonButton.hidden = !review || review.status !== "in_progress";
+    abandonButton.disabled = reviewSubmitting;
+    if (reviewLoading) {
+      content.innerHTML = '<p class="learning-analysis-loading">오답 복습을 준비하는 중입니다.</p>';
+      return;
+    }
+    if (reviewFailed) {
+      content.innerHTML = '<div class="learning-review-card"><p class="learning-analysis-error">오답 복습을 진행하지 못했습니다.</p><footer><button type="button" data-learning-review-close>닫기</button></footer></div>';
+      return;
+    }
+    if (!review?.items?.length) {
+      content.innerHTML = '<div class="learning-review-card"><p class="learning-analysis-empty">복습할 오답이 없습니다.</p><footer><button type="button" data-learning-review-close>닫기</button></footer></div>';
+      return;
+    }
+    if (review.status === "completed" || review.status === "abandoned") {
+      const completed = review.status === "completed";
+      const feedback = reviewFeedback ? `<div class="learning-review-result ${reviewFeedback.isCorrect ? "" : "is-wrong"}"><strong>${reviewFeedback.isCorrect ? "정답입니다." : "다시 확인해 보세요."}</strong><p>정답: ${escapeHtml(reviewFeedback.correctAnswer)}</p><p>${escapeHtml(reviewFeedback.explanation)}</p></div>` : "";
+      content.innerHTML = `<article class="learning-review-card"><span class="learning-review-status">${completed ? "복습 완료" : "복습 중단"}</span><h5>${completed ? "오답 복습을 마쳤습니다." : "오답 복습을 중단했습니다."}</h5>${feedback}<p>복습 결과는 공식 점수·진도·보상을 변경하지 않습니다.</p><footer><button type="button" data-learning-review-close>오답노트로 돌아가기</button></footer></article>`;
+      return;
+    }
+    const item = activeReviewItem();
+    const answeredCount = review.items.filter((entry) => entry.reviewAnswer).length;
+    const status = REVIEW_STATUS_LABELS[item.resolutionStatus] || REVIEW_STATUS_LABELS.unreviewed;
+    const options = Array.isArray(item.options) ? item.options : [];
+    const feedback = reviewFeedback && reviewFeedbackItemId === item.id
+      ? `<div class="learning-review-result ${reviewFeedback.isCorrect ? "" : "is-wrong"}"><strong>${reviewFeedback.isCorrect ? "정답입니다." : "다시 확인해 보세요."}</strong><p>정답: ${escapeHtml(reviewFeedback.correctAnswer)}</p><p>${escapeHtml(reviewFeedback.explanation)}</p></div>`
+      : item.reviewAnswer && item.solution
+        ? `<div class="learning-review-result ${item.reviewAnswer.correct ? "" : "is-wrong"}"><strong>${item.reviewAnswer.correct ? "정답입니다." : "재오답입니다."}</strong><p>정답: ${escapeHtml(item.solution.correctAnswer)}</p><p>${escapeHtml(item.solution.explanation)}</p></div>`
+        : "";
+    content.innerHTML = `<article class="learning-review-card">
+      <div class="learning-review-progress"><span>${answeredCount + (item.reviewAnswer ? 0 : 1)} / ${review.items.length}</span><span class="learning-review-status">${escapeHtml(status)}</span></div>
+      <h5>${escapeHtml(item.stage?.title || "단계")} · ${escapeHtml(item.order)}번</h5>
+      <p>${escapeHtml(item.prompt)}</p>
+      <ol class="learning-review-options">${options.map((option, index) => `<li><label><input type="radio" name="learningReviewOption" value="${index}" data-learning-review-option="${index}" ${selectedReviewOptionId === option.id ? "checked" : ""} ${item.reviewAnswer || reviewSubmitting ? "disabled" : ""}><span>${escapeHtml(option.order)}. ${escapeHtml(option.text)}</span></label></li>`).join("")}</ol>
+      ${feedback}
+      <footer>${item.reviewAnswer ? '<button type="button" class="primary" data-learning-review-next>다음 문제</button>' : `<button type="button" class="primary" data-learning-review-submit ${selectedReviewOptionId && !reviewSubmitting ? "" : "disabled"}>${reviewSubmitting ? "답안을 확인하는 중…" : "답안 제출"}</button>`}</footer>
+    </article>`;
+  }
+
   function render() {
     const section = document.querySelector("#learningMistakesSection");
     const context = document.querySelector("#learningMistakesContext");
@@ -88,6 +156,7 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
     if (!section || !context || !list) return;
     const parent = currentMember()?.role === "parent";
     section.hidden = !parent;
+    renderReview(parent);
     if (!parent) return;
     section.setAttribute("aria-busy", String(loading));
     if (!selectedAssignee()) {
@@ -139,6 +208,13 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
     failed = false;
     revealFailed = false;
     revealing.clear();
+    review = null;
+    reviewLoading = false;
+    reviewFailed = false;
+    reviewSubmitting = false;
+    selectedReviewOptionId = "";
+    reviewFeedback = null;
+    reviewFeedbackItemId = "";
     filters.stage = "";
     filters.skill = "";
     filters.status = "";
@@ -157,6 +233,115 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
     } finally {
       if (requestGeneration === generation && requestIdentity === identity() && assignmentId === String(nextAssignmentId)) {
         loading = false;
+        render();
+      }
+    }
+  }
+
+  async function startReview() {
+    const assignedMemberId = selectedAssignee();
+    if (!assignmentId || !assignedMemberId || reviewLoading) return;
+    const requestGeneration = ++generation;
+    const requestIdentity = identity();
+    const requestAssignmentId = assignmentId;
+    review = null;
+    reviewLoading = true;
+    reviewFailed = false;
+    reviewFeedback = null;
+    selectedReviewOptionId = "";
+    render();
+    try {
+      const body = {
+        assignedMemberId,
+        status: ["unreviewed", "reviewed"].includes(filters.status) ? filters.status : "all",
+        stageId: filters.stage || null,
+        skillCode: filters.skill || null,
+        requestId: crypto.randomUUID(),
+      };
+      const data = await requestJson(
+        `/api/learning/assignments/${encodeURIComponent(requestAssignmentId)}/mistake-reviews`,
+        {
+          method: "POST",
+          headers: { ...authHeaders(), "X-Study-CSRF": "1", "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      if (requestGeneration !== generation || requestIdentity !== identity() || requestAssignmentId !== assignmentId) return;
+      review = data.review || null;
+    } catch {
+      if (requestGeneration !== generation || requestIdentity !== identity() || requestAssignmentId !== assignmentId) return;
+      reviewFailed = true;
+    } finally {
+      if (requestGeneration === generation && requestIdentity === identity() && requestAssignmentId === assignmentId) {
+        reviewLoading = false;
+        render();
+      }
+    }
+  }
+
+  async function submitReviewAnswer() {
+    const item = activeReviewItem();
+    if (!review || !item || item.reviewAnswer || !selectedReviewOptionId || reviewSubmitting) return;
+    const requestGeneration = generation;
+    const requestIdentity = identity();
+    const requestReviewId = review.id;
+    const requestItemId = item.id;
+    reviewSubmitting = true;
+    reviewFailed = false;
+    render();
+    try {
+      const data = await requestJson(
+        `/api/learning/mistake-reviews/${encodeURIComponent(requestReviewId)}/items/${encodeURIComponent(requestItemId)}/answers`,
+        {
+          method: "POST",
+          headers: { ...authHeaders(), "X-Study-CSRF": "1", "Content-Type": "application/json" },
+          body: JSON.stringify({ optionId: selectedReviewOptionId, requestId: crypto.randomUUID() }),
+        }
+      );
+      const refreshed = await requestJson(
+        `/api/learning/mistake-reviews/${encodeURIComponent(requestReviewId)}`,
+        { headers: authHeaders(), cache: "no-store" }
+      );
+      if (requestGeneration !== generation || requestIdentity !== identity() || requestReviewId !== review?.id) return;
+      review = refreshed.review;
+      reviewFeedback = data.feedback;
+      reviewFeedbackItemId = requestItemId;
+    } catch {
+      if (requestGeneration !== generation || requestIdentity !== identity() || requestReviewId !== review?.id) return;
+      reviewFailed = true;
+    } finally {
+      if (requestGeneration === generation && requestIdentity === identity() && requestReviewId === review?.id) {
+        reviewSubmitting = false;
+        render();
+      }
+    }
+  }
+
+  async function abandonReview() {
+    if (!review || review.status !== "in_progress" || reviewSubmitting) return;
+    if (!window.confirm("진행 중인 오답 복습을 중단할까요?")) return;
+    const requestGeneration = generation;
+    const requestIdentity = identity();
+    const requestReviewId = review.id;
+    reviewSubmitting = true;
+    render();
+    try {
+      const data = await requestJson(
+        `/api/learning/mistake-reviews/${encodeURIComponent(requestReviewId)}/abandon`,
+        {
+          method: "POST",
+          headers: { ...authHeaders(), "X-Study-CSRF": "1", "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId: crypto.randomUUID() }),
+        }
+      );
+      if (requestGeneration !== generation || requestIdentity !== identity() || requestReviewId !== review?.id) return;
+      review = { ...review, ...data.review };
+    } catch {
+      if (requestGeneration !== generation || requestIdentity !== identity() || requestReviewId !== review?.id) return;
+      reviewFailed = true;
+    } finally {
+      if (requestGeneration === generation && requestIdentity === identity() && requestReviewId === review?.id) {
+        reviewSubmitting = false;
         render();
       }
     }
@@ -193,6 +378,34 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
   }
 
   document.addEventListener("click", (event) => {
+    if (event.target.closest("#learningReviewStart")) {
+      startReview();
+      return;
+    }
+    if (event.target.closest("[data-learning-review-submit]")) {
+      submitReviewAnswer();
+      return;
+    }
+    if (event.target.closest("[data-learning-review-next]")) {
+      reviewFeedback = null;
+      reviewFeedbackItemId = "";
+      selectedReviewOptionId = "";
+      render();
+      return;
+    }
+    if (event.target.closest("#learningReviewAbandon")) {
+      abandonReview();
+      return;
+    }
+    if (event.target.closest("[data-learning-review-close]")) {
+      generation += 1;
+      review = null;
+      reviewFailed = false;
+      reviewFeedback = null;
+      selectedReviewOptionId = "";
+      render();
+      return;
+    }
     const revealButton = event.target.closest("[data-learning-mistake-reveal]");
     if (revealButton) {
       reveal(filteredMistakes()[Number(revealButton.dataset.learningMistakeReveal)]);
@@ -205,6 +418,13 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
   });
 
   document.addEventListener("change", (event) => {
+    const reviewOption = event.target.closest("[data-learning-review-option]");
+    if (reviewOption) {
+      const item = activeReviewItem();
+      selectedReviewOptionId = item?.options?.[Number(reviewOption.dataset.learningReviewOption)]?.id || "";
+      render();
+      return;
+    }
     const names = {
       learningMistakesStageFilter: "stage",
       learningMistakesSkillFilter: "skill",
@@ -228,6 +448,13 @@ export function initLearningMistakes({ requestJson, authHeaders, currentMember, 
       failed = false;
       revealFailed = false;
       revealing.clear();
+      review = null;
+      reviewLoading = false;
+      reviewFailed = false;
+      reviewSubmitting = false;
+      selectedReviewOptionId = "";
+      reviewFeedback = null;
+      reviewFeedbackItemId = "";
       filters.stage = "";
       filters.skill = "";
       filters.status = "";

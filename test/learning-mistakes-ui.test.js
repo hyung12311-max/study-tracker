@@ -26,10 +26,14 @@ test("mistake cards render escaped prompts and all option text", () => {
 });
 
 test("the original selection has a neutral visible marker", () => {
+  const listRenderer = mistakes.slice(
+    mistakes.indexOf("function mistakeCard"),
+    mistakes.indexOf("function activeReviewItem")
+  );
   assert.match(mistakes, /option\.selected \? "is-selected"/);
   assert.match(mistakes, /내가 고른 답/);
   assert.match(styles, /\.learning-mistake-options li\.is-selected/);
-  assert.doesNotMatch(mistakes, /✓ 정답|정답입니다/);
+  assert.doesNotMatch(listRenderer, /✓ 정답|정답입니다/);
 });
 
 test("stage filter is client-side and read from the scoped response", () => {

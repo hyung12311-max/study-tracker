@@ -24,7 +24,7 @@ test("solution text is rendered only from the reveal response and escaped", () =
   assert.match(ui, /item\.solution = data\.solution/);
   assert.match(ui, /escapeHtml\(item\.solution\.correctAnswer\)/);
   assert.match(ui, /escapeHtml\(item\.solution\.explanation\)/);
-  assert.doesNotMatch(ui, /find\([^)]*selected|isCorrect|correct_option/i);
+  assert.doesNotMatch(ui, /find\([^)]*selected|correct_option/i);
 });
 
 test("successful reveal changes the persisted display state to reviewed", () => {
