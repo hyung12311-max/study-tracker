@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
+  "unit": {
+    "id": "66bef880-3b26-4dc3-84a6-13986aae72d8",
+    "slug": "grade2-four-digit-numbers",
+    "title": "네 자리 수를 알아봐요",
+    "displayOrder": 7
+  },
+  "version": {
+    "id": "06abbe3b-4061-4afe-84ca-d69122f9d7b8",
+    "label": "v1",
+    "number": 1
+  },
+  "recommendation": {
+    "subject": "math",
+    "recommendedStartLevelCode": "elementary_2",
+    "recommendedEndLevelCode": "elementary_2",
+    "parentSortOrder": 7
+  },
+  "stages": [
+    {
+      "id": "f646b1de-ed3e-4975-9980-25008f8c5a6a",
+      "difficulty": "seed",
+      "title": "입문",
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "5365613b-3514-454b-af03-9f2b6fb4da8d",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "백 묶음이 10개 모인 수는?",
+          "explanation": "백 묶음 10개는 100을 10번 모은 것이므로 1000입니다.",
+          "skillCode": "understand-thousands",
+          "options": [
+            {
+              "id": "6085f833-16a8-4fc2-829e-fe288b369cc6",
+              "displayOrder": 1,
+              "text": "1000",
+              "isCorrect": true
+            },
+            {
+              "id": "45677e70-4e32-44f5-a81d-2aa084755f33",
+              "displayOrder": 2,
+              "text": "100",
+              "isCorrect": false
+            },
+            {
+              "id": "442a5ee6-3c9b-4479-bd6a-b71c7d7faddc",
+              "displayOrder": 3,
+              "text": "110",
+              "isCorrect": false
+            },
+            {
+              "id": "e3e9a947-e388-4308-99c9-3e11c0a9bf83",
+              "displayOrder": 4,
+              "text": "10000",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "fa4d9905-ccd3-4620-8682-74693da52eba",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "1000이 3개 모인 수는?",
+          "explanation": "1000이 3개이면 1000+1000+1000이므로 3000입니다.",
+          "skillCode": "understand-thousands",
+          "options": [
+            {
+              "id": "4f84a33d-551f-4653-9b4a-ba8ef79f9018",
+              "displayOrder": 1,
+              "text": "300",
+              "isCorrect": false
+            },
+            {
+              "id": "4674b177-07ff-4ccc-97ee-3f2ae4cc414f",
+              "displayOrder": 2,
+              "text": "3000",
+              "isCorrect": true
+            },
+            {
+              "id": "54319a6f-bed1-48cb-8672-710fca1ab6db",
+              "displayOrder": 3,
+              "text": "1030",
+              "isCorrect": false
+            },
+            {
+              "id": "cf34c81f-f204-4a0a-a67f-f9eda4b9a8e7",
+              "displayOrder": 4,
+              "text": "1003",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "34a6e215-3b95-481c-88af-293fb0524045",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "3247을 바르게 읽은 것은?",
+          "explanation": "3247은 3000과 200과 40과 7로 이루어져 삼천이백사십칠이라고 읽습니다.",
+          "skillCode": "read-four-digit-number",
+          "options": [
+            {
+              "id": "aec7a60f-e592-4706-8296-b99408a1606b",
+              "displayOrder": 1,
+              "text": "삼천이백칠십사",
+              "isCorrect": false
+            },
+            {
+              "id": "dad1da28-be11-4d33-8eaf-09d94758ba53",
+              "displayOrder": 2,
+              "text": "삼백이십사",
+              "isCorrect": false
+            },
+            {
+              "id": "f03f2924-4ea6-4d7d-ad11-aa5e31086d98",
+              "displayOrder": 3,
+              "text": "삼천이백사십칠",
+              "isCorrect": true
+            },
+            {
+              "id": "8884f077-8a3d-4264-a458-3e479751e950",
+              "displayOrder": 4,
+              "text": "삼천사백이십칠",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "bf3cb627-931c-415e-8b4b-f61ac050acd1",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "사천오백육십이를 숫자로 쓴 것은?",
+          "explanation": "사천은 4000, 오백은 500, 육십은 60, 이는 2이므로 4562입니다.",
+          "skillCode": "write-four-digit-number",
+          "options": [
+            {
+              "id": "bd76527f-69d3-47a9-a93f-fe302338af6c",
+              "displayOrder": 1,
+              "text": "456",
+              "isCorrect": false
+            },
+            {
+              "id": "8003a56b-552f-41d2-8c83-998c14fca398",
+              "displayOrder": 2,
+              "text": "40562",
+              "isCorrect": false
+            },
+            {
+              "id": "9eab4cb3-f28c-4cfd-8aa5-53941e3eb7d9",
+              "displayOrder": 3,
+              "text": "4652",
+              "isCorrect": false
+            },
+            {
+              "id": "aa819628-e569-44b8-a227-e55d034aaf9f",
+              "displayOrder": 4,
+              "text": "4562",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "1a3f30a1-a3bc-4a6f-82a7-8b2390377b09",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "5821에서 천의 자리 숫자는?",
+          "explanation": "5821의 천의 자리는 가장 왼쪽 자리이고 그 숫자는 5입니다.",
+          "skillCode": "identify-place-value",
+          "options": [
+            {
+              "id": "8171ec79-d7ad-4d7e-b0be-0d65b113c763",
+              "displayOrder": 1,
+              "text": "5",
+              "isCorrect": true
+            },
+            {
+              "id": "a29bf13f-ee6a-4809-8791-993c80a34612",
+              "displayOrder": 2,
+              "text": "8",
+              "isCorrect": false
+            },
+            {
+              "id": "c427cced-f92b-4270-9513-cb3c07060044",
+              "displayOrder": 3,
+              "text": "2",
+              "isCorrect": false
+            },
+            {
+              "id": "28ace09d-5793-47ad-9ab2-29ef0ee4d1f6",
+              "displayOrder": 4,
+              "text": "1",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "5fc61bee-3422-4fdd-8d12-ae671decf383",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "4726에서 백의 자리 숫자 7이 나타내는 값은?",
+          "explanation": "7은 백의 자리에 있으므로 7백, 즉 700을 나타냅니다.",
+          "skillCode": "value-of-digit",
+          "options": [
+            {
+              "id": "cf5a8315-f43e-4367-a365-fb4902b9ed3f",
+              "displayOrder": 1,
+              "text": "70",
+              "isCorrect": false
+            },
+            {
+              "id": "43b1acde-164c-49dd-af4e-a781361d2f8b",
+              "displayOrder": 2,
+              "text": "700",
+              "isCorrect": true
+            },
+            {
+              "id": "6256b72c-0f4c-49eb-9e0a-972824350634",
+              "displayOrder": 3,
+              "text": "7000",
+              "isCorrect": false
+            },
+            {
+              "id": "4c961b33-c390-4bdf-98a0-4ab00b3bcbe4",
+              "displayOrder": 4,
+              "text": "7",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "5bb71624-5724-4f36-b8e2-2e69254d28ee",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "천이 6개, 백이 3개, 십이 2개, 일이 5개인 수는?",
+          "explanation": "6000+300+20+5를 합하면 6325입니다.",
+          "skillCode": "represent-four-digit-place-units",
+          "options": [
+            {
+              "id": "ca2d175f-1b86-4e87-989a-dfd2d490fb9c",
+              "displayOrder": 1,
+              "text": "632",
+              "isCorrect": false
+            },
+            {
+              "id": "0e99e13b-fc93-43cc-aacd-90ab7bb03034",
+              "displayOrder": 2,
+              "text": "6253",
+              "isCorrect": false
+            },
+            {
+              "id": "3aa4f057-45f8-41d2-9c95-2ec9540455ff",
+              "displayOrder": 3,
+              "text": "6325",
+              "isCorrect": true
+            },
+            {
+              "id": "6ed3bf33-2787-4df4-abe6-aa9d97824823",
+              "displayOrder": 4,
+              "text": "6352",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "fd8970af-4896-4ee3-abfb-12afe7612e05",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "7010을 바르게 읽은 것은?",
+          "explanation": "7010은 천이 7개, 백이 0개, 십이 1개, 일이 0개이므로 칠천십이라고 읽습니다.",
+          "skillCode": "read-four-digit-number",
+          "options": [
+            {
+              "id": "123ff46a-c4a8-4e6e-9265-4f566fc54c3d",
+              "displayOrder": 1,
+              "text": "칠천백",
+              "isCorrect": false
+            },
+            {
+              "id": "9d81ba60-d88c-4667-a720-a4c271ba2cb5",
+              "displayOrder": 2,
+              "text": "칠백십",
+              "isCorrect": false
+            },
+            {
+              "id": "89f8468d-cdea-4624-a718-4983c0dbe0c1",
+              "displayOrder": 3,
+              "text": "칠천일",
+              "isCorrect": false
+            },
+            {
+              "id": "a0347f14-390c-4576-b2ce-50c5a44f9aac",
+              "displayOrder": 4,
+              "text": "칠천십",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "037d804e-133c-497a-b934-9c7be73b0056",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "3052에서 0은 어느 자리에 있습니까?",
+          "explanation": "3052는 천의 자리 3, 백의 자리 0, 십의 자리 5, 일의 자리 2로 이루어집니다.",
+          "skillCode": "understand-zero-placeholder",
+          "options": [
+            {
+              "id": "e7c77257-4cd2-448d-88fa-5085f746c8eb",
+              "displayOrder": 1,
+              "text": "백의 자리",
+              "isCorrect": true
+            },
+            {
+              "id": "d7394cfc-4615-4c89-892f-2ba969492323",
+              "displayOrder": 2,
+              "text": "천의 자리",
+              "isCorrect": false
+            },
+            {
+              "id": "1001ccbf-abd5-4295-8a98-3da64177d2c3",
+              "displayOrder": 3,
+              "text": "십의 자리",
+              "isCorrect": false
+            },
+            {
+              "id": "bc5aa398-f167-4121-a168-729ebe7ffac7",
+              "displayOrder": 4,
+              "text": "일의 자리",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "9ba2ec43-6c70-4ea2-a392-f1be74de368f",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "오천육을 숫자로 쓴 것은?",
+          "explanation": "오천육은 5000과 6을 합한 수이므로 백과 십의 자리에 0을 써서 5006입니다.",
+          "skillCode": "write-four-digit-number",
+          "options": [
+            {
+              "id": "7926432c-37ee-4ffc-a40b-8688cd218c7f",
+              "displayOrder": 1,
+              "text": "5060",
+              "isCorrect": false
+            },
+            {
+              "id": "79143184-2e59-4a62-89c9-023038b5ee62",
+              "displayOrder": 2,
+              "text": "5006",
+              "isCorrect": true
+            },
+            {
+              "id": "aca5aacd-5f07-4d89-897c-12d3a616d4d6",
+              "displayOrder": 3,
+              "text": "5600",
+              "isCorrect": false
+            },
+            {
+              "id": "459ebdb1-df06-4605-b51f-7e523a99f5e6",
+              "displayOrder": 4,
+              "text": "506",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4de7cc6a-8fed-4d4e-acfb-00ec148f1154",
+      "difficulty": "leaf",
+      "title": "기초",
+      "displayOrder": 2,
+      "questions": [
+        {
+          "id": "772c1328-584a-4de6-aec2-b01bd95ad1d4",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "4020을 천·백·십·일로 나타낸 것은?",
+          "explanation": "4020은 천 4개, 백 0개, 십 2개, 일 0개로 이루어집니다.",
+          "skillCode": "represent-four-digit-place-units",
+          "options": [
+            {
+              "id": "331a32f6-0861-418a-9e35-f5c244402ef9",
+              "displayOrder": 1,
+              "text": "천 4개, 백 2개",
+              "isCorrect": false
+            },
+            {
+              "id": "619d8684-dd0a-4b05-8f29-1d3ca2902818",
+              "displayOrder": 2,
+              "text": "천 4개, 일 2개",
+              "isCorrect": false
+            },
+            {
+              "id": "01018794-eac5-458a-8572-d08728730b01",
+              "displayOrder": 3,
+              "text": "천 4개, 백 0개, 십 2개, 일 0개",
+              "isCorrect": true
+            },
+            {
+              "id": "a5f3d82b-ba40-436e-b000-65b18712aab8",
+              "displayOrder": 4,
+              "text": "천 4개, 백 2개, 십 0개, 일 0개",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "66c928af-7917-4a3e-9e7f-5458763b1fc2",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "6000+300+40+8을 하나의 수로 나타낸 것은?",
+          "explanation": "천 백 십 일의 값을 각 자리에 놓으면 6348입니다.",
+          "skillCode": "compose-four-digit-number",
+          "options": [
+            {
+              "id": "c6b33870-680b-49ad-aae8-ff4a7a6efbf8",
+              "displayOrder": 1,
+              "text": "6380",
+              "isCorrect": false
+            },
+            {
+              "id": "491c498e-4667-4a9a-ac08-a1fbb7cbb5aa",
+              "displayOrder": 2,
+              "text": "6048",
+              "isCorrect": false
+            },
+            {
+              "id": "e738941e-dcd4-4d94-a9be-5ee19adeef18",
+              "displayOrder": 3,
+              "text": "6340",
+              "isCorrect": false
+            },
+            {
+              "id": "09629c71-b2bc-44e1-b291-57a037ab1cb1",
+              "displayOrder": 4,
+              "text": "6348",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "e1ff22a3-a43e-4b31-93d8-7b55b5ef03e8",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "7254를 바르게 분해한 것은?",
+          "explanation": "7254의 각 자리 값은 7000, 200, 50, 4이므로 이 값을 모두 더합니다.",
+          "skillCode": "decompose-four-digit-number",
+          "options": [
+            {
+              "id": "68287dbb-dd06-44dd-ab4d-5585612ce365",
+              "displayOrder": 1,
+              "text": "7000+200+50+4",
+              "isCorrect": true
+            },
+            {
+              "id": "10140329-aa8e-4870-b495-4ac2ffa76a07",
+              "displayOrder": 2,
+              "text": "700+20+50+4",
+              "isCorrect": false
+            },
+            {
+              "id": "0b314c70-819a-45b2-bf21-79086f3ea559",
+              "displayOrder": 3,
+              "text": "7000+20+500+4",
+              "isCorrect": false
+            },
+            {
+              "id": "e9ffd17a-3bf0-4862-857f-b651d8756076",
+              "displayOrder": 4,
+              "text": "7000+200+5+40",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "0670cd48-c983-4820-8266-734f5e2524da",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "5006을 바르게 분해한 것은?",
+          "explanation": "5006은 천의 자리 값 5000과 일의 자리 값 6으로 이루어지고 백과 십의 값은 0입니다.",
+          "skillCode": "decompose-four-digit-number",
+          "options": [
+            {
+              "id": "9040f01f-7a07-46f0-8dbc-060ca3482f4a",
+              "displayOrder": 1,
+              "text": "5000+60",
+              "isCorrect": false
+            },
+            {
+              "id": "74d3a36f-54ec-4169-a1b3-3353e8a88b20",
+              "displayOrder": 2,
+              "text": "5000+6",
+              "isCorrect": true
+            },
+            {
+              "id": "b2d2917c-b7b0-47cd-b5f7-e105cfda02cf",
+              "displayOrder": 3,
+              "text": "5000+600",
+              "isCorrect": false
+            },
+            {
+              "id": "c4344d0d-e5bd-47c7-b29e-c25fe9448180",
+              "displayOrder": 4,
+              "text": "500+6",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "88d5681c-454a-4c4c-a5a8-a400e82b2aa5",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "다음 중 더 큰 수는? 4321, 3987",
+          "explanation": "천의 자리에서 4가 3보다 크므로 4321이 더 큽니다.",
+          "skillCode": "compare-four-digit-numbers",
+          "options": [
+            {
+              "id": "734b126c-3b97-4e9e-b317-ec2142daeea8",
+              "displayOrder": 1,
+              "text": "3987",
+              "isCorrect": false
+            },
+            {
+              "id": "e77c16ce-f79e-403e-9175-3c87bd218b77",
+              "displayOrder": 2,
+              "text": "두 수가 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "685fd3b1-1ee6-40e2-981d-c596f37c1823",
+              "displayOrder": 3,
+              "text": "4321",
+              "isCorrect": true
+            },
+            {
+              "id": "c1423a2d-c383-4cfb-b97e-9a2ca885c3d4",
+              "displayOrder": 4,
+              "text": "비교할 수 없습니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "90d2a44f-4158-4abc-a7ce-fc6587354399",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "5608과 5630의 크기를 바르게 비교한 것은?",
+          "explanation": "천과 백의 자리는 같고 십의 자리에서 0이 3보다 작으므로 5608<5630입니다.",
+          "skillCode": "compare-four-digit-numbers",
+          "options": [
+            {
+              "id": "ccc41134-0e3f-4ab9-a6e4-4ba9c3385de5",
+              "displayOrder": 1,
+              "text": "5608>5630",
+              "isCorrect": false
+            },
+            {
+              "id": "783b7d95-49ad-4469-9310-d476f951d124",
+              "displayOrder": 2,
+              "text": "5608=5630",
+              "isCorrect": false
+            },
+            {
+              "id": "46bd0777-2798-436a-aee6-8ec49c15f687",
+              "displayOrder": 3,
+              "text": "비교할 수 없음",
+              "isCorrect": false
+            },
+            {
+              "id": "300b4dae-a38a-42eb-a1fb-29309d1b43c4",
+              "displayOrder": 4,
+              "text": "5608<5630",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "c106d647-b5fa-4f12-b869-f2cfe6f0b24d",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "1998 다음에 오는 수는?",
+          "explanation": "1998에 1을 더하면 1999이므로 바로 다음 수는 1999입니다.",
+          "skillCode": "complete-number-sequence",
+          "options": [
+            {
+              "id": "5ed2963f-2964-4b95-94c0-252656158035",
+              "displayOrder": 1,
+              "text": "1999",
+              "isCorrect": true
+            },
+            {
+              "id": "6917490e-71d2-4c56-bf43-9507f7fcb19c",
+              "displayOrder": 2,
+              "text": "2000",
+              "isCorrect": false
+            },
+            {
+              "id": "c31dc381-160f-4112-8d35-ec485ef2a431",
+              "displayOrder": 3,
+              "text": "1997",
+              "isCorrect": false
+            },
+            {
+              "id": "9eb6f3ca-16b9-4202-a327-6942486823f1",
+              "displayOrder": 4,
+              "text": "2098",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "b79dfd71-feb0-40a5-a72f-1d13cb56e000",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "3999 다음에 오는 수는?",
+          "explanation": "3999에 1을 더하면 천의 자리가 바뀌어 4000이 됩니다.",
+          "skillCode": "complete-number-sequence",
+          "options": [
+            {
+              "id": "983eb289-a897-42fb-ad81-42b6a1a007af",
+              "displayOrder": 1,
+              "text": "3998",
+              "isCorrect": false
+            },
+            {
+              "id": "c604143e-a4b8-4e42-bdaa-44817365fea2",
+              "displayOrder": 2,
+              "text": "4000",
+              "isCorrect": true
+            },
+            {
+              "id": "fe6facdc-cf41-439c-82eb-01852c6b9ca1",
+              "displayOrder": 3,
+              "text": "4099",
+              "isCorrect": false
+            },
+            {
+              "id": "26988104-a3af-427e-8a98-3bf2600cabc5",
+              "displayOrder": 4,
+              "text": "4999",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "aa5adf84-ab86-4c91-b447-18090e7d4939",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "9□42에서 □가 백의 자리 숫자라면 □에 5를 넣은 수는?",
+          "explanation": "9□42의 백의 자리에 5를 넣으면 천 9, 백 5, 십 4, 일 2인 9542입니다.",
+          "skillCode": "infer-number-from-place-conditions",
+          "options": [
+            {
+              "id": "82fee1d2-b0ab-45df-b47a-205156575471",
+              "displayOrder": 1,
+              "text": "9452",
+              "isCorrect": false
+            },
+            {
+              "id": "d32dab7e-a078-4e53-9eba-61bdc1c34801",
+              "displayOrder": 2,
+              "text": "9052",
+              "isCorrect": false
+            },
+            {
+              "id": "9deadd56-0493-42fe-8353-35686371280e",
+              "displayOrder": 3,
+              "text": "9542",
+              "isCorrect": true
+            },
+            {
+              "id": "9d85f87d-f3dc-4469-adcc-ed69d24f3511",
+              "displayOrder": 4,
+              "text": "9524",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "cd40645a-ca65-44e3-a77e-866a473f4737",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "8000+70+1을 숫자로 나타낸 것은?",
+          "explanation": "8000과 70과 1을 각 자리에 놓고 백의 자리에는 0을 써서 8071입니다.",
+          "skillCode": "compose-four-digit-number",
+          "options": [
+            {
+              "id": "4429dcf4-1061-459f-9bdd-463f43581bd7",
+              "displayOrder": 1,
+              "text": "8070",
+              "isCorrect": false
+            },
+            {
+              "id": "7bd65506-cfdb-4107-ace6-095213504b99",
+              "displayOrder": 2,
+              "text": "8701",
+              "isCorrect": false
+            },
+            {
+              "id": "898888d5-057d-4317-8f24-a59f785d11e7",
+              "displayOrder": 3,
+              "text": "80071",
+              "isCorrect": false
+            },
+            {
+              "id": "221056e2-9a4a-4af4-9fe8-a83bb6ad7d13",
+              "displayOrder": 4,
+              "text": "8071",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3d052fdd-93bf-4129-8f78-4f7e63160401",
+      "difficulty": "tree",
+      "title": "심화",
+      "displayOrder": 3,
+      "questions": [
+        {
+          "id": "6e9fd626-d9ce-451d-9e2b-9d9ebe9410b5",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "작은 수부터 차례로 나열한 것은? 3205, 3025, 3250",
+          "explanation": "천의 자리는 모두 3이고 백의 자리와 그다음 자리를 비교하면 3025<3205<3250입니다.",
+          "skillCode": "order-four-digit-numbers",
+          "options": [
+            {
+              "id": "ded50d57-aaf1-4ef1-852b-d8dbe27f58cb",
+              "displayOrder": 1,
+              "text": "3025, 3205, 3250",
+              "isCorrect": true
+            },
+            {
+              "id": "14df948b-4db6-46c2-b942-48ddbbc8036e",
+              "displayOrder": 2,
+              "text": "3205, 3025, 3250",
+              "isCorrect": false
+            },
+            {
+              "id": "1d94353e-aa75-4e7b-9b55-63c59cf10a8f",
+              "displayOrder": 3,
+              "text": "3250, 3205, 3025",
+              "isCorrect": false
+            },
+            {
+              "id": "925f4aee-8792-4560-84c5-d9180332ca3b",
+              "displayOrder": 4,
+              "text": "3025, 3250, 3205",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f285db75-c8d0-4c88-a876-ab0b89f0c2c8",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "큰 수부터 차례로 나열한 것은? 7010, 7100, 7001",
+          "explanation": "천의 자리는 같고 백과 십의 자리를 비교하면 7100>7010>7001입니다.",
+          "skillCode": "order-four-digit-numbers",
+          "options": [
+            {
+              "id": "1d0b62d6-24ad-4d16-b1a9-86f6dfe52221",
+              "displayOrder": 1,
+              "text": "7001, 7010, 7100",
+              "isCorrect": false
+            },
+            {
+              "id": "746f3a85-171d-4987-a52e-42e7f33b18d5",
+              "displayOrder": 2,
+              "text": "7100, 7010, 7001",
+              "isCorrect": true
+            },
+            {
+              "id": "6a7a8248-8a6e-48b0-b1ea-19a9782a21d0",
+              "displayOrder": 3,
+              "text": "7010, 7100, 7001",
+              "isCorrect": false
+            },
+            {
+              "id": "cec277eb-13dd-478a-8a93-2a8a15a94ca3",
+              "displayOrder": 4,
+              "text": "7100, 7001, 7010",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "fef7f6d8-551f-48d0-8a59-da214c4affee",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "4□25가 4425보다 크고 4625보다 작을 때 □에 알맞은 숫자는?",
+          "explanation": "4425보다 크고 4625보다 작으려면 백의 자리 숫자는 4보다 크고 6보다 작은 5입니다.",
+          "skillCode": "infer-number-from-place-conditions",
+          "options": [
+            {
+              "id": "fff46bac-6267-47d4-873f-ef546c5c6d28",
+              "displayOrder": 1,
+              "text": "4",
+              "isCorrect": false
+            },
+            {
+              "id": "efc233dd-01c3-4845-a6d6-bf4c16c4b0e8",
+              "displayOrder": 2,
+              "text": "6",
+              "isCorrect": false
+            },
+            {
+              "id": "54bb2c57-b785-42b7-b66b-404128920929",
+              "displayOrder": 3,
+              "text": "5",
+              "isCorrect": true
+            },
+            {
+              "id": "92ebdb8e-5b04-4a93-950a-5e8d9b941484",
+              "displayOrder": 4,
+              "text": "2",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "593a7129-09cf-4c95-a004-efe73ee48340",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "3, 0, 5, 8 숫자 카드를 한 번씩 사용하여 가장 큰 네 자리 수를 만든 것은?",
+          "explanation": "가장 큰 수를 만들려면 큰 숫자부터 천 백 십 일의 자리에 놓아 8530을 만듭니다.",
+          "skillCode": "build-four-digit-number-from-digits",
+          "options": [
+            {
+              "id": "328cee31-4bcf-471d-9921-066ba0bd9ff0",
+              "displayOrder": 1,
+              "text": "8350",
+              "isCorrect": false
+            },
+            {
+              "id": "79004c62-54e9-454d-804f-d9454da25b04",
+              "displayOrder": 2,
+              "text": "8053",
+              "isCorrect": false
+            },
+            {
+              "id": "f918a172-5ffb-43ed-8c10-2c377eeb792d",
+              "displayOrder": 3,
+              "text": "8305",
+              "isCorrect": false
+            },
+            {
+              "id": "0660d19b-aed9-4c88-a68c-2cb68e033db4",
+              "displayOrder": 4,
+              "text": "8530",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "00d3b241-3b4e-4209-835f-effdbbc6730f",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "2, 0, 7, 4 숫자 카드를 한 번씩 사용하여 가장 작은 네 자리 수를 만든 것은?",
+          "explanation": "네 자리 수의 천의 자리에는 0을 쓸 수 없으므로 가장 작은 2를 앞에 놓고 나머지는 0,4,7 순서로 놓아 2047입니다.",
+          "skillCode": "build-four-digit-number-from-digits",
+          "options": [
+            {
+              "id": "016c864e-c323-48b8-ad28-1c3c3425cd2f",
+              "displayOrder": 1,
+              "text": "2047",
+              "isCorrect": true
+            },
+            {
+              "id": "c8fb4fff-541f-4b3b-93d0-d9ea2897b773",
+              "displayOrder": 2,
+              "text": "0247",
+              "isCorrect": false
+            },
+            {
+              "id": "20eaaf73-3dca-4b0a-af4c-b3bbcf4a7c78",
+              "displayOrder": 3,
+              "text": "2074",
+              "isCorrect": false
+            },
+            {
+              "id": "beb16e8c-7cf2-4740-b279-339185355dc6",
+              "displayOrder": 4,
+              "text": "2407",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "c52599e4-c7f3-4a7d-aa88-6fabad28d8ee",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "6□08이 6508보다 클 때 □에 들어갈 수 있는 가장 작은 숫자는?",
+          "explanation": "천의 자리는 같고 백의 자리 숫자가 5보다 커야 하므로 가장 작은 숫자는 6입니다.",
+          "skillCode": "infer-number-from-place-conditions",
+          "options": [
+            {
+              "id": "9fe000e0-723b-4d88-bf38-110c0211e0f7",
+              "displayOrder": 1,
+              "text": "4",
+              "isCorrect": false
+            },
+            {
+              "id": "d50c205d-ff36-4b35-90de-bb76c751afa0",
+              "displayOrder": 2,
+              "text": "6",
+              "isCorrect": true
+            },
+            {
+              "id": "0e0c993a-40e0-414c-8f8c-39448b6bd2af",
+              "displayOrder": 3,
+              "text": "5",
+              "isCorrect": false
+            },
+            {
+              "id": "2e1156e4-58fa-44af-bda4-018077e48d40",
+              "displayOrder": 4,
+              "text": "0",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "5bd7c0eb-f4b1-4c10-81c6-16951dd5bd36",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "어떤 수는 천이 4개, 십이 3개, 일이 9개이고 백은 없습니다. 이 수는?",
+          "explanation": "천 4개는 4000, 십 3개는 30, 일 9개는 9이고 백의 자리에 0을 써서 4039입니다.",
+          "skillCode": "represent-four-digit-place-units",
+          "options": [
+            {
+              "id": "249a60b2-368b-4707-981d-969d5293afd2",
+              "displayOrder": 1,
+              "text": "4093",
+              "isCorrect": false
+            },
+            {
+              "id": "e6eda6b5-1636-4d7d-bed9-3d9207f4a1d4",
+              "displayOrder": 2,
+              "text": "4309",
+              "isCorrect": false
+            },
+            {
+              "id": "654fe9e0-354d-46f3-9644-82f181ecbd3c",
+              "displayOrder": 3,
+              "text": "4039",
+              "isCorrect": true
+            },
+            {
+              "id": "44f86860-c40e-4891-ac01-b2a6381bccd3",
+              "displayOrder": 4,
+              "text": "40039",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a17c19e4-890b-4513-af63-91e3b259ed60",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "수 배열 4980, 4990, 5000, □에서 같은 규칙으로 이어질 수는?",
+          "explanation": "10씩 커지는 배열이므로 5000 다음 수는 5010입니다.",
+          "skillCode": "complete-number-sequence",
+          "options": [
+            {
+              "id": "a7268f5f-71c3-41d4-810c-aef5e1b93471",
+              "displayOrder": 1,
+              "text": "5001",
+              "isCorrect": false
+            },
+            {
+              "id": "bbf2a3bf-b719-4802-b87a-e1ba7e0c618a",
+              "displayOrder": 2,
+              "text": "5090",
+              "isCorrect": false
+            },
+            {
+              "id": "40496a2a-7e73-4f7a-bd89-2086c3daac4f",
+              "displayOrder": 3,
+              "text": "5100",
+              "isCorrect": false
+            },
+            {
+              "id": "048f454b-5326-4906-8b46-16047011ccff",
+              "displayOrder": 4,
+              "text": "5010",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "f80a7337-bbc9-4972-979e-adadfa3838db",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "5402와 5042를 비교할 때 가장 먼저 다른 자리는?",
+          "explanation": "천의 자리 5는 같고 백의 자리에서 4와 0이 처음 다르므로 백의 자리를 비교합니다.",
+          "skillCode": "compare-four-digit-numbers",
+          "options": [
+            {
+              "id": "feb758d9-1879-42f1-b280-c5f3958adf51",
+              "displayOrder": 1,
+              "text": "백의 자리",
+              "isCorrect": true
+            },
+            {
+              "id": "1829a869-4eb8-489c-b0e1-610cde3d1a42",
+              "displayOrder": 2,
+              "text": "천의 자리",
+              "isCorrect": false
+            },
+            {
+              "id": "fe9b40f1-9c35-42b7-a30a-9c88f07587e3",
+              "displayOrder": 3,
+              "text": "십의 자리",
+              "isCorrect": false
+            },
+            {
+              "id": "026d2768-913e-44f5-b7e5-1040c7abbb74",
+              "displayOrder": 4,
+              "text": "일의 자리",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "2793976f-ed6e-4c67-be7e-450e366d6c4e",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "친구가 3052를 '삼천오백이십'이라고 읽었습니다. 잘못 읽은 까닭은?",
+          "explanation": "3052는 백의 자리가 0이고 십의 자리가 5이며 일의 자리가 2이므로 삼천오십이라고 읽어야 합니다.",
+          "skillCode": "correct-zero-place-value-error",
+          "options": [
+            {
+              "id": "eea6ec29-b9a9-4606-b77d-cf3d74d4ee26",
+              "displayOrder": 1,
+              "text": "천의 자리 3을 빠뜨려서",
+              "isCorrect": false
+            },
+            {
+              "id": "34f71430-95e7-42da-9361-085d6396ce65",
+              "displayOrder": 2,
+              "text": "백의 자리 0을 5백으로 잘못 읽고 자리 순서를 바꾸어서",
+              "isCorrect": true
+            },
+            {
+              "id": "c798e380-00c1-4a3a-a898-c639964e8ba7",
+              "displayOrder": 3,
+              "text": "일의 자리 2를 십으로 읽지 않아서",
+              "isCorrect": false
+            },
+            {
+              "id": "9a89cbe4-9b38-4e23-b0c6-671729651e41",
+              "displayOrder": 4,
+              "text": "3052는 읽을 수 없는 수라서",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bc44d9d9-489c-4b71-8188-7e29ec3d1f8f",
+      "difficulty": "crown",
+      "title": "최상위 도전!",
+      "displayOrder": 4,
+      "questions": [
+        {
+          "id": "774cec79-4513-428e-b909-6e963c19dada",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "□205가 4205보다 크고 6205보다 작으며 천의 자리 숫자가 홀수일 때 가능한 수는?",
+          "explanation": "천의 자리 숫자는 4보다 크고 6보다 작은 홀수 5이므로 가능한 수는 5205입니다.",
+          "skillCode": "infer-number-from-place-conditions",
+          "options": [
+            {
+              "id": "615844df-5194-41f2-af5c-0ef4ab04dd17",
+              "displayOrder": 1,
+              "text": "5205",
+              "isCorrect": true
+            },
+            {
+              "id": "0e1e8355-45fa-4a6e-b265-d769c14a3572",
+              "displayOrder": 2,
+              "text": "3205",
+              "isCorrect": false
+            },
+            {
+              "id": "89d388c8-f703-40ab-a3f7-2ea2b350cade",
+              "displayOrder": 3,
+              "text": "4205",
+              "isCorrect": false
+            },
+            {
+              "id": "05e244d4-e118-48da-a4b7-dbc9e337a95e",
+              "displayOrder": 4,
+              "text": "6205",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "628ea576-0015-457f-ae7a-8af355f75284",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "1, 3, 0, 9를 한 번씩 사용해 3000보다 큰 가장 작은 수는?",
+          "explanation": "3000보다 크려면 천의 자리에 3을 놓고 남은 숫자를 작은 순서 0,1,9로 놓아 3019입니다.",
+          "skillCode": "build-four-digit-number-from-digits",
+          "options": [
+            {
+              "id": "33039568-6ffa-4650-89c8-0c402d2c0106",
+              "displayOrder": 1,
+              "text": "3091",
+              "isCorrect": false
+            },
+            {
+              "id": "da33fd21-2668-47f1-a3bd-2ff1578bc62a",
+              "displayOrder": 2,
+              "text": "3019",
+              "isCorrect": true
+            },
+            {
+              "id": "a024936b-e668-4f7f-b2f7-e542c9ee9b9f",
+              "displayOrder": 3,
+              "text": "3109",
+              "isCorrect": false
+            },
+            {
+              "id": "36fb3d68-7934-4a2b-b637-e28f61af6295",
+              "displayOrder": 4,
+              "text": "3190",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e6991067-bd8d-4801-8f08-f34427646830",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "가장 큰 수부터 나열한 것은? 4020, 4200, 4002, 420",
+          "explanation": "네 자리 수가 세 자리 수보다 크고 네 자리 수끼리는 높은 자리부터 비교하여 4200>4020>4002>420입니다.",
+          "skillCode": "order-four-digit-numbers",
+          "options": [
+            {
+              "id": "0f930398-f9f7-406c-8bd3-e53945c2230d",
+              "displayOrder": 1,
+              "text": "420, 4002, 4020, 4200",
+              "isCorrect": false
+            },
+            {
+              "id": "2aab95ac-6c09-4c09-9ccf-3d4d70c1acb7",
+              "displayOrder": 2,
+              "text": "4020, 4200, 4002, 420",
+              "isCorrect": false
+            },
+            {
+              "id": "acad31ec-60bc-44cb-9d62-31f81d745bfc",
+              "displayOrder": 3,
+              "text": "4200, 4020, 4002, 420",
+              "isCorrect": true
+            },
+            {
+              "id": "6df38de2-9679-4175-b178-037ce3a25ca0",
+              "displayOrder": 4,
+              "text": "4200, 4002, 4020, 420",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "d7696201-a8e8-4136-98c4-aa2656bd0776",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "친구가 5074=5000+700+4라고 했습니다. 바르게 고친 설명은?",
+          "explanation": "5074에서 백의 자리는 0이고 7은 십의 자리이므로 5000+70+4로 분해합니다.",
+          "skillCode": "correct-zero-place-value-error",
+          "options": [
+            {
+              "id": "282697ba-ac5f-4ba6-a21c-5dae70752a00",
+              "displayOrder": 1,
+              "text": "7은 백의 자리이므로 700이 맞습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "c4f33147-55a0-430f-a97b-1d9d329f3521",
+              "displayOrder": 2,
+              "text": "5074=500+70+4입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "2116a67f-3deb-4c92-8388-eaa9c605d823",
+              "displayOrder": 3,
+              "text": "0을 100으로 바꾸어야 합니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "f2c09374-11f5-4b33-acd6-38899192a50f",
+              "displayOrder": 4,
+              "text": "7은 십의 자리이므로 5074=5000+70+4입니다.",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "d0bdecd9-332b-4832-9d4e-b56824cd17fa",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "2, 4, 6, 8을 한 번씩 사용하여 5000보다 작은 가장 큰 수는?",
+          "explanation": "5000보다 작으려면 천의 자리에 4를 놓고 나머지를 큰 순서 8,6,2로 놓아 4862입니다.",
+          "skillCode": "build-four-digit-number-from-digits",
+          "options": [
+            {
+              "id": "71812e0f-7e49-4be0-8ad6-3fac7c5312e0",
+              "displayOrder": 1,
+              "text": "8642",
+              "isCorrect": false
+            },
+            {
+              "id": "6c03681f-92cb-4d1e-b27e-89ee549d2f33",
+              "displayOrder": 2,
+              "text": "4682",
+              "isCorrect": false
+            },
+            {
+              "id": "eee40e5b-3171-4fcf-ae35-e0dde53b92d5",
+              "displayOrder": 3,
+              "text": "4862",
+              "isCorrect": true
+            },
+            {
+              "id": "093aea98-bbff-423a-9df2-2fe82b4c5550",
+              "displayOrder": 4,
+              "text": "4826",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "cf47fe5f-bebf-4ede-a12f-7998efe248d0",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "4308<43□8이 되도록 □에 들어갈 수 있는 가장 작은 숫자는?",
+          "explanation": "천과 백의 자리는 같고 십의 자리에서 0보다 커야 하므로 가장 작은 숫자는 1입니다.",
+          "skillCode": "infer-number-from-place-conditions",
+          "options": [
+            {
+              "id": "2950dc87-deeb-4e8e-8417-8143a8321958",
+              "displayOrder": 1,
+              "text": "0",
+              "isCorrect": false
+            },
+            {
+              "id": "4ccd6819-e720-4866-86b9-daa77428fee0",
+              "displayOrder": 2,
+              "text": "8",
+              "isCorrect": false
+            },
+            {
+              "id": "b7189b56-34fc-49f4-88b7-f72130110fc3",
+              "displayOrder": 3,
+              "text": "2",
+              "isCorrect": false
+            },
+            {
+              "id": "2c7b378e-bcd7-487f-8d1a-cf09a40954aa",
+              "displayOrder": 4,
+              "text": "1",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "d2569537-db19-4e64-9b6c-fb43367031bd",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "9080, 9008, 9800을 비교한 설명 중 잘못된 것은?",
+          "explanation": "천의 자리는 모두 9이고 백의 자리에서 9800이 가장 큽니다. 9080은 십의 자리 8이 있어 9008보다 큽니다.",
+          "skillCode": "correct-comparison-order-error",
+          "options": [
+            {
+              "id": "d585280c-9f16-4cf9-854a-7186c83bc581",
+              "displayOrder": 1,
+              "text": "9080은 9008보다 작습니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "bbc8d62e-b71c-4492-aac3-78e8bab32c9a",
+              "displayOrder": 2,
+              "text": "9800이 가장 큽니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "d12333c9-ff70-4158-8a65-8516ba5b69e7",
+              "displayOrder": 3,
+              "text": "9008은 9080보다 작습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "5f9c2dc9-52f0-49c7-84bb-5ce5aa4ccfe1",
+              "displayOrder": 4,
+              "text": "세 수의 천의 자리 숫자는 모두 9입니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a68bff06-b805-4e2f-88ec-d26fc8e09bc5",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "어떤 수를 6000+□+20+5로 분해했습니다. 그 수가 6725라면 □는?",
+          "explanation": "6725는 6000+700+20+5이므로 백의 자리 값을 나타내는 □는 700입니다.",
+          "skillCode": "decompose-four-digit-number",
+          "options": [
+            {
+              "id": "990b79ef-4a63-41a7-9cba-a67aca34a11f",
+              "displayOrder": 1,
+              "text": "70",
+              "isCorrect": false
+            },
+            {
+              "id": "36910bd9-0b05-4daa-b28c-117b899555e7",
+              "displayOrder": 2,
+              "text": "700",
+              "isCorrect": true
+            },
+            {
+              "id": "1eaacb15-453b-4d3c-8a44-4c690c830cb3",
+              "displayOrder": 3,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "d993df02-5a84-438a-b7fa-63817bd90291",
+              "displayOrder": 4,
+              "text": "720",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "fcfe2f99-8858-4c6a-9828-19b19450b2f9",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "천의 자리 7, 일의 자리 6이고 백과 십의 자리 숫자의 합이 5인 가장 큰 수는?",
+          "explanation": "가장 크게 만들려면 백의 자리에 가능한 가장 큰 5를, 십의 자리에 0을 놓아 7506입니다.",
+          "skillCode": "infer-number-from-place-conditions",
+          "options": [
+            {
+              "id": "3c8cee8f-8264-40d8-850b-beb7dbe32bce",
+              "displayOrder": 1,
+              "text": "7056",
+              "isCorrect": false
+            },
+            {
+              "id": "3b467b11-ce2b-4b9a-920b-25c41ed9ea1f",
+              "displayOrder": 2,
+              "text": "7416",
+              "isCorrect": false
+            },
+            {
+              "id": "2f0cf1c8-c954-4f6d-a9a3-41d015eba67b",
+              "displayOrder": 3,
+              "text": "7506",
+              "isCorrect": true
+            },
+            {
+              "id": "4f59c590-6bfc-44b0-b76a-73b05fcdb2ee",
+              "displayOrder": 4,
+              "text": "7526",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e158bc18-d93f-4b31-b494-3d07eceec5b2",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "수 카드 0, 2, 5, 7로 만든 네 자리 수 중 두 번째로 작은 수는?",
+          "explanation": "가장 작은 수는 2057이고 일의 자리 5와 7의 순서를 바꾼 2075가 두 번째로 작습니다.",
+          "skillCode": "build-four-digit-number-from-digits",
+          "options": [
+            {
+              "id": "1ce2393a-75ab-410b-a573-c9a3506dec36",
+              "displayOrder": 1,
+              "text": "2057",
+              "isCorrect": false
+            },
+            {
+              "id": "c4564231-9005-41b1-ba51-d33cdcef1a49",
+              "displayOrder": 2,
+              "text": "2507",
+              "isCorrect": false
+            },
+            {
+              "id": "ad60b21c-4644-4572-a914-1003dcea928f",
+              "displayOrder": 3,
+              "text": "2570",
+              "isCorrect": false
+            },
+            {
+              "id": "7f5863c8-a4b6-4af5-a615-5bd1eab51e85",
+              "displayOrder": 4,
+              "text": "2075",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
