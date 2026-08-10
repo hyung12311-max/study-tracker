@@ -1,0 +1,41 @@
+unit_slug,content_version,stage,question_order,question_text,option_1,option_2,option_3,option_4,correct_option,explanation,weight,skill_code,review_status,review_note
+grade2-tables-graphs,v1,seed,1,"표: 사과 4개, 배 2개, 포도 3개. 가장 많은 것은?",사과,배,포도,모두 같음,1,사과가 4개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:4:2:3:0
+grade2-tables-graphs,v1,seed,2,"표: 사과 5개, 배 3개, 포도 1개. 가장 많은 것은?",배,사과,포도,모두 같음,2,사과가 5개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:5:3:1:0
+grade2-tables-graphs,v1,seed,3,"표: 사과 2개, 배 6개, 포도 4개. 가장 많은 것은?",사과,포도,배,모두 같음,3,배가 6개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:2:6:4:1
+grade2-tables-graphs,v1,seed,4,"표: 사과 7개, 배 3개, 포도 5개. 가장 많은 것은?",배,포도,모두 같음,사과,4,사과가 7개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:7:3:5:0
+grade2-tables-graphs,v1,seed,5,"표: 사과 3개, 배 4개, 포도 6개. 가장 많은 것은?",포도,사과,배,모두 같음,1,포도가 6개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:3:4:6:2
+grade2-tables-graphs,v1,seed,6,"표: 사과 6개, 배 2개, 포도 5개. 가장 많은 것은?",배,사과,포도,모두 같음,2,사과가 6개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:6:2:5:0
+grade2-tables-graphs,v1,seed,7,"표: 사과 4개, 배 7개, 포도 3개. 가장 많은 것은?",배,사과,포도,모두 같음,1,배가 7개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:4:7:3:1
+grade2-tables-graphs,v1,seed,8,"표: 사과 5개, 배 1개, 포도 4개. 가장 많은 것은?",배,사과,포도,모두 같음,2,사과가 5개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:5:1:4:0
+grade2-tables-graphs,v1,seed,9,"표: 사과 3개, 배 6개, 포도 2개. 가장 많은 것은?",사과,포도,배,모두 같음,3,배가 6개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:3:6:2:1
+grade2-tables-graphs,v1,seed,10,"표: 사과 8개, 배 4개, 포도 5개. 가장 많은 것은?",배,포도,모두 같음,사과,4,사과가 8개로 세 항목 중 가장 많습니다.,1,find-most-least-category,reviewed,data-max:8:4:5:0
+grade2-tables-graphs,v1,leaf,1,"표: 빨강 4명, 파랑 2명, 초록 3명. 조사한 사람은 모두 몇 명입니까?",9명,10명,8명,19명,1,4+2+3=9이므로 모두 9명입니다.,1,read-data-table,reviewed,data-total:4:2:3:9
+grade2-tables-graphs,v1,leaf,2,"표: 빨강 5명, 파랑 3명, 초록 1명. 조사한 사람은 모두 몇 명입니까?",10명,9명,8명,19명,2,5+3+1=9이므로 모두 9명입니다.,1,read-data-table,reviewed,data-total:5:3:1:9
+grade2-tables-graphs,v1,leaf,3,"표: 빨강 2명, 파랑 6명, 초록 4명. 조사한 사람은 모두 몇 명입니까?",13명,11명,12명,22명,3,2+6+4=12이므로 모두 12명입니다.,1,read-data-table,reviewed,data-total:2:6:4:12
+grade2-tables-graphs,v1,leaf,4,"표: 빨강 7명, 파랑 3명, 초록 5명. 조사한 사람은 모두 몇 명입니까?",16명,14명,25명,15명,4,7+3+5=15이므로 모두 15명입니다.,1,read-data-table,reviewed,data-total:7:3:5:15
+grade2-tables-graphs,v1,leaf,5,"표: 빨강 3명, 파랑 4명, 초록 6명. 조사한 사람은 모두 몇 명입니까?",14명,12명,13명,23명,3,3+4+6=13이므로 모두 13명입니다.,1,read-data-table,reviewed,data-total:3:4:6:13
+grade2-tables-graphs,v1,leaf,6,"표의 세 항목 수는 6개, 2개, 5개입니다. 가장 많은 것과 가장 적은 것의 차는?",5개,3개,14개,4개,4,6-2=4이므로 차는 4개입니다.,1,calculate-data-difference,reviewed,data-diff:6:2:5:4
+grade2-tables-graphs,v1,leaf,7,"표의 세 항목 수는 4개, 7개, 3개입니다. 가장 많은 것과 가장 적은 것의 차는?",4개,5개,3개,14개,1,7-3=4이므로 차는 4개입니다.,1,calculate-data-difference,reviewed,data-diff:4:7:3:4
+grade2-tables-graphs,v1,leaf,8,"표의 세 항목 수는 5개, 1개, 4개입니다. 가장 많은 것과 가장 적은 것의 차는?",5개,4개,3개,14개,2,5-1=4이므로 차는 4개입니다.,1,calculate-data-difference,reviewed,data-diff:5:1:4:4
+grade2-tables-graphs,v1,leaf,9,"표의 세 항목 수는 3개, 6개, 2개입니다. 가장 많은 것과 가장 적은 것의 차는?",5개,3개,4개,14개,3,6-2=4이므로 차는 4개입니다.,1,calculate-data-difference,reviewed,data-diff:3:6:2:4
+grade2-tables-graphs,v1,leaf,10,"표의 세 항목 수는 8개, 4개, 5개입니다. 가장 많은 것과 가장 적은 것의 차는?",5개,3개,14개,4개,4,8-4=4이므로 차는 4개입니다.,1,calculate-data-difference,reviewed,data-diff:8:4:5:4
+grade2-tables-graphs,v1,tree,1,"표에서 A는 3개, B는 4개이고 전체는 12개입니다. C는 몇 개입니까?",5개,6개,4개,15개,1,12-3-4=5이므로 C는 5개입니다.,1,infer-missing-data,reviewed,data-missing:3:4:12:5
+grade2-tables-graphs,v1,tree,2,"표에서 A는 5개, B는 2개이고 전체는 11개입니다. C는 몇 개입니까?",5개,4개,3개,14개,2,11-5-2=4이므로 C는 4개입니다.,1,infer-missing-data,reviewed,data-missing:5:2:11:4
+grade2-tables-graphs,v1,tree,3,"표에서 A는 4개, B는 6개이고 전체는 15개입니다. C는 몇 개입니까?",6개,4개,5개,15개,3,15-4-6=5이므로 C는 5개입니다.,1,infer-missing-data,reviewed,data-missing:4:6:15:5
+grade2-tables-graphs,v1,tree,4,"표에서 A는 7개, B는 3개이고 전체는 14개입니다. C는 몇 개입니까?",5개,3개,14개,4개,4,14-7-3=4이므로 C는 4개입니다.,1,infer-missing-data,reviewed,data-missing:7:3:14:4
+grade2-tables-graphs,v1,tree,5,"텍스트 그래프: 사과 ■■■■, 배 ■■, 포도 ■■■■■. 표로 옮긴 것은?","사과 4, 배 2, 포도 5","사과 2, 배 4, 포도 5","사과 5, 배 2, 포도 5","사과 4, 배 3, 포도 5",1,"■ 한 개가 1개를 뜻하므로 사과 4, 배 2, 포도 5입니다.",1,connect-table-and-graph,reviewed,data-graph:4:2:5
+grade2-tables-graphs,v1,tree,6,"텍스트 그래프: 사과 ■■■, 배 ■■■■■■, 포도 ■. 표로 옮긴 것은?","사과 6, 배 3, 포도 1","사과 3, 배 6, 포도 1","사과 4, 배 6, 포도 1","사과 3, 배 7, 포도 1",2,"■ 한 개가 1개를 뜻하므로 사과 3, 배 6, 포도 1입니다.",1,connect-table-and-graph,reviewed,data-graph:3:6:1
+grade2-tables-graphs,v1,tree,7,"텍스트 그래프: 사과 ■■■■■■■, 배 ■■■■, 포도 ■■. 표로 옮긴 것은?","사과 7, 배 4, 포도 2","사과 4, 배 7, 포도 2","사과 8, 배 4, 포도 2","사과 7, 배 5, 포도 2",1,"■ 한 개가 1개를 뜻하므로 사과 7, 배 4, 포도 2입니다.",1,connect-table-and-graph,reviewed,data-graph:7:4:2
+grade2-tables-graphs,v1,tree,8,"그래프: A ■■, B ■■■■■, C ■■■■. 전체 표시 수는?",12개,11개,10개,21개,2,2+5+4=11이므로 전체는 11개입니다.,1,read-text-graph,reviewed,data-graph-total:2:5:4:11
+grade2-tables-graphs,v1,tree,9,"그래프: A ■■■■■■, B ■■■, C ■■■■■. 전체 표시 수는?",15개,13개,14개,24개,3,6+3+5=14이므로 전체는 14개입니다.,1,read-text-graph,reviewed,data-graph-total:6:3:5:14
+grade2-tables-graphs,v1,tree,10,"그래프: A ■■■■, B ■■■■■■■, C ■■. 전체 표시 수는?",14개,12개,23개,13개,4,4+7+2=13이므로 전체는 13개입니다.,1,read-text-graph,reviewed,data-graph-total:4:7:2:13
+grade2-tables-graphs,v1,crown,1,"표: 축구 6명, 야구 4명, 농구 3명. “야구가 가장 많다”는 해석을 바르게 고친 것은?",축구가 6명으로 가장 많습니다.,야구가 4명으로 가장 많습니다.,농구가 6명으로 가장 많습니다.,세 운동은 모두 같습니다.,1,6이 4와 3보다 크므로 축구가 가장 많습니다.,1,correct-data-interpretation,reviewed,data-error:max
+grade2-tables-graphs,v1,crown,2,"표의 합계가 15이고 A 5개, B 6개입니다. C를 5개라고 쓴 오류를 고친 것은?",C는 15+5+6=26개입니다.,C는 15-5-6=4개입니다.,C는 6-5=1개입니다.,C는 5개가 맞습니다.,2,전체에서 A와 B를 빼면 15-5-6=4개입니다.,1,correct-data-interpretation,reviewed,data-error:missing
+grade2-tables-graphs,v1,crown,3,"그래프에서 ■ 한 개가 1명을 뜻합니다. 민수 ■■■, 지우 ■■■■■일 때 바른 해석은?",민수가 2명 많습니다.,두 사람은 같습니다.,지우가 민수보다 2명 많습니다.,지우가 8명 많습니다.,3,지우 5명에서 민수 3명을 빼면 2명이므로 지우가 2명 많습니다.,1,read-text-graph,reviewed,data-reason:compare
+grade2-tables-graphs,v1,crown,4,자료 사과·사과·배·포도·사과를 표로 나타낸 것은?,"사과 2, 배 2, 포도 1","사과 3, 배 2, 포도 0","사과 1, 배 1, 포도 3","사과 3, 배 1, 포도 1",4,"자료를 하나씩 세면 사과 3개, 배 1개, 포도 1개입니다.",1,classify-by-given-rule,reviewed,data-reason:classify
+grade2-tables-graphs,v1,crown,5,"표 A 4개, B 7개, C 5개와 같은 그래프는?","A ■■■■■■■, B ■■■■, C ■■■■■","A ■■■■, B ■■■■■■, C ■■■■■","A ■■■■, B ■■■■■■■, C ■■■■■","A ■■■■, B ■■■■■■■, C ■■■",3,"표의 수만큼 ■를 대응시키면 A 4개, B 7개, C 5개입니다.",1,connect-table-and-graph,reviewed,data-reason:connect
+grade2-tables-graphs,v1,crown,6,가장 많은 항목 8개와 가장 적은 항목 3개의 차를 11개라고 했습니다. 바른 설명은?,차는 8+3=11개입니다.,차는 3-8=5명입니다.,차는 8-3=6개입니다.,차는 8-3=5개입니다.,4,차이는 더하지 않고 큰 수에서 작은 수를 빼므로 5개입니다.,1,correct-data-interpretation,reviewed,data-error:diff
+grade2-tables-graphs,v1,crown,7,"표 A 2개, B □개, C 6개이고 전체 13개입니다. □와 설명이 맞는 것은?",5개이며 13-2-6=5입니다.,9개이며 13-2=11입니다.,3개이며 6-2=4입니다.,21개이며 모두 더합니다.,1,전체 13개에서 A 2개와 C 6개를 빼면 B는 5개입니다.,1,infer-missing-data,reviewed,data-reason:missing
+grade2-tables-graphs,v1,crown,8,"그래프 A ■■■■■, B ■■, C ■■■■를 바르게 설명한 것은?",B가 가장 많습니다.,A가 가장 많고 B가 가장 적습니다.,C가 가장 적습니다.,A와 C가 같습니다.,2,A는 5개로 가장 많고 B는 2개로 가장 적습니다.,1,find-most-least-category,reviewed,data-reason:maxmin
+grade2-tables-graphs,v1,crown,9,표를 만들 때 같은 항목을 빠뜨렸습니다. 가장 알맞은 점검 방법은?,가장 큰 수만 봅니다.,항목 이름을 모두 지웁니다.,원자료 수와 표의 전체 수를 비교합니다.,아무 수나 하나 더합니다.,3,원자료의 개수와 표의 합계가 같아야 빠진 자료가 없는지 확인할 수 있습니다.,1,complete-data-table,reviewed,data-reason:check
+grade2-tables-graphs,v1,crown,10,"표 A 3, B 5, C 4를 보고 “전체는 9”라고 했습니다. 바르게 고친 것은?",5+4=9이므로 맞습니다.,3+5=8이므로 전체는 8입니다.,5-3=2이므로 전체는 2입니다.,3+5+4=12이므로 전체는 12입니다.,4,전체는 모든 항목을 더해야 하므로 3+5+4=12입니다.,1,correct-data-interpretation,reviewed,data-error:total

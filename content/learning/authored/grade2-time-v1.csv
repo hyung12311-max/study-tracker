@@ -1,0 +1,41 @@
+unit_slug,content_version,stage,question_order,question_text,option_1,option_2,option_3,option_4,correct_option,explanation,weight,skill_code,review_status,review_note
+grade2-time,v1,seed,1,분침이 12을 가리키고 시침을 읽으면 2시입니다. 이 시각은?,2시 정각,2시 5분,3시 정각,2시 2분,1,"분침은 0분을, 시침은 2시를 나타내므로 2시 정각입니다.",1,read-clock-time,reviewed,time-read:2:0
+grade2-time,v1,seed,2,분침이 6을 가리키고 시침을 읽으면 5시입니다. 이 시각은?,5시 35분,5시 30분,6시 30분,30시 5분,2,"분침은 30분을, 시침은 5시를 나타내므로 5시 30분입니다.",1,read-clock-time,reviewed,time-read:5:30
+grade2-time,v1,seed,3,분침이 3을 가리키고 시침을 읽으면 7시입니다. 이 시각은?,7시 20분,8시 15분,7시 15분,15시 7분,3,"분침은 15분을, 시침은 7시를 나타내므로 7시 15분입니다.",1,read-clock-time,reviewed,time-read:7:15
+grade2-time,v1,seed,4,분침이 9을 가리키고 시침을 읽으면 9시입니다. 이 시각은?,9시 50분,10시 45분,45시 9분,9시 45분,4,"분침은 45분을, 시침은 9시를 나타내므로 9시 45분입니다.",1,read-clock-time,reviewed,time-read:9:45
+grade2-time,v1,seed,5,분침이 5을 가리키고 시침을 읽으면 11시입니다. 이 시각은?,11시 25분,11시 30분,12시 25분,25시 11분,1,"분침은 25분을, 시침은 11시를 나타내므로 11시 25분입니다.",1,read-clock-time,reviewed,time-read:11:25
+grade2-time,v1,seed,6,분침이 숫자 1을 가리킬 때 지난 분은?,1분,5분,10분,0분,2,시계의 숫자 한 칸은 5분이므로 1×5=5분입니다.,1,use-five-minute-intervals,reviewed,time-five:1:5
+grade2-time,v1,seed,7,분침이 숫자 3을 가리킬 때 지난 분은?,15분,3분,30분,10분,1,시계의 숫자 한 칸은 5분이므로 3×5=15분입니다.,1,use-five-minute-intervals,reviewed,time-five:3:15
+grade2-time,v1,seed,8,분침이 숫자 6을 가리킬 때 지난 분은?,6분,30분,60분,25분,2,시계의 숫자 한 칸은 5분이므로 6×5=30분입니다.,1,use-five-minute-intervals,reviewed,time-five:6:30
+grade2-time,v1,seed,9,분침이 숫자 8을 가리킬 때 지난 분은?,8분,80분,40분,35분,3,시계의 숫자 한 칸은 5분이므로 8×5=40분입니다.,1,use-five-minute-intervals,reviewed,time-five:8:40
+grade2-time,v1,seed,10,분침이 숫자 10을 가리킬 때 지난 분은?,10분,100분,45분,50분,4,시계의 숫자 한 칸은 5분이므로 10×5=50분입니다.,1,use-five-minute-intervals,reviewed,time-five:10:50
+grade2-time,v1,leaf,1,8시 10분에서 20분 후는 언제입니까?,8시 30분,8시 25분,8시 35분,7시 50분,1,8시 10분에 20분을 더하면 8시 30분입니다.,1,calculate-time-after,reviewed,time-after:490:20:510
+grade2-time,v1,leaf,2,9시 25분에서 30분 후는 언제입니까?,9시 50분,9시 55분,10시 정각,8시 55분,2,9시 25분에 30분을 더하면 9시 55분입니다.,1,calculate-time-after,reviewed,time-after:565:30:595
+grade2-time,v1,leaf,3,1시 40분에서 15분 후는 언제입니까?,1시 50분,2시 정각,1시 55분,1시 25분,3,1시 40분에 15분을 더하면 1시 55분입니다.,1,calculate-time-after,reviewed,time-after:100:15:115
+grade2-time,v1,leaf,4,3시 5분에서 40분 후는 언제입니까?,3시 40분,3시 50분,2시 25분,3시 45분,4,3시 5분에 40분을 더하면 3시 45분입니다.,1,calculate-time-after,reviewed,time-after:185:40:225
+grade2-time,v1,leaf,5,10시 30분에서 20분 전은 언제입니까?,10시 5분,10시 15분,10시 10분,10시 50분,3,10시 30분에서 20분을 빼면 10시 10분입니다.,1,calculate-time-before,reviewed,time-before:630:20:610
+grade2-time,v1,leaf,6,4시 15분에서 10분 전은 언제입니까?,4시 정각,4시 10분,4시 25분,4시 5분,4,4시 15분에서 10분을 빼면 4시 5분입니다.,1,calculate-time-before,reviewed,time-before:255:10:245
+grade2-time,v1,leaf,7,7시 50분에서 25분 전은 언제입니까?,7시 25분,7시 20분,7시 30분,8시 15분,1,7시 50분에서 25분을 빼면 7시 25분입니다.,1,calculate-time-before,reviewed,time-before:470:25:445
+grade2-time,v1,leaf,8,12시 20분에서 15분 전은 언제입니까?,12시 정각,12시 5분,12시 10분,12시 35분,2,12시 20분에서 15분을 빼면 12시 5분입니다.,1,calculate-time-before,reviewed,time-before:740:15:725
+grade2-time,v1,leaf,9,아침 식사를 하는 시각으로 알맞은 것은?,오후 8시,오전 12시,오전 8시,오후 2시,3,아침은 낮 12시 전이므로 오전 8시가 알맞습니다.,1,distinguish-am-pm,reviewed,time-ampm:morning
+grade2-time,v1,leaf,10,저녁 운동을 하는 시각으로 알맞은 것은?,오전 7시,오전 1시,오후 7분,오후 7시,4,저녁은 낮 12시 뒤이므로 오후 7시가 알맞습니다.,1,distinguish-am-pm,reviewed,time-ampm:evening
+grade2-time,v1,tree,1,8시 정각에 시작해 8시 35분에 끝났습니다. 지난 시간은?,35분,30분,40분,0분,1,끝 시각에서 시작 시각을 빼면 515-480=35분입니다.,1,calculate-elapsed-time,reviewed,time-elapsed:480:515:35
+grade2-time,v1,tree,2,9시 20분에 시작해 10시 5분에 끝났습니다. 지난 시간은?,40분,45분,50분,1분,2,끝 시각에서 시작 시각을 빼면 605-560=45분입니다.,1,calculate-elapsed-time,reviewed,time-elapsed:560:605:45
+grade2-time,v1,tree,3,1시 15분에 시작해 2시 정각에 끝났습니다. 지난 시간은?,40분,50분,45분,1분,3,끝 시각에서 시작 시각을 빼면 120-75=45분입니다.,1,calculate-elapsed-time,reviewed,time-elapsed:75:120:45
+grade2-time,v1,tree,4,3시 40분에 시작해 4시 10분에 끝났습니다. 지난 시간은?,25분,35분,1분,30분,4,끝 시각에서 시작 시각을 빼면 250-220=30분입니다.,1,calculate-elapsed-time,reviewed,time-elapsed:220:250:30
+grade2-time,v1,tree,5,7시 30분에 시작해 45분 동안 했습니다. 끝난 시각은?,8시 15분,8시 10분,8시 20분,6시 45분,1,시작 시각 7시 30분에 45분을 더하면 8시 15분입니다.,1,calculate-time-after,reviewed,time-end:450:45:495
+grade2-time,v1,tree,6,10시 10분에 시작해 35분 동안 했습니다. 끝난 시각은?,10시 40분,10시 45분,10시 50분,9시 35분,2,시작 시각 10시 10분에 35분을 더하면 10시 45분입니다.,1,calculate-time-after,reviewed,time-end:610:35:645
+grade2-time,v1,tree,7,2시 25분에 시작해 50분 동안 했습니다. 끝난 시각은?,3시 15분,3시 10분,3시 20분,1시 35분,1,시작 시각 2시 25분에 50분을 더하면 3시 15분입니다.,1,calculate-time-after,reviewed,time-end:145:50:195
+grade2-time,v1,tree,8,9시 50분에 끝났고 30분 동안 했습니다. 시작 시각은?,9시 15분,9시 20분,9시 25분,10시 20분,2,끝 시각 9시 50분에서 30분을 빼면 9시 20분입니다.,1,calculate-time-before,reviewed,time-start:590:30:560
+grade2-time,v1,tree,9,4시 20분에 끝났고 25분 동안 했습니다. 시작 시각은?,3시 50분,4시 정각,3시 55분,4시 45분,3,끝 시각 4시 20분에서 25분을 빼면 3시 55분입니다.,1,calculate-time-before,reviewed,time-start:260:25:235
+grade2-time,v1,tree,10,11시 15분에 끝났고 40분 동안 했습니다. 시작 시각은?,10시 30분,10시 40분,11시 55분,10시 35분,4,끝 시각 11시 15분에서 40분을 빼면 10시 35분입니다.,1,calculate-time-before,reviewed,time-start:675:40:635
+grade2-time,v1,crown,1,분침이 6을 가리키고 시침이 3과 4 사이에 있습니다. 알맞은 시각은?,3시 30분,6시 15분,4시 30분,3시 6분,1,분침 6은 30분이고 시침은 아직 4에 이르지 않았으므로 3시 30분입니다.,1,interpret-clock-hands,reviewed,time-reason:hands
+grade2-time,v1,crown,2,8시 20분에서 30분 후를 8시 40분이라고 했습니다. 바르게 고친 것은?,8시 40분,8시 50분,9시 10분,7시 50분,2,20분에 30분을 더하면 50분이므로 8시 50분입니다.,1,correct-time-reasoning,reviewed,time-error:after
+grade2-time,v1,crown,3,10시 5분에서 20분 전을 바르게 구한 것은?,10시 25분,9시 55분,9시 45분,10시 45분,3,10시 5분에서 5분 전은 10시이고 15분 더 거슬러 9시 45분입니다.,1,calculate-time-before,reviewed,time-reason:borrow
+grade2-time,v1,crown,4,오전 11시와 오후 11시를 바르게 설명한 것은?,둘 다 아침입니다.,완전히 같은 시각입니다.,오전 11시는 저녁입니다.,서로 12시간 떨어진 다른 시각입니다.,4,오전 11시는 낮 12시 전이고 오후 11시는 밤이므로 서로 다른 시각입니다.,1,distinguish-am-pm,reviewed,time-reason:ampm
+grade2-time,v1,crown,5,2시 35분부터 3시 20분까지 지난 시간은?,35분,55분,45분,85분,3,"2시 35분부터 3시까지 25분, 다시 20분이므로 모두 45분입니다.",1,calculate-elapsed-time,reviewed,time-elapsed:155:200:45
+grade2-time,v1,crown,6,분침이 9를 가리키면 9분이라고 한 설명의 오류는?,숫자 9는 90분을 뜻합니다.,분침은 시를 나타냅니다.,숫자 9는 항상 9시입니다.,숫자 9는 45분을 뜻합니다.,4,분침의 숫자 한 칸은 5분이므로 9는 9×5=45분입니다.,1,correct-time-reasoning,reviewed,time-error:five
+grade2-time,v1,crown,7,오후 3시 10분에 시작해 40분 뒤 끝나는 일정은?,오후 3시 50분,오전 3시 50분,오후 4시 10분,오후 2시 30분,1,오후 3시 10분에 40분을 더하면 오후 3시 50분이며 오전·오후는 바뀌지 않습니다.,1,calculate-time-after,reviewed,time-after:190:40:230
+grade2-time,v1,crown,8,9시 40분에 끝난 25분 활동의 시작 시각과 설명이 맞는 것은?,9시 65분이며 40+25입니다.,9시 15분이며 40-25=15분입니다.,10시 5분이며 25분을 더합니다.,9시 25분이며 40-25=25입니다.,2,끝 시각에서 지난 25분을 빼면 9시 15분입니다.,1,calculate-time-before,reviewed,time-reason:start
+grade2-time,v1,crown,9,시침과 분침의 역할을 바르게 설명한 것은?,짧은 시침은 분만 나타냅니다.,긴 분침은 오전과 오후만 나타냅니다.,"짧은 시침은 시를, 긴 분침은 분을 나타냅니다.",두 바늘은 언제나 같은 숫자를 가리킵니다.,3,"시침은 몇 시인지, 분침은 몇 분인지 읽는 데 사용합니다.",1,interpret-clock-hands,reviewed,time-reason:roles
+grade2-time,v1,crown,10,오전 11시 50분에서 20분 후의 시각은?,오전 12시 10분,오후 11시 70분,오전 11시 30분,오후 12시 10분,4,11시 50분에서 10분 후가 낮 12시이고 10분 더 지나 오후 12시 10분입니다.,1,calculate-time-after,reviewed,time-after-noon:710:20:730

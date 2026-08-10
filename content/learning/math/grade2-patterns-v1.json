@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
+  "unit": {
+    "id": "09bafac3-9711-44dc-aa9d-88e5fc052d15",
+    "slug": "grade2-patterns",
+    "title": "규칙을 찾아요",
+    "displayOrder": 12
+  },
+  "version": {
+    "id": "5dad60cf-1889-4683-b135-667c885b6851",
+    "label": "v1",
+    "number": 1
+  },
+  "recommendation": {
+    "subject": "math",
+    "recommendedStartLevelCode": "elementary_2",
+    "recommendedEndLevelCode": "elementary_2",
+    "parentSortOrder": 12
+  },
+  "stages": [
+    {
+      "id": "53dd9e8a-c8a3-4eb6-9d29-f7f4da198ee7",
+      "difficulty": "seed",
+      "title": "입문",
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "bcf7c4ce-c209-4963-b937-bf95cba1991e",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "2, 5, 8, 11, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에 3씩 더하므로 11+3=14입니다.",
+          "skillCode": "continue-increasing-pattern",
+          "options": [
+            {
+              "id": "ed929f1c-817c-455f-b3ac-dff4274b815f",
+              "displayOrder": 1,
+              "text": "14",
+              "isCorrect": true
+            },
+            {
+              "id": "b8767360-9a8f-47b5-b395-8b6d8df8a676",
+              "displayOrder": 2,
+              "text": "15",
+              "isCorrect": false
+            },
+            {
+              "id": "6e7306ab-15a7-4e62-8c20-1ac7354d4bb4",
+              "displayOrder": 3,
+              "text": "13",
+              "isCorrect": false
+            },
+            {
+              "id": "65be7336-0276-4202-bb8a-f574d29e46a9",
+              "displayOrder": 4,
+              "text": "24",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "809ed509-13ba-4bb1-abec-e802d78e931b",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "5, 7, 9, 11, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에 2씩 더하므로 11+2=13입니다.",
+          "skillCode": "continue-increasing-pattern",
+          "options": [
+            {
+              "id": "bbc9d5f5-8d97-49a3-8b96-cf0787d72d1c",
+              "displayOrder": 1,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "e41135fc-7f6d-411a-af97-7fff4056af67",
+              "displayOrder": 2,
+              "text": "13",
+              "isCorrect": true
+            },
+            {
+              "id": "d6c1ea5b-1701-4262-863e-bcd4fb872f25",
+              "displayOrder": 3,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "1154fea4-1204-4228-93e9-5452c45a6305",
+              "displayOrder": 4,
+              "text": "23",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "fe57f48c-94f0-4616-9f7e-989f1004d0ca",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "10, 15, 20, 25, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에 5씩 더하므로 25+5=30입니다.",
+          "skillCode": "continue-increasing-pattern",
+          "options": [
+            {
+              "id": "4ffeca28-888c-4282-a7a3-6cd66b3beeb7",
+              "displayOrder": 1,
+              "text": "31",
+              "isCorrect": false
+            },
+            {
+              "id": "74e4a2fa-c37b-4a27-8c57-60134e1926df",
+              "displayOrder": 2,
+              "text": "29",
+              "isCorrect": false
+            },
+            {
+              "id": "0c815712-2578-4e3e-b3fb-68f66f85d56c",
+              "displayOrder": 3,
+              "text": "30",
+              "isCorrect": true
+            },
+            {
+              "id": "5a0c0672-d2da-4643-b2ae-a6c85f07e779",
+              "displayOrder": 4,
+              "text": "40",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "3f266b2a-e293-4c35-9a2f-9b50a16b145c",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "4, 8, 12, 16, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에 4씩 더하므로 16+4=20입니다.",
+          "skillCode": "continue-increasing-pattern",
+          "options": [
+            {
+              "id": "9142fd35-7731-4157-8803-7c0571e06bfb",
+              "displayOrder": 1,
+              "text": "21",
+              "isCorrect": false
+            },
+            {
+              "id": "48dad00f-1758-4f29-b570-c4fb7037a21d",
+              "displayOrder": 2,
+              "text": "19",
+              "isCorrect": false
+            },
+            {
+              "id": "19b83544-1e82-4105-a0c6-787ce65b689c",
+              "displayOrder": 3,
+              "text": "30",
+              "isCorrect": false
+            },
+            {
+              "id": "0e511397-4b94-4d4e-b197-456c3fecf309",
+              "displayOrder": 4,
+              "text": "20",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "ac1d89a9-0ed5-4a8e-a763-cc4019dea98a",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "7, 10, 13, 16, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에 3씩 더하므로 16+3=19입니다.",
+          "skillCode": "continue-increasing-pattern",
+          "options": [
+            {
+              "id": "4f58ab25-e1d5-4ef2-9037-4daa4ad2bbe0",
+              "displayOrder": 1,
+              "text": "19",
+              "isCorrect": true
+            },
+            {
+              "id": "fe18a0bd-eb38-4279-8b87-4183fb1e7db1",
+              "displayOrder": 2,
+              "text": "20",
+              "isCorrect": false
+            },
+            {
+              "id": "bcd0a1fe-3f64-46ab-8ac9-8a368848014d",
+              "displayOrder": 3,
+              "text": "18",
+              "isCorrect": false
+            },
+            {
+              "id": "d2a7c420-6e4e-4038-acde-2dad001978c5",
+              "displayOrder": 4,
+              "text": "29",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "dd858357-d6e2-4b29-8a42-e99e360f785e",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "20, 18, 16, 14, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에서 2씩 빼므로 14-2=12입니다.",
+          "skillCode": "continue-decreasing-pattern",
+          "options": [
+            {
+              "id": "74c991c0-4a6e-4879-80f3-7a0291186b59",
+              "displayOrder": 1,
+              "text": "13",
+              "isCorrect": false
+            },
+            {
+              "id": "40f617ad-041d-4f6f-b0d5-d88c1f3db536",
+              "displayOrder": 2,
+              "text": "12",
+              "isCorrect": true
+            },
+            {
+              "id": "8b83ea28-eed5-4e9c-9b55-8b1f16572241",
+              "displayOrder": 3,
+              "text": "11",
+              "isCorrect": false
+            },
+            {
+              "id": "c528f0f7-0e5e-4c5e-a982-655081de85f2",
+              "displayOrder": 4,
+              "text": "22",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "113af70b-9a1d-48c6-981b-f37673e3de6f",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "35, 30, 25, 20, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에서 5씩 빼므로 20-5=15입니다.",
+          "skillCode": "continue-decreasing-pattern",
+          "options": [
+            {
+              "id": "5cd22757-7be7-4a07-be91-7a97427c6a20",
+              "displayOrder": 1,
+              "text": "15",
+              "isCorrect": true
+            },
+            {
+              "id": "f7eee891-412b-4179-8859-12cb5d987ae8",
+              "displayOrder": 2,
+              "text": "16",
+              "isCorrect": false
+            },
+            {
+              "id": "dc3e8909-b505-43f4-a06e-5398c099abe1",
+              "displayOrder": 3,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "fd364d82-2a82-46c8-9365-00ba93cd9b4a",
+              "displayOrder": 4,
+              "text": "25",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "0e62a840-9dc6-4b3b-bda7-2cbe6ef7ec1d",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "18, 15, 12, 9, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에서 3씩 빼므로 9-3=6입니다.",
+          "skillCode": "continue-decreasing-pattern",
+          "options": [
+            {
+              "id": "9e5fc67b-f672-4e3a-a75c-f87fdb528710",
+              "displayOrder": 1,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "a9b92687-0fa0-435e-8bbb-abc0f0433af3",
+              "displayOrder": 2,
+              "text": "6",
+              "isCorrect": true
+            },
+            {
+              "id": "3dc6b87e-5a07-4c71-a25a-a79c4c16f967",
+              "displayOrder": 3,
+              "text": "5",
+              "isCorrect": false
+            },
+            {
+              "id": "123d98d0-d948-4f2c-be5c-cccc5cdcb487",
+              "displayOrder": 4,
+              "text": "16",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a525d3e0-0e4c-4606-9da3-9a337eff9f0e",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "40, 36, 32, 28, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에서 4씩 빼므로 28-4=24입니다.",
+          "skillCode": "continue-decreasing-pattern",
+          "options": [
+            {
+              "id": "45006352-5e08-4b90-9614-e9ebb649af59",
+              "displayOrder": 1,
+              "text": "25",
+              "isCorrect": false
+            },
+            {
+              "id": "072e8043-5b96-4bd6-a85d-a0094364a72d",
+              "displayOrder": 2,
+              "text": "23",
+              "isCorrect": false
+            },
+            {
+              "id": "1ddbfe14-1fba-40de-8d52-fb5500b1751a",
+              "displayOrder": 3,
+              "text": "24",
+              "isCorrect": true
+            },
+            {
+              "id": "90f7faf3-623b-4b95-8960-c227e4f746fa",
+              "displayOrder": 4,
+              "text": "34",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a19d31a7-d747-4281-b995-48816cd10edf",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "27, 24, 21, 18, □의 규칙에서 다음 수는?",
+          "explanation": "앞 수에서 3씩 빼므로 18-3=15입니다.",
+          "skillCode": "continue-decreasing-pattern",
+          "options": [
+            {
+              "id": "243d7e29-43d0-4f0f-981d-a2da1e999125",
+              "displayOrder": 1,
+              "text": "16",
+              "isCorrect": false
+            },
+            {
+              "id": "71f75633-a0b1-48c5-b24f-87c51f6e36e9",
+              "displayOrder": 2,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "706fe0ac-bbb4-47cf-baae-4d471e58681d",
+              "displayOrder": 3,
+              "text": "25",
+              "isCorrect": false
+            },
+            {
+              "id": "f1af7789-a4c7-4448-af88-f3d8862cd4ef",
+              "displayOrder": 4,
+              "text": "15",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "062ebd95-5c1e-4acb-b955-7d35c9f06546",
+      "difficulty": "leaf",
+      "title": "기초",
+      "displayOrder": 2,
+      "questions": [
+        {
+          "id": "e00583d7-92a4-4d16-9481-6a4a4dc80b4e",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "○ △ ○ △ ○ △ ○ 다음에 올 것은?",
+          "explanation": "○ △가 반복되므로 다음에는 △이 옵니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "96f57080-43e9-48a5-b54a-d00ae172a29a",
+              "displayOrder": 1,
+              "text": "△",
+              "isCorrect": true
+            },
+            {
+              "id": "809fe7f3-ecc4-4121-8a7e-77c8632f3e2b",
+              "displayOrder": 2,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "462ddb94-7afa-4da1-b19e-1ffe9864cce3",
+              "displayOrder": 3,
+              "text": "★",
+              "isCorrect": false
+            },
+            {
+              "id": "c319152c-0f41-4787-80ea-75365c9df4ea",
+              "displayOrder": 4,
+              "text": "가",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "cc9cf0b9-8f42-43ae-af8e-2c8a7488fa28",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "★ ★ □ ★ ★ □ ★ 다음에 올 것은?",
+          "explanation": "★ ★ □가 반복되므로 다음에는 ★이 옵니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "f84d3773-b307-4857-9ef7-bc5f7781e35a",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "a77dde54-d598-4e19-8ca1-d29900e902d2",
+              "displayOrder": 2,
+              "text": "★",
+              "isCorrect": true
+            },
+            {
+              "id": "937bdcd8-4619-4c27-8124-65fdcf88e50d",
+              "displayOrder": 3,
+              "text": "가",
+              "isCorrect": false
+            },
+            {
+              "id": "a7369f45-4b11-4b6d-a517-9ba4dbfb9299",
+              "displayOrder": 4,
+              "text": "빨강",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a0520efc-890b-45ab-94e6-082e1fa467b0",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "가 나 다 가 나 다 가 다음에 올 것은?",
+          "explanation": "가 나 다가 반복되므로 다음에는 나이 옵니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "919b6735-55cd-4f44-a3a6-708c4177f900",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "f11eef13-e85f-444e-ac6f-3a07b0abeea2",
+              "displayOrder": 2,
+              "text": "★",
+              "isCorrect": false
+            },
+            {
+              "id": "d59a6196-3bd3-493d-b2c4-5b01fe964e9b",
+              "displayOrder": 3,
+              "text": "나",
+              "isCorrect": true
+            },
+            {
+              "id": "8b3a42ee-e3ba-4fee-be1c-b2a508d05f03",
+              "displayOrder": 4,
+              "text": "가",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "b549f1c2-8c93-43ba-9e8f-aeffed4348b7",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "빨강 파랑 빨강 파랑 빨강 파랑 빨강 다음에 올 것은?",
+          "explanation": "빨강 파랑가 반복되므로 다음에는 파랑이 옵니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "f39cc1d9-35b7-401b-96ae-1ebf68f8dc57",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "98def6b1-dd30-47b8-9b89-c5c1c0bc2a0f",
+              "displayOrder": 2,
+              "text": "★",
+              "isCorrect": false
+            },
+            {
+              "id": "3cfae5bd-e7dc-481e-8e1d-ce1724dfc158",
+              "displayOrder": 3,
+              "text": "가",
+              "isCorrect": false
+            },
+            {
+              "id": "00fe64b4-70c1-441e-9946-dfb98ea8f892",
+              "displayOrder": 4,
+              "text": "파랑",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "01971220-8c4d-47c9-9065-6f78b331b8ae",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "1 2 2 1 2 2 1 다음에 올 것은?",
+          "explanation": "1 2 2가 반복되므로 다음에는 2이 옵니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "2f82704c-6326-4c6f-a027-74c957d9073a",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "8945a971-2b76-4b0b-af2a-5afd5ef043e2",
+              "displayOrder": 2,
+              "text": "★",
+              "isCorrect": false
+            },
+            {
+              "id": "96beb75a-7d42-41f9-ba2d-ecaa42e68518",
+              "displayOrder": 3,
+              "text": "2",
+              "isCorrect": true
+            },
+            {
+              "id": "372c8c20-be3a-4ee7-bf01-4d2e15c8b3dc",
+              "displayOrder": 4,
+              "text": "가",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "3e774a40-b0d8-4fd7-9211-ea81885af772",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "3, 7, □, 15에서 빈칸은?",
+          "explanation": "4씩 커지는 규칙이므로 7+4=11입니다.",
+          "skillCode": "infer-missing-pattern-item",
+          "options": [
+            {
+              "id": "e73856bd-a6b6-4e4e-a98a-b925617bf90a",
+              "displayOrder": 1,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "b47f3645-f015-4327-ab0b-22ca8d3ad20c",
+              "displayOrder": 2,
+              "text": "15",
+              "isCorrect": false
+            },
+            {
+              "id": "1af6bc76-7a45-4207-a474-0b6129fcce89",
+              "displayOrder": 3,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "52f647c1-1c78-4aca-96cf-526bd32d95d6",
+              "displayOrder": 4,
+              "text": "11",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "f9523add-9dae-4883-bbc8-eaf5886495d2",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "6, 9, □, 15에서 빈칸은?",
+          "explanation": "3씩 커지는 규칙이므로 9+3=12입니다.",
+          "skillCode": "infer-missing-pattern-item",
+          "options": [
+            {
+              "id": "1a421ec5-d4c6-4aa8-8a3b-5952e27d5949",
+              "displayOrder": 1,
+              "text": "12",
+              "isCorrect": true
+            },
+            {
+              "id": "e07ea952-7bf4-4d38-9060-a53d50549643",
+              "displayOrder": 2,
+              "text": "9",
+              "isCorrect": false
+            },
+            {
+              "id": "430fcd27-325b-4384-8d84-5b4a21026499",
+              "displayOrder": 3,
+              "text": "15",
+              "isCorrect": false
+            },
+            {
+              "id": "b951c5d5-98ae-4e3b-91f5-b42317b001d2",
+              "displayOrder": 4,
+              "text": "13",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "5eed51d1-7d25-4f1f-a013-4ef29ad4fa23",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "2, 7, □, 17에서 빈칸은?",
+          "explanation": "5씩 커지는 규칙이므로 7+5=12입니다.",
+          "skillCode": "infer-missing-pattern-item",
+          "options": [
+            {
+              "id": "e76914e5-155b-4812-ab6f-7be88f1a6e81",
+              "displayOrder": 1,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "cdb2ef54-29d1-467a-8789-e2443a95abc5",
+              "displayOrder": 2,
+              "text": "12",
+              "isCorrect": true
+            },
+            {
+              "id": "aca7fb54-bfdf-4eba-bb8f-871bff0188a0",
+              "displayOrder": 3,
+              "text": "17",
+              "isCorrect": false
+            },
+            {
+              "id": "ab7bc50d-cebe-46f7-93f9-eae9fa4349b0",
+              "displayOrder": 4,
+              "text": "13",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "48661048-edc6-4450-86e0-42f77e0a8ff2",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "10, 12, □, 16에서 빈칸은?",
+          "explanation": "2씩 커지는 규칙이므로 12+2=14입니다.",
+          "skillCode": "infer-missing-pattern-item",
+          "options": [
+            {
+              "id": "4e333c44-a4a0-408b-b990-a975408b7510",
+              "displayOrder": 1,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "f49d983d-63da-480d-b329-f535f0fa6e2b",
+              "displayOrder": 2,
+              "text": "16",
+              "isCorrect": false
+            },
+            {
+              "id": "bd6f80a6-5548-4d90-b14f-9227c41180a6",
+              "displayOrder": 3,
+              "text": "14",
+              "isCorrect": true
+            },
+            {
+              "id": "62c2c138-248c-410f-97c6-03f4cf4530bf",
+              "displayOrder": 4,
+              "text": "15",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1db982b5-1b04-4381-9d0a-bf5bccc2fdaa",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "1, 7, □, 19에서 빈칸은?",
+          "explanation": "6씩 커지는 규칙이므로 7+6=13입니다.",
+          "skillCode": "infer-missing-pattern-item",
+          "options": [
+            {
+              "id": "2ee96a33-f568-475f-ad7e-158465784d0e",
+              "displayOrder": 1,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "9ebb63b0-3ce5-44d7-a017-a1ced050b3b0",
+              "displayOrder": 2,
+              "text": "19",
+              "isCorrect": false
+            },
+            {
+              "id": "1e0441ea-83b6-464d-bcc9-7e9eb32c591d",
+              "displayOrder": 3,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "a1996851-c713-42a9-8a31-519a470212ad",
+              "displayOrder": 4,
+              "text": "13",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b856efa8-64e7-4b4b-a14e-adb108e2c7e8",
+      "difficulty": "tree",
+      "title": "심화",
+      "displayOrder": 3,
+      "questions": [
+        {
+          "id": "5bdf19a0-203c-4f84-916e-8dc636252619",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "1, 3, 4, 6, 7, □는 “2 더하기, 1 더하기”를 반복합니다. 다음 수는?",
+          "explanation": "7에서 2를 더할 차례이므로 9입니다.",
+          "skillCode": "extend-two-step-pattern",
+          "options": [
+            {
+              "id": "ee5ac20d-b743-4071-aa04-4452510eced9",
+              "displayOrder": 1,
+              "text": "9",
+              "isCorrect": true
+            },
+            {
+              "id": "6de1c3b1-cdb2-46df-9742-6230878f6e0d",
+              "displayOrder": 2,
+              "text": "10",
+              "isCorrect": false
+            },
+            {
+              "id": "c43b9d61-dc10-4653-9cee-feb36b774f22",
+              "displayOrder": 3,
+              "text": "8",
+              "isCorrect": false
+            },
+            {
+              "id": "b2d6c77c-02bf-4e44-aa00-a6bea43ddedb",
+              "displayOrder": 4,
+              "text": "19",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "0c969d53-c49e-4273-9959-b897721528cd",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "4, 7, 8, 11, 12, □는 “3 더하기, 1 더하기”를 반복합니다. 다음 수는?",
+          "explanation": "12에서 3를 더할 차례이므로 15입니다.",
+          "skillCode": "extend-two-step-pattern",
+          "options": [
+            {
+              "id": "2d4d4cdf-69cd-41d3-9518-dfc0760c178f",
+              "displayOrder": 1,
+              "text": "16",
+              "isCorrect": false
+            },
+            {
+              "id": "6299157b-6cab-4c1a-83fb-2a8264fac620",
+              "displayOrder": 2,
+              "text": "15",
+              "isCorrect": true
+            },
+            {
+              "id": "121f05af-33b3-4349-8cf9-2aa1c01596de",
+              "displayOrder": 3,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "f1788c37-23db-4ad9-aa9e-007549fbeb5a",
+              "displayOrder": 4,
+              "text": "25",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "9690eb97-df1c-4939-92da-53a784b436e0",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "2, 6, 7, 11, 12, □는 “4 더하기, 1 더하기”를 반복합니다. 다음 수는?",
+          "explanation": "12에서 4를 더할 차례이므로 16입니다.",
+          "skillCode": "extend-two-step-pattern",
+          "options": [
+            {
+              "id": "db265fcf-0c35-4f04-9b84-0cda00f99667",
+              "displayOrder": 1,
+              "text": "17",
+              "isCorrect": false
+            },
+            {
+              "id": "f7109bec-5637-423b-8c36-1984c9413ea5",
+              "displayOrder": 2,
+              "text": "15",
+              "isCorrect": false
+            },
+            {
+              "id": "077a2eea-7757-48a4-8e03-f9eb6911101d",
+              "displayOrder": 3,
+              "text": "16",
+              "isCorrect": true
+            },
+            {
+              "id": "c1ad0306-736d-4d55-8a28-b9570cedc06a",
+              "displayOrder": 4,
+              "text": "26",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "282b93cb-0c1e-41bc-b480-1c2902973f3b",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "5, 7, 8, 10, 11, □는 “2 더하기, 1 더하기”를 반복합니다. 다음 수는?",
+          "explanation": "11에서 2를 더할 차례이므로 13입니다.",
+          "skillCode": "extend-two-step-pattern",
+          "options": [
+            {
+              "id": "89e62dfd-b1c3-4d32-9b60-a15dc3eddcfc",
+              "displayOrder": 1,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "c932e8a1-b069-4448-9939-70088ad02695",
+              "displayOrder": 2,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "a0b61660-1678-4aa1-bce7-9bfa683c2048",
+              "displayOrder": 3,
+              "text": "23",
+              "isCorrect": false
+            },
+            {
+              "id": "35698092-98eb-4e15-b582-3b8c87b62d47",
+              "displayOrder": 4,
+              "text": "13",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "cade81f5-6b84-4aa9-9958-3cf3e68fc959",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "5, 9, 13, 17의 규칙을 바르게 설명한 것은?",
+          "explanation": "이웃한 두 수의 차가 항상 4이므로 4씩 커집니다.",
+          "skillCode": "explain-pattern-rule",
+          "options": [
+            {
+              "id": "9cbaf749-dd01-4ff9-a197-a3a7e2098290",
+              "displayOrder": 1,
+              "text": "4씩 커집니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "fddc1fb7-59d3-4016-bb78-b33ec8dac813",
+              "displayOrder": 2,
+              "text": "5씩 커집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "4adba03d-7c1a-4b63-9d62-12ebb59ab6f3",
+              "displayOrder": 3,
+              "text": "항상 같은 수입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "30750439-26af-407e-b5f8-c8002ff460a2",
+              "displayOrder": 4,
+              "text": "4씩 작아집니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1bef81e3-d76c-4694-b152-9fa39436ba7b",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "30, 27, 24, 21의 규칙을 바르게 설명한 것은?",
+          "explanation": "이웃한 두 수의 차가 항상 3이므로 3씩 작아집니다.",
+          "skillCode": "explain-pattern-rule",
+          "options": [
+            {
+              "id": "7a412fb6-07f6-4904-8725-2dea133d2a73",
+              "displayOrder": 1,
+              "text": "4씩 작아집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "9d463e36-3304-4c4e-8fd9-1c670db585f2",
+              "displayOrder": 2,
+              "text": "3씩 작아집니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "bbed6924-2988-4649-aadd-72ea23961947",
+              "displayOrder": 3,
+              "text": "항상 같은 수입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "f186abed-228d-44ef-be85-f816c0a6fb8d",
+              "displayOrder": 4,
+              "text": "3씩 커집니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "caa2e723-2c14-443e-aeba-eb6f8e0fa1bd",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "2, 8, 14, 20의 규칙을 바르게 설명한 것은?",
+          "explanation": "이웃한 두 수의 차가 항상 6이므로 6씩 커집니다.",
+          "skillCode": "explain-pattern-rule",
+          "options": [
+            {
+              "id": "0a52ae23-487c-4dc1-b28d-b8634a93bfb8",
+              "displayOrder": 1,
+              "text": "6씩 커집니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "06976c77-1cca-435e-b777-83844add29ff",
+              "displayOrder": 2,
+              "text": "7씩 커집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "36d891d2-50f4-45b6-97a5-d3d383171209",
+              "displayOrder": 3,
+              "text": "항상 같은 수입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "24517f38-73aa-4af5-a8c3-e2a1bd016403",
+              "displayOrder": 4,
+              "text": "6씩 작아집니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1e5cfa88-0627-41ed-a278-817e3d16327a",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "○ △ □가 반복됩니다. 11번째 항목은?",
+          "explanation": "반복 길이는 3이고 11번째는 주기의 2번째이므로 △입니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "38e4aebe-9264-4e93-93a2-aa9d155060be",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "82e9bbea-f7fc-4883-b40b-d6a76c934157",
+              "displayOrder": 2,
+              "text": "△",
+              "isCorrect": true
+            },
+            {
+              "id": "159369c1-1ba8-4370-ad27-6620048ea36d",
+              "displayOrder": 3,
+              "text": "★",
+              "isCorrect": false
+            },
+            {
+              "id": "28517169-268e-4701-9de5-8a9a61db54eb",
+              "displayOrder": 4,
+              "text": "가",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f1af6863-e3f4-4ebb-ad92-f379b92a4af9",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "★ □가 반복됩니다. 11번째 항목은?",
+          "explanation": "반복 길이는 2이고 11번째는 주기의 1번째이므로 ★입니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "fc5507ed-a4e8-4544-bfb4-43b603869e20",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "b14b9337-5954-4ba9-901f-9ec632d10b48",
+              "displayOrder": 2,
+              "text": "가",
+              "isCorrect": false
+            },
+            {
+              "id": "8bf4f0c2-816c-4944-a0e5-0975703f8132",
+              "displayOrder": 3,
+              "text": "★",
+              "isCorrect": true
+            },
+            {
+              "id": "b6e425d9-ed9b-4b6b-931a-599444fb34af",
+              "displayOrder": 4,
+              "text": "빨강",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "342f3c51-d41e-4b85-86d6-e5a1f8226bc0",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "가 나 나가 반복됩니다. 11번째 항목은?",
+          "explanation": "반복 길이는 3이고 11번째는 주기의 2번째이므로 나입니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "83c7b46f-217a-4db1-bc2a-a55f0db2261c",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "17db41ea-f1aa-4d04-a377-dd8b62246d01",
+              "displayOrder": 2,
+              "text": "★",
+              "isCorrect": false
+            },
+            {
+              "id": "448a32ce-3d50-4891-9807-8bb2931cc3f4",
+              "displayOrder": 3,
+              "text": "가",
+              "isCorrect": false
+            },
+            {
+              "id": "f42dc781-5f72-47a3-8fdf-fec9dc1be284",
+              "displayOrder": 4,
+              "text": "나",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1a70471b-9e62-4fc9-9c8f-8f13fa0be476",
+      "difficulty": "crown",
+      "title": "최상위 도전!",
+      "displayOrder": 4,
+      "questions": [
+        {
+          "id": "39f5d8d4-5efa-49f7-a9cf-146d441a196b",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "3, 6, 9, 13에서 규칙에 맞지 않는 수는?",
+          "explanation": "3씩 커지는 규칙이면 3, 6, 9, 12이므로 13이 잘못되었습니다.",
+          "skillCode": "correct-pattern-reasoning",
+          "options": [
+            {
+              "id": "31e60f8f-3ae9-4a98-83b8-b3faee308829",
+              "displayOrder": 1,
+              "text": "13",
+              "isCorrect": true
+            },
+            {
+              "id": "8426a33e-05a8-4615-9b23-61325ec40793",
+              "displayOrder": 2,
+              "text": "3",
+              "isCorrect": false
+            },
+            {
+              "id": "9e04bb0f-db6c-452f-a04b-f7a7df3ec979",
+              "displayOrder": 3,
+              "text": "6",
+              "isCorrect": false
+            },
+            {
+              "id": "38bf6246-5bac-407f-b7b4-69636319805f",
+              "displayOrder": 4,
+              "text": "9",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "90c733ff-7cec-4ef2-b341-6773e956549c",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "20, 16, 12, 9를 바르게 고친 배열은?",
+          "explanation": "4씩 작아지는 규칙이므로 12 다음은 8입니다.",
+          "skillCode": "correct-pattern-reasoning",
+          "options": [
+            {
+              "id": "a1a056cb-6f51-41f1-b368-3745261137f7",
+              "displayOrder": 1,
+              "text": "20, 17, 14, 11",
+              "isCorrect": false
+            },
+            {
+              "id": "21002500-ef26-4200-bbcf-00cdf5571ce3",
+              "displayOrder": 2,
+              "text": "20, 16, 12, 8",
+              "isCorrect": true
+            },
+            {
+              "id": "e0c8c09c-6c94-4a6c-8a55-72dc097a3e4e",
+              "displayOrder": 3,
+              "text": "20, 16, 12, 9",
+              "isCorrect": false
+            },
+            {
+              "id": "4f004dc8-3b20-497b-ac3f-7dd55aaea4e2",
+              "displayOrder": 4,
+              "text": "20, 15, 10, 5",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f9195dcb-a6d1-473e-b829-508047103fa0",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "○ △ ○ ○ △ ○ ○ 다음 항목은?",
+          "explanation": "○ △ ○의 세 항목이 반복되므로 다음은 △입니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "6ff6dc91-ba9c-471c-b815-f28fb2ea81a7",
+              "displayOrder": 1,
+              "text": "○",
+              "isCorrect": false
+            },
+            {
+              "id": "479ffc82-6e95-4377-ac09-5ea132b9c4b4",
+              "displayOrder": 2,
+              "text": "□",
+              "isCorrect": false
+            },
+            {
+              "id": "44ff089d-3c88-4b41-8a9b-0cd3b099225d",
+              "displayOrder": 3,
+              "text": "△",
+              "isCorrect": true
+            },
+            {
+              "id": "41ab21aa-8bf6-4f81-af5a-b09bb76cf497",
+              "displayOrder": 4,
+              "text": "★",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "39605b8e-0e1a-46af-8230-1c1d92454af3",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "2, 5, 6, 9, 10은 “3 더하기, 1 더하기” 규칙입니다. 다음 수는?",
+          "explanation": "10 다음에는 3을 더할 차례이므로 13입니다.",
+          "skillCode": "extend-two-step-pattern",
+          "options": [
+            {
+              "id": "72de7b36-5a14-4d47-ad69-7b829adfe9fe",
+              "displayOrder": 1,
+              "text": "11",
+              "isCorrect": false
+            },
+            {
+              "id": "28d462c8-dabf-4ca6-b364-99b24c396258",
+              "displayOrder": 2,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "99162def-58fe-4a49-833d-c0a5040a74d5",
+              "displayOrder": 3,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "ef197252-1024-452e-9464-962d377af431",
+              "displayOrder": 4,
+              "text": "13",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "d5495d4c-b1a0-447f-b317-895f138ccd12",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "□, 14, 18, 22가 4씩 커질 때 □는?",
+          "explanation": "14보다 4 작은 수는 10이므로 10, 14, 18, 22가 됩니다.",
+          "skillCode": "infer-missing-pattern-item",
+          "options": [
+            {
+              "id": "7b435861-44d0-4b51-a728-0a85dfbae22b",
+              "displayOrder": 1,
+              "text": "8",
+              "isCorrect": false
+            },
+            {
+              "id": "8be36ef4-4e52-4f66-be0e-a549f44ee565",
+              "displayOrder": 2,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "779e00fc-9ac6-4e03-af8f-0228c8f22302",
+              "displayOrder": 3,
+              "text": "10",
+              "isCorrect": true
+            },
+            {
+              "id": "bb1f15a9-8e7e-45ab-b87a-cd3214d192e9",
+              "displayOrder": 4,
+              "text": "16",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "4484319c-c496-4426-a0f3-e7c1cede3e42",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "★ ★ □가 반복될 때 8번째 항목과 까닭이 맞는 것은?",
+          "explanation": "반복 길이는 3이고 8번째는 두 번째 자리이므로 ★입니다.",
+          "skillCode": "identify-repeating-cycle",
+          "options": [
+            {
+              "id": "b5ad0d68-1423-446f-9b85-ebbebea4e623",
+              "displayOrder": 1,
+              "text": "□이며 8번째는 주기의 세 번째입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "e8f02884-9e9e-4ddd-b7f4-da78cbcbac4f",
+              "displayOrder": 2,
+              "text": "★이며 모든 항목이 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "2d74e118-aa80-4f2e-a59d-0eaecc78e7f4",
+              "displayOrder": 3,
+              "text": "□이며 8을 2로 나눕니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "55544ae8-b8a7-49e0-9dd5-e9970c1f4996",
+              "displayOrder": 4,
+              "text": "★이며 8번째는 주기의 두 번째입니다.",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "4d2b5d1f-0316-4d63-893f-778dfad0d289",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "7, 12, 17, 22의 규칙을 3번 더 이어 쓴 것은?",
+          "explanation": "5씩 커지므로 22 뒤에 27, 32, 37이 이어집니다.",
+          "skillCode": "continue-increasing-pattern",
+          "options": [
+            {
+              "id": "bcf4b1de-29c8-4853-86ce-1a366b44f029",
+              "displayOrder": 1,
+              "text": "27, 32, 37",
+              "isCorrect": true
+            },
+            {
+              "id": "113f64fd-8044-4c1c-ac2b-ba39bf137fac",
+              "displayOrder": 2,
+              "text": "23, 24, 25",
+              "isCorrect": false
+            },
+            {
+              "id": "f6506a38-93b4-4afe-9b19-4b50659f6168",
+              "displayOrder": 3,
+              "text": "27, 31, 35",
+              "isCorrect": false
+            },
+            {
+              "id": "7880695e-5857-411f-a3d9-1fa5f9c1e2aa",
+              "displayOrder": 4,
+              "text": "17, 12, 7",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "05604d82-c37e-4c5e-8457-581f5872a93d",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "40, 34, 28, 22에서 다음 두 수는?",
+          "explanation": "6씩 작아지므로 22-6=16, 16-6=10입니다.",
+          "skillCode": "continue-decreasing-pattern",
+          "options": [
+            {
+              "id": "db6fd7d5-6bc6-4153-836a-def5f6d69a70",
+              "displayOrder": 1,
+              "text": "18, 14",
+              "isCorrect": false
+            },
+            {
+              "id": "04ecddc6-6733-4a2d-997a-62e4047f7518",
+              "displayOrder": 2,
+              "text": "16, 10",
+              "isCorrect": true
+            },
+            {
+              "id": "238c618e-d17c-41ee-a239-2463710ea56c",
+              "displayOrder": 3,
+              "text": "16, 12",
+              "isCorrect": false
+            },
+            {
+              "id": "d198c6fe-21d4-491e-8a65-0b0d2132c164",
+              "displayOrder": 4,
+              "text": "28, 34",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "470b06ce-ee69-4fa8-9f8c-c70ac565932b",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "1, 3, 6, 8, 12에서 “2 더하기, 3 더하기” 규칙에 맞지 않는 수는?",
+          "explanation": "1+2=3, 3+3=6, 6+2=8 다음은 8+3=11이어야 하므로 12가 잘못되었습니다.",
+          "skillCode": "correct-pattern-reasoning",
+          "options": [
+            {
+              "id": "e533c5c4-ca68-4ef0-90e0-0bc1db6f7fc4",
+              "displayOrder": 1,
+              "text": "3",
+              "isCorrect": false
+            },
+            {
+              "id": "cdaa534a-966b-4673-bebc-d1e15cd5dbdc",
+              "displayOrder": 2,
+              "text": "6",
+              "isCorrect": false
+            },
+            {
+              "id": "8ab4a620-2a00-4b91-bb0f-32d5d4c3cfcb",
+              "displayOrder": 3,
+              "text": "12",
+              "isCorrect": true
+            },
+            {
+              "id": "677bd11d-f4ca-4c61-b7b8-951712cfabb2",
+              "displayOrder": 4,
+              "text": "8",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f498bb8d-342e-4abd-aeed-2270e9d1cf3e",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "4, 7, 10, □, 16에서 빈칸과 규칙 설명이 모두 맞는 것은?",
+          "explanation": "이웃한 수가 3씩 커지므로 10+3=13이고 다음은 16입니다.",
+          "skillCode": "explain-pattern-rule",
+          "options": [
+            {
+              "id": "b0473b7c-4b60-49f5-a080-b010a64f358d",
+              "displayOrder": 1,
+              "text": "12이며 2씩 커집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "7dc0dd6c-a007-4464-9bc5-50a1f7e12a06",
+              "displayOrder": 2,
+              "text": "13이며 3씩 작아집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "afc1c6a3-9eb1-43ab-9702-0670e5c9eb57",
+              "displayOrder": 3,
+              "text": "14이며 4씩 커집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "7c062d6d-6648-45e7-a958-6b6c961a7f5c",
+              "displayOrder": 4,
+              "text": "13이며 3씩 커집니다.",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

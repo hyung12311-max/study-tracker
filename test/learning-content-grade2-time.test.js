@@ -1,0 +1,1 @@
+require('./grade2-batch-content-test-helper').run({slug:'grade2-time',snake:'grade2_time',skillNo:'202608100005',contentNo:'202608100006',notePrefix:'time-',newSkills:['read-clock-time','interpret-clock-hands','use-five-minute-intervals','distinguish-am-pm','calculate-time-after','calculate-time-before','calculate-elapsed-time','correct-time-reasoning']});

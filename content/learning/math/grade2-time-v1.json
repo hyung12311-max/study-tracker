@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
+  "unit": {
+    "id": "bb6cc6d7-e1e6-46e9-9d56-3bcb4b42550d",
+    "slug": "grade2-time",
+    "title": "시각과 시간을 알아봐요",
+    "displayOrder": 10
+  },
+  "version": {
+    "id": "81f5083b-44b5-4344-8457-9522dbe74c97",
+    "label": "v1",
+    "number": 1
+  },
+  "recommendation": {
+    "subject": "math",
+    "recommendedStartLevelCode": "elementary_2",
+    "recommendedEndLevelCode": "elementary_2",
+    "parentSortOrder": 10
+  },
+  "stages": [
+    {
+      "id": "81a4c29f-f274-4e60-8608-cc42fcb6c541",
+      "difficulty": "seed",
+      "title": "입문",
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "3818994e-1446-49d0-b6e0-547dbb06c144",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "분침이 12을 가리키고 시침을 읽으면 2시입니다. 이 시각은?",
+          "explanation": "분침은 0분을, 시침은 2시를 나타내므로 2시 정각입니다.",
+          "skillCode": "read-clock-time",
+          "options": [
+            {
+              "id": "3e5ce115-44e7-40eb-8fb5-6efd5465b297",
+              "displayOrder": 1,
+              "text": "2시 정각",
+              "isCorrect": true
+            },
+            {
+              "id": "87772183-3106-4690-ae5e-baf0bd02e91c",
+              "displayOrder": 2,
+              "text": "2시 5분",
+              "isCorrect": false
+            },
+            {
+              "id": "7d1245d8-443f-4535-a3a7-5013d766e452",
+              "displayOrder": 3,
+              "text": "3시 정각",
+              "isCorrect": false
+            },
+            {
+              "id": "651c4a4c-d2dc-45f9-9af1-bf3afe61740e",
+              "displayOrder": 4,
+              "text": "2시 2분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "ebd9cd93-a2a7-44c5-9077-964730c9db26",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "분침이 6을 가리키고 시침을 읽으면 5시입니다. 이 시각은?",
+          "explanation": "분침은 30분을, 시침은 5시를 나타내므로 5시 30분입니다.",
+          "skillCode": "read-clock-time",
+          "options": [
+            {
+              "id": "14c3b689-a863-4f9d-bd13-43511e9c8e93",
+              "displayOrder": 1,
+              "text": "5시 35분",
+              "isCorrect": false
+            },
+            {
+              "id": "8c7075d5-4e93-481c-b7cc-464dcb4a77f0",
+              "displayOrder": 2,
+              "text": "5시 30분",
+              "isCorrect": true
+            },
+            {
+              "id": "d79b7ad9-4afa-4085-b27c-f260ee5d90dc",
+              "displayOrder": 3,
+              "text": "6시 30분",
+              "isCorrect": false
+            },
+            {
+              "id": "f83ffafd-520c-4800-8f19-32ba9e801496",
+              "displayOrder": 4,
+              "text": "30시 5분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "bd84f1dd-305a-49f6-9739-52c652eae77d",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "분침이 3을 가리키고 시침을 읽으면 7시입니다. 이 시각은?",
+          "explanation": "분침은 15분을, 시침은 7시를 나타내므로 7시 15분입니다.",
+          "skillCode": "read-clock-time",
+          "options": [
+            {
+              "id": "fb0ab948-73d4-4127-a1ce-2d484cbba057",
+              "displayOrder": 1,
+              "text": "7시 20분",
+              "isCorrect": false
+            },
+            {
+              "id": "96a79ec6-7d5f-48b9-902d-13fd48bce01b",
+              "displayOrder": 2,
+              "text": "8시 15분",
+              "isCorrect": false
+            },
+            {
+              "id": "cf64662c-6e2d-4add-b40a-109135a8cc59",
+              "displayOrder": 3,
+              "text": "7시 15분",
+              "isCorrect": true
+            },
+            {
+              "id": "aa0b9c64-4834-4602-af8d-67341e8b3d09",
+              "displayOrder": 4,
+              "text": "15시 7분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e9538d6e-6ad0-4fa8-a057-edf938634b37",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "분침이 9을 가리키고 시침을 읽으면 9시입니다. 이 시각은?",
+          "explanation": "분침은 45분을, 시침은 9시를 나타내므로 9시 45분입니다.",
+          "skillCode": "read-clock-time",
+          "options": [
+            {
+              "id": "10f7cc9c-82cb-41de-bfd6-926d5334e8e0",
+              "displayOrder": 1,
+              "text": "9시 50분",
+              "isCorrect": false
+            },
+            {
+              "id": "30cdb1d9-eb4d-4717-ae94-1ce696513316",
+              "displayOrder": 2,
+              "text": "10시 45분",
+              "isCorrect": false
+            },
+            {
+              "id": "de3042e4-d229-4d2f-8eb5-36a4940c0259",
+              "displayOrder": 3,
+              "text": "45시 9분",
+              "isCorrect": false
+            },
+            {
+              "id": "d2684447-9837-4a38-b381-f8930b02d770",
+              "displayOrder": 4,
+              "text": "9시 45분",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "20cc2f45-4118-44dc-ada0-bd55b00d29cf",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "분침이 5을 가리키고 시침을 읽으면 11시입니다. 이 시각은?",
+          "explanation": "분침은 25분을, 시침은 11시를 나타내므로 11시 25분입니다.",
+          "skillCode": "read-clock-time",
+          "options": [
+            {
+              "id": "41f0b0fd-4c2d-461b-8fe6-5975db996c20",
+              "displayOrder": 1,
+              "text": "11시 25분",
+              "isCorrect": true
+            },
+            {
+              "id": "7cde75a2-33f9-4f1c-9544-3f2926f0250c",
+              "displayOrder": 2,
+              "text": "11시 30분",
+              "isCorrect": false
+            },
+            {
+              "id": "09464608-aaf2-4aea-ac00-20d63ebd51b7",
+              "displayOrder": 3,
+              "text": "12시 25분",
+              "isCorrect": false
+            },
+            {
+              "id": "868f3a8f-2182-4368-a2e7-849f1b143374",
+              "displayOrder": 4,
+              "text": "25시 11분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "bed0d5ec-67ac-4092-b623-122e293cc6fb",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "분침이 숫자 1을 가리킬 때 지난 분은?",
+          "explanation": "시계의 숫자 한 칸은 5분이므로 1×5=5분입니다.",
+          "skillCode": "use-five-minute-intervals",
+          "options": [
+            {
+              "id": "2063ab16-b477-4bc2-ac6b-a3fb82b5c089",
+              "displayOrder": 1,
+              "text": "1분",
+              "isCorrect": false
+            },
+            {
+              "id": "a1ede1e6-8892-4d34-acb4-306acd93659e",
+              "displayOrder": 2,
+              "text": "5분",
+              "isCorrect": true
+            },
+            {
+              "id": "41c0a05d-d141-475f-b599-2f0fd6e240c3",
+              "displayOrder": 3,
+              "text": "10분",
+              "isCorrect": false
+            },
+            {
+              "id": "28208715-76f1-4d27-9214-e892ad51dc7d",
+              "displayOrder": 4,
+              "text": "0분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "23510083-f811-403d-a323-5d21c58aa36a",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "분침이 숫자 3을 가리킬 때 지난 분은?",
+          "explanation": "시계의 숫자 한 칸은 5분이므로 3×5=15분입니다.",
+          "skillCode": "use-five-minute-intervals",
+          "options": [
+            {
+              "id": "03fd7819-1db4-4ca6-aa1b-cd59f7ba2fbd",
+              "displayOrder": 1,
+              "text": "15분",
+              "isCorrect": true
+            },
+            {
+              "id": "fd26077b-1ee2-41a6-b36f-61f018a715d3",
+              "displayOrder": 2,
+              "text": "3분",
+              "isCorrect": false
+            },
+            {
+              "id": "4408cfbb-ecc3-45ef-a02f-b0964a551ecd",
+              "displayOrder": 3,
+              "text": "30분",
+              "isCorrect": false
+            },
+            {
+              "id": "aaee4ccc-9b82-4551-aef7-df7d0d5efd3d",
+              "displayOrder": 4,
+              "text": "10분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "cc24da79-915c-4d18-8e48-6d5729a6e4b0",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "분침이 숫자 6을 가리킬 때 지난 분은?",
+          "explanation": "시계의 숫자 한 칸은 5분이므로 6×5=30분입니다.",
+          "skillCode": "use-five-minute-intervals",
+          "options": [
+            {
+              "id": "9dc24878-aa1d-44c9-99a0-f828bcd246b5",
+              "displayOrder": 1,
+              "text": "6분",
+              "isCorrect": false
+            },
+            {
+              "id": "f5518741-870b-4d76-b892-d84f8c3a4517",
+              "displayOrder": 2,
+              "text": "30분",
+              "isCorrect": true
+            },
+            {
+              "id": "fcbba247-906d-46ff-969a-52358ac0c17b",
+              "displayOrder": 3,
+              "text": "60분",
+              "isCorrect": false
+            },
+            {
+              "id": "efbc7335-622a-428f-ba29-b3faddbe87a7",
+              "displayOrder": 4,
+              "text": "25분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "d274099a-7687-4ae2-87d3-6291e13aac94",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "분침이 숫자 8을 가리킬 때 지난 분은?",
+          "explanation": "시계의 숫자 한 칸은 5분이므로 8×5=40분입니다.",
+          "skillCode": "use-five-minute-intervals",
+          "options": [
+            {
+              "id": "f744d5e1-b663-408c-a0c9-52a4e2bb515a",
+              "displayOrder": 1,
+              "text": "8분",
+              "isCorrect": false
+            },
+            {
+              "id": "6ba4979f-ac3e-48a7-9b74-30674c13c58a",
+              "displayOrder": 2,
+              "text": "80분",
+              "isCorrect": false
+            },
+            {
+              "id": "586ec7e3-b6eb-430a-b0f8-cd1cbc0f34b9",
+              "displayOrder": 3,
+              "text": "40분",
+              "isCorrect": true
+            },
+            {
+              "id": "9b6394c0-9f34-4c7c-a68e-b02987c749d7",
+              "displayOrder": 4,
+              "text": "35분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "54aa7f11-bd83-4f1f-98b9-c7845191117a",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "분침이 숫자 10을 가리킬 때 지난 분은?",
+          "explanation": "시계의 숫자 한 칸은 5분이므로 10×5=50분입니다.",
+          "skillCode": "use-five-minute-intervals",
+          "options": [
+            {
+              "id": "69e2953a-1540-4d3a-9f76-3c878d979c16",
+              "displayOrder": 1,
+              "text": "10분",
+              "isCorrect": false
+            },
+            {
+              "id": "b6d7feac-5111-4380-9fba-b2704c09de26",
+              "displayOrder": 2,
+              "text": "100분",
+              "isCorrect": false
+            },
+            {
+              "id": "8ad9a53a-a814-45db-a88b-d930b9194efa",
+              "displayOrder": 3,
+              "text": "45분",
+              "isCorrect": false
+            },
+            {
+              "id": "496d9ac7-c5f9-4338-82b1-aafca779c993",
+              "displayOrder": 4,
+              "text": "50분",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "415a7931-2908-41d7-ad5e-7365e74d8876",
+      "difficulty": "leaf",
+      "title": "기초",
+      "displayOrder": 2,
+      "questions": [
+        {
+          "id": "9a6d16d2-103b-453b-acba-ee89cb3ed4bf",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "8시 10분에서 20분 후는 언제입니까?",
+          "explanation": "8시 10분에 20분을 더하면 8시 30분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "c97b3827-a342-4661-91fb-9aca7cbb967e",
+              "displayOrder": 1,
+              "text": "8시 30분",
+              "isCorrect": true
+            },
+            {
+              "id": "052a20ee-16f7-45a2-83ba-6f79db4f75e3",
+              "displayOrder": 2,
+              "text": "8시 25분",
+              "isCorrect": false
+            },
+            {
+              "id": "76586d39-3805-42d2-933d-55ac325cda95",
+              "displayOrder": 3,
+              "text": "8시 35분",
+              "isCorrect": false
+            },
+            {
+              "id": "eca9fc8a-f766-4f13-9db7-650527d440cc",
+              "displayOrder": 4,
+              "text": "7시 50분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "8720201d-5792-4f2b-9884-a97d49df3dc0",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "9시 25분에서 30분 후는 언제입니까?",
+          "explanation": "9시 25분에 30분을 더하면 9시 55분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "b81dfd4c-0d05-4db2-b142-1fff1d743c3c",
+              "displayOrder": 1,
+              "text": "9시 50분",
+              "isCorrect": false
+            },
+            {
+              "id": "7b70a193-7d78-432f-b678-4e4f4d768e08",
+              "displayOrder": 2,
+              "text": "9시 55분",
+              "isCorrect": true
+            },
+            {
+              "id": "b39120de-3dce-40f0-b868-a26f46735d8b",
+              "displayOrder": 3,
+              "text": "10시 정각",
+              "isCorrect": false
+            },
+            {
+              "id": "889acc32-34ca-4a3a-b9c7-668209648b3e",
+              "displayOrder": 4,
+              "text": "8시 55분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "7410ae05-c083-4b13-8a1d-43bde4d55efe",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "1시 40분에서 15분 후는 언제입니까?",
+          "explanation": "1시 40분에 15분을 더하면 1시 55분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "2250b9db-7cd0-4e4f-b062-66042009d96c",
+              "displayOrder": 1,
+              "text": "1시 50분",
+              "isCorrect": false
+            },
+            {
+              "id": "21ce1f16-0d9b-4a83-b32a-e174cc05965b",
+              "displayOrder": 2,
+              "text": "2시 정각",
+              "isCorrect": false
+            },
+            {
+              "id": "46e2de5d-df13-49a7-a27f-d37a95edd2e9",
+              "displayOrder": 3,
+              "text": "1시 55분",
+              "isCorrect": true
+            },
+            {
+              "id": "249fd4c6-2f58-4bd9-8224-5ecb129a2528",
+              "displayOrder": 4,
+              "text": "1시 25분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f84676e1-41cf-4da4-bfe0-f63948d84f4f",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "3시 5분에서 40분 후는 언제입니까?",
+          "explanation": "3시 5분에 40분을 더하면 3시 45분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "ad03dbcd-0562-4bf0-a925-d3e1d744d0da",
+              "displayOrder": 1,
+              "text": "3시 40분",
+              "isCorrect": false
+            },
+            {
+              "id": "1b31e4ea-01d2-4d96-bca1-84bf1d31304c",
+              "displayOrder": 2,
+              "text": "3시 50분",
+              "isCorrect": false
+            },
+            {
+              "id": "48a6f8ea-b46b-48f4-964f-a58e6fbcff72",
+              "displayOrder": 3,
+              "text": "2시 25분",
+              "isCorrect": false
+            },
+            {
+              "id": "bdbc4a22-85fd-42c6-86d6-cd12a1bb36f9",
+              "displayOrder": 4,
+              "text": "3시 45분",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "48ad17a3-5661-4dc8-95b6-dce8035c0569",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "10시 30분에서 20분 전은 언제입니까?",
+          "explanation": "10시 30분에서 20분을 빼면 10시 10분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "c2892225-36b2-4bea-a7e3-58dbc3a30c15",
+              "displayOrder": 1,
+              "text": "10시 5분",
+              "isCorrect": false
+            },
+            {
+              "id": "50a33ae9-e7b5-4fb0-9fa9-b438afe5b034",
+              "displayOrder": 2,
+              "text": "10시 15분",
+              "isCorrect": false
+            },
+            {
+              "id": "2fd2a08c-d952-4059-8f3d-1b1b09d43e21",
+              "displayOrder": 3,
+              "text": "10시 10분",
+              "isCorrect": true
+            },
+            {
+              "id": "7d480400-7252-486d-9e0b-70eb1442f691",
+              "displayOrder": 4,
+              "text": "10시 50분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f7d0f319-c128-462c-ab09-2ef9c0a011d2",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "4시 15분에서 10분 전은 언제입니까?",
+          "explanation": "4시 15분에서 10분을 빼면 4시 5분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "b83e568f-807c-4538-95e5-7c924e0f66a6",
+              "displayOrder": 1,
+              "text": "4시 정각",
+              "isCorrect": false
+            },
+            {
+              "id": "3be96bb5-0e82-4fad-93a8-9cb2a25ee7df",
+              "displayOrder": 2,
+              "text": "4시 10분",
+              "isCorrect": false
+            },
+            {
+              "id": "3945a00f-3f12-4c98-aaf3-221eebfc8f9b",
+              "displayOrder": 3,
+              "text": "4시 25분",
+              "isCorrect": false
+            },
+            {
+              "id": "9c8ac369-31d3-4016-aadc-cbe8d330fad2",
+              "displayOrder": 4,
+              "text": "4시 5분",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "da1b07db-bea3-49ba-9a50-411136956fe1",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "7시 50분에서 25분 전은 언제입니까?",
+          "explanation": "7시 50분에서 25분을 빼면 7시 25분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "c03908d5-faf9-407c-a303-731f58148b42",
+              "displayOrder": 1,
+              "text": "7시 25분",
+              "isCorrect": true
+            },
+            {
+              "id": "272710a6-91c3-4403-b1b1-33b177f59e8b",
+              "displayOrder": 2,
+              "text": "7시 20분",
+              "isCorrect": false
+            },
+            {
+              "id": "5c390f35-a575-4596-8e82-31174e527aa1",
+              "displayOrder": 3,
+              "text": "7시 30분",
+              "isCorrect": false
+            },
+            {
+              "id": "4db9bea6-d499-4ae8-bc0f-9a3fb4a10261",
+              "displayOrder": 4,
+              "text": "8시 15분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e6898529-1d6a-4396-8364-ac09909692fe",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "12시 20분에서 15분 전은 언제입니까?",
+          "explanation": "12시 20분에서 15분을 빼면 12시 5분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "40250631-c215-4995-aa06-48c495c9df68",
+              "displayOrder": 1,
+              "text": "12시 정각",
+              "isCorrect": false
+            },
+            {
+              "id": "7448c6a9-4b15-4bd2-8619-0958976f6a6f",
+              "displayOrder": 2,
+              "text": "12시 5분",
+              "isCorrect": true
+            },
+            {
+              "id": "7d60e0fc-6bff-44f7-a6d9-efc554e476f0",
+              "displayOrder": 3,
+              "text": "12시 10분",
+              "isCorrect": false
+            },
+            {
+              "id": "a1478628-f0b4-494d-8fe4-936ef6975afe",
+              "displayOrder": 4,
+              "text": "12시 35분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "ac794063-753e-4ef8-bc4a-3cb81bd9f42f",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "아침 식사를 하는 시각으로 알맞은 것은?",
+          "explanation": "아침은 낮 12시 전이므로 오전 8시가 알맞습니다.",
+          "skillCode": "distinguish-am-pm",
+          "options": [
+            {
+              "id": "d634c73b-fb90-4550-a050-4ce36fa2f8e9",
+              "displayOrder": 1,
+              "text": "오후 8시",
+              "isCorrect": false
+            },
+            {
+              "id": "eb09ccac-73ca-4c33-8746-c47a08a37e30",
+              "displayOrder": 2,
+              "text": "오전 12시",
+              "isCorrect": false
+            },
+            {
+              "id": "9fd41ca5-9696-444f-8a83-c4376014306d",
+              "displayOrder": 3,
+              "text": "오전 8시",
+              "isCorrect": true
+            },
+            {
+              "id": "8a08864a-8ef2-47ca-b08b-419421ffe75e",
+              "displayOrder": 4,
+              "text": "오후 2시",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "c0ce045b-ef91-4816-ac4f-30fb13e4963b",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "저녁 운동을 하는 시각으로 알맞은 것은?",
+          "explanation": "저녁은 낮 12시 뒤이므로 오후 7시가 알맞습니다.",
+          "skillCode": "distinguish-am-pm",
+          "options": [
+            {
+              "id": "dabe654d-31f2-4ef2-b441-f85dbf7bb6a6",
+              "displayOrder": 1,
+              "text": "오전 7시",
+              "isCorrect": false
+            },
+            {
+              "id": "4147bd31-b03a-4532-886f-92beaee9fe76",
+              "displayOrder": 2,
+              "text": "오전 1시",
+              "isCorrect": false
+            },
+            {
+              "id": "5653b83e-b2d1-47f5-8361-c0bf1d7edbc7",
+              "displayOrder": 3,
+              "text": "오후 7분",
+              "isCorrect": false
+            },
+            {
+              "id": "2c3faef7-955e-49fd-909d-bbefaed18480",
+              "displayOrder": 4,
+              "text": "오후 7시",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "0bade680-571a-459e-aa2f-f824a43137a9",
+      "difficulty": "tree",
+      "title": "심화",
+      "displayOrder": 3,
+      "questions": [
+        {
+          "id": "8334c12b-4df9-4ef5-a9c9-c9076d72e787",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "8시 정각에 시작해 8시 35분에 끝났습니다. 지난 시간은?",
+          "explanation": "끝 시각에서 시작 시각을 빼면 515-480=35분입니다.",
+          "skillCode": "calculate-elapsed-time",
+          "options": [
+            {
+              "id": "50c7146c-a77a-4d43-b7f1-84a306830aaa",
+              "displayOrder": 1,
+              "text": "35분",
+              "isCorrect": true
+            },
+            {
+              "id": "23234a69-532e-4153-9010-d9e98fbb601e",
+              "displayOrder": 2,
+              "text": "30분",
+              "isCorrect": false
+            },
+            {
+              "id": "a62ef26e-83b6-458c-adee-5d797fbf7f77",
+              "displayOrder": 3,
+              "text": "40분",
+              "isCorrect": false
+            },
+            {
+              "id": "e6b6979e-f391-4525-8d9a-82262f6d893b",
+              "displayOrder": 4,
+              "text": "0분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "73ce8652-8548-40ff-99e4-2e03cdf2321c",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "9시 20분에 시작해 10시 5분에 끝났습니다. 지난 시간은?",
+          "explanation": "끝 시각에서 시작 시각을 빼면 605-560=45분입니다.",
+          "skillCode": "calculate-elapsed-time",
+          "options": [
+            {
+              "id": "7bab11f1-aa2b-4ca9-83b6-ddf629afcc69",
+              "displayOrder": 1,
+              "text": "40분",
+              "isCorrect": false
+            },
+            {
+              "id": "f10196f1-ee5a-41e9-b78e-6dcd9e544486",
+              "displayOrder": 2,
+              "text": "45분",
+              "isCorrect": true
+            },
+            {
+              "id": "16aa7261-b851-40b0-87cf-9f10ab8d940b",
+              "displayOrder": 3,
+              "text": "50분",
+              "isCorrect": false
+            },
+            {
+              "id": "ec7846a5-5971-4043-9e43-f514f3a1f20d",
+              "displayOrder": 4,
+              "text": "1분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e20a5ee0-16c2-4355-84ce-f2095316b2d1",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "1시 15분에 시작해 2시 정각에 끝났습니다. 지난 시간은?",
+          "explanation": "끝 시각에서 시작 시각을 빼면 120-75=45분입니다.",
+          "skillCode": "calculate-elapsed-time",
+          "options": [
+            {
+              "id": "589f22ba-b00a-4757-adf3-e982fb64ce2f",
+              "displayOrder": 1,
+              "text": "40분",
+              "isCorrect": false
+            },
+            {
+              "id": "bac07fb8-be23-4509-adc2-164d9399aa05",
+              "displayOrder": 2,
+              "text": "50분",
+              "isCorrect": false
+            },
+            {
+              "id": "139a71f2-84fb-41c0-9883-51ca1c11f8f3",
+              "displayOrder": 3,
+              "text": "45분",
+              "isCorrect": true
+            },
+            {
+              "id": "30c2cbeb-c959-42da-93cc-82c55b2653de",
+              "displayOrder": 4,
+              "text": "1분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "5b1c8408-682f-431f-bd5b-974dae027ac3",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "3시 40분에 시작해 4시 10분에 끝났습니다. 지난 시간은?",
+          "explanation": "끝 시각에서 시작 시각을 빼면 250-220=30분입니다.",
+          "skillCode": "calculate-elapsed-time",
+          "options": [
+            {
+              "id": "8c5c5b33-f31f-4725-b165-a67f7a2b3a2d",
+              "displayOrder": 1,
+              "text": "25분",
+              "isCorrect": false
+            },
+            {
+              "id": "09d73fe1-c451-4be0-bfbc-49242978f9b1",
+              "displayOrder": 2,
+              "text": "35분",
+              "isCorrect": false
+            },
+            {
+              "id": "f686cdcf-7f47-4a63-896b-5fe274fa67fe",
+              "displayOrder": 3,
+              "text": "1분",
+              "isCorrect": false
+            },
+            {
+              "id": "3dfcb048-459f-4cb0-97dd-c76ef1faefdc",
+              "displayOrder": 4,
+              "text": "30분",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "38951de1-c85a-4416-a02b-486d8f3b49d1",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "7시 30분에 시작해 45분 동안 했습니다. 끝난 시각은?",
+          "explanation": "시작 시각 7시 30분에 45분을 더하면 8시 15분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "9a7b8441-fa67-465c-a586-a0c88c1291a2",
+              "displayOrder": 1,
+              "text": "8시 15분",
+              "isCorrect": true
+            },
+            {
+              "id": "9abf62bb-b33c-4e3b-b738-6a3b81b62263",
+              "displayOrder": 2,
+              "text": "8시 10분",
+              "isCorrect": false
+            },
+            {
+              "id": "677f773b-fd88-4c66-b10c-9c866cc16326",
+              "displayOrder": 3,
+              "text": "8시 20분",
+              "isCorrect": false
+            },
+            {
+              "id": "3b481696-b5a0-478e-b563-56672f9217f1",
+              "displayOrder": 4,
+              "text": "6시 45분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "16777806-f79b-49e1-b482-5a50a1d8aea0",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "10시 10분에 시작해 35분 동안 했습니다. 끝난 시각은?",
+          "explanation": "시작 시각 10시 10분에 35분을 더하면 10시 45분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "b9dce2d6-1bfe-49d6-9dbb-8ac3fb30181a",
+              "displayOrder": 1,
+              "text": "10시 40분",
+              "isCorrect": false
+            },
+            {
+              "id": "30db0655-cb88-4175-b893-646585eec226",
+              "displayOrder": 2,
+              "text": "10시 45분",
+              "isCorrect": true
+            },
+            {
+              "id": "8fe997fc-d630-490f-83b8-0a0ca188f5e9",
+              "displayOrder": 3,
+              "text": "10시 50분",
+              "isCorrect": false
+            },
+            {
+              "id": "199f03c4-5ce0-4b20-bd66-a476dc61e0ff",
+              "displayOrder": 4,
+              "text": "9시 35분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "26ce412e-310e-4d37-8738-5090ddbbfcdd",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "2시 25분에 시작해 50분 동안 했습니다. 끝난 시각은?",
+          "explanation": "시작 시각 2시 25분에 50분을 더하면 3시 15분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "75d46cda-f79b-4c31-af23-d5d40742c474",
+              "displayOrder": 1,
+              "text": "3시 15분",
+              "isCorrect": true
+            },
+            {
+              "id": "56f15e49-354e-4453-9c67-7d56b82c9430",
+              "displayOrder": 2,
+              "text": "3시 10분",
+              "isCorrect": false
+            },
+            {
+              "id": "363139ed-9f4a-4826-a0f2-41045ac9ee0f",
+              "displayOrder": 3,
+              "text": "3시 20분",
+              "isCorrect": false
+            },
+            {
+              "id": "f9098620-e0ba-4004-aad1-7c1fe52ef8cd",
+              "displayOrder": 4,
+              "text": "1시 35분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "64f4d13b-3699-45af-8470-69525400d82d",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "9시 50분에 끝났고 30분 동안 했습니다. 시작 시각은?",
+          "explanation": "끝 시각 9시 50분에서 30분을 빼면 9시 20분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "7329d0f6-e995-4044-a9e3-b596c54a9266",
+              "displayOrder": 1,
+              "text": "9시 15분",
+              "isCorrect": false
+            },
+            {
+              "id": "162ba18a-cd90-4bf2-bc02-6234194bd907",
+              "displayOrder": 2,
+              "text": "9시 20분",
+              "isCorrect": true
+            },
+            {
+              "id": "8b744d42-f6cf-48fc-8903-b5eeb61d11bd",
+              "displayOrder": 3,
+              "text": "9시 25분",
+              "isCorrect": false
+            },
+            {
+              "id": "ee071734-eb6f-45de-9dee-b7a64284ce3c",
+              "displayOrder": 4,
+              "text": "10시 20분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "933c5d1f-f232-4abd-be14-29d42a34038a",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "4시 20분에 끝났고 25분 동안 했습니다. 시작 시각은?",
+          "explanation": "끝 시각 4시 20분에서 25분을 빼면 3시 55분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "aa96f19f-d788-4a34-bfde-24ddeefa0c73",
+              "displayOrder": 1,
+              "text": "3시 50분",
+              "isCorrect": false
+            },
+            {
+              "id": "c5b16cfe-a548-4ec3-b8e3-a43a161c1e12",
+              "displayOrder": 2,
+              "text": "4시 정각",
+              "isCorrect": false
+            },
+            {
+              "id": "24e80355-1655-43e0-add0-9a3a7170c55a",
+              "displayOrder": 3,
+              "text": "3시 55분",
+              "isCorrect": true
+            },
+            {
+              "id": "03363e62-e62c-40e1-8d1c-0c3ce4391c5e",
+              "displayOrder": 4,
+              "text": "4시 45분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "d1c96f31-9826-4d94-a0f1-58305dc12542",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "11시 15분에 끝났고 40분 동안 했습니다. 시작 시각은?",
+          "explanation": "끝 시각 11시 15분에서 40분을 빼면 10시 35분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "443807b2-613a-44d7-b9fc-2dc35704cd64",
+              "displayOrder": 1,
+              "text": "10시 30분",
+              "isCorrect": false
+            },
+            {
+              "id": "ea53af1e-c5f0-4ff0-92ab-5997045b87c4",
+              "displayOrder": 2,
+              "text": "10시 40분",
+              "isCorrect": false
+            },
+            {
+              "id": "ea800493-08df-4e5a-a209-34bdf62e28d0",
+              "displayOrder": 3,
+              "text": "11시 55분",
+              "isCorrect": false
+            },
+            {
+              "id": "a23baa4b-afae-43bc-9ed5-c3b812936d30",
+              "displayOrder": 4,
+              "text": "10시 35분",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a822b9e2-d1e4-4119-99f5-84972ffa4bbd",
+      "difficulty": "crown",
+      "title": "최상위 도전!",
+      "displayOrder": 4,
+      "questions": [
+        {
+          "id": "3abd9f5b-0495-416e-99fd-6aa98d479d2e",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "분침이 6을 가리키고 시침이 3과 4 사이에 있습니다. 알맞은 시각은?",
+          "explanation": "분침 6은 30분이고 시침은 아직 4에 이르지 않았으므로 3시 30분입니다.",
+          "skillCode": "interpret-clock-hands",
+          "options": [
+            {
+              "id": "98b8581e-81b6-47f2-897f-56c099929ad0",
+              "displayOrder": 1,
+              "text": "3시 30분",
+              "isCorrect": true
+            },
+            {
+              "id": "7f13be7a-d428-44c8-9e0d-28978681be25",
+              "displayOrder": 2,
+              "text": "6시 15분",
+              "isCorrect": false
+            },
+            {
+              "id": "098f8062-4000-4c79-8d1c-72c4a654404a",
+              "displayOrder": 3,
+              "text": "4시 30분",
+              "isCorrect": false
+            },
+            {
+              "id": "2795d988-b2b4-4160-8b5c-04edf51cef76",
+              "displayOrder": 4,
+              "text": "3시 6분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f6f49f34-4c96-498f-9cf9-8541983ecf22",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "8시 20분에서 30분 후를 8시 40분이라고 했습니다. 바르게 고친 것은?",
+          "explanation": "20분에 30분을 더하면 50분이므로 8시 50분입니다.",
+          "skillCode": "correct-time-reasoning",
+          "options": [
+            {
+              "id": "b56080b7-d1cd-4ad9-9f6f-2a6349cb9b3d",
+              "displayOrder": 1,
+              "text": "8시 40분",
+              "isCorrect": false
+            },
+            {
+              "id": "a46c33a2-71ac-4261-af6f-0ed0b99e9a6d",
+              "displayOrder": 2,
+              "text": "8시 50분",
+              "isCorrect": true
+            },
+            {
+              "id": "1652a899-c48f-4968-8643-13171df2637a",
+              "displayOrder": 3,
+              "text": "9시 10분",
+              "isCorrect": false
+            },
+            {
+              "id": "9fdacfc0-8121-46f9-a9c6-7b6e2141d7d4",
+              "displayOrder": 4,
+              "text": "7시 50분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "67622ef9-7597-4c48-9d0e-ce6976689907",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "10시 5분에서 20분 전을 바르게 구한 것은?",
+          "explanation": "10시 5분에서 5분 전은 10시이고 15분 더 거슬러 9시 45분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "b1c15edd-072c-427a-9d4c-281d1d566ab5",
+              "displayOrder": 1,
+              "text": "10시 25분",
+              "isCorrect": false
+            },
+            {
+              "id": "d004a648-b0b6-4a49-a4ca-546248da0d77",
+              "displayOrder": 2,
+              "text": "9시 55분",
+              "isCorrect": false
+            },
+            {
+              "id": "0e76dcdc-2ac4-4fc5-8fa8-3135c01db8a9",
+              "displayOrder": 3,
+              "text": "9시 45분",
+              "isCorrect": true
+            },
+            {
+              "id": "1be15a33-3070-49db-a1bd-d1a36676d222",
+              "displayOrder": 4,
+              "text": "10시 45분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1e9c8732-9b47-4ae2-ae52-929c217c27d6",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "오전 11시와 오후 11시를 바르게 설명한 것은?",
+          "explanation": "오전 11시는 낮 12시 전이고 오후 11시는 밤이므로 서로 다른 시각입니다.",
+          "skillCode": "distinguish-am-pm",
+          "options": [
+            {
+              "id": "ddff6326-1183-4f24-83db-f9cd1cd000a2",
+              "displayOrder": 1,
+              "text": "둘 다 아침입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "ca7f7da2-b71a-4046-9774-a9653a0f6769",
+              "displayOrder": 2,
+              "text": "완전히 같은 시각입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "d89706c5-356a-408d-b59b-93b195e8a582",
+              "displayOrder": 3,
+              "text": "오전 11시는 저녁입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "a18da500-834e-4ca9-b921-1b979a3664d2",
+              "displayOrder": 4,
+              "text": "서로 12시간 떨어진 다른 시각입니다.",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "bb9d6456-8264-47a1-91e0-628563614abd",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "2시 35분부터 3시 20분까지 지난 시간은?",
+          "explanation": "2시 35분부터 3시까지 25분, 다시 20분이므로 모두 45분입니다.",
+          "skillCode": "calculate-elapsed-time",
+          "options": [
+            {
+              "id": "2f0923e5-71b7-48f4-8149-8b2dbfa1358b",
+              "displayOrder": 1,
+              "text": "35분",
+              "isCorrect": false
+            },
+            {
+              "id": "1308a42c-be75-4510-875b-66ebb12423b2",
+              "displayOrder": 2,
+              "text": "55분",
+              "isCorrect": false
+            },
+            {
+              "id": "7a2024d3-f67f-45dd-a261-6cc35b608398",
+              "displayOrder": 3,
+              "text": "45분",
+              "isCorrect": true
+            },
+            {
+              "id": "a756bc20-4f47-49a5-b6db-5c9ee5ab61af",
+              "displayOrder": 4,
+              "text": "85분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "bacb84f3-afe5-4a08-a5cc-551b6b928db1",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "분침이 9를 가리키면 9분이라고 한 설명의 오류는?",
+          "explanation": "분침의 숫자 한 칸은 5분이므로 9는 9×5=45분입니다.",
+          "skillCode": "correct-time-reasoning",
+          "options": [
+            {
+              "id": "1c7ba565-2fbd-4332-847a-69539ac9dc6f",
+              "displayOrder": 1,
+              "text": "숫자 9는 90분을 뜻합니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "26e13003-7a7d-4083-b7e1-d659521e679a",
+              "displayOrder": 2,
+              "text": "분침은 시를 나타냅니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "2ecb56d8-3b75-4521-99bd-5309d7fdb2c3",
+              "displayOrder": 3,
+              "text": "숫자 9는 항상 9시입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "6220fa0c-907b-4a4b-90f4-8e9eaa4baa55",
+              "displayOrder": 4,
+              "text": "숫자 9는 45분을 뜻합니다.",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "3a7184e8-e2d5-4327-85ec-40055b8d0836",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "오후 3시 10분에 시작해 40분 뒤 끝나는 일정은?",
+          "explanation": "오후 3시 10분에 40분을 더하면 오후 3시 50분이며 오전·오후는 바뀌지 않습니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "8ad518e8-4ee3-4d1c-aa31-f687867d000f",
+              "displayOrder": 1,
+              "text": "오후 3시 50분",
+              "isCorrect": true
+            },
+            {
+              "id": "74883261-125d-4451-a167-aad136c4936c",
+              "displayOrder": 2,
+              "text": "오전 3시 50분",
+              "isCorrect": false
+            },
+            {
+              "id": "4215e911-7362-48e2-a871-7f522cff6ce6",
+              "displayOrder": 3,
+              "text": "오후 4시 10분",
+              "isCorrect": false
+            },
+            {
+              "id": "bb59e7f3-0293-4e8f-89a0-3cb5b9aa1d3e",
+              "displayOrder": 4,
+              "text": "오후 2시 30분",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "14f42b5c-af11-49c7-9f64-46d40a7f9f04",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "9시 40분에 끝난 25분 활동의 시작 시각과 설명이 맞는 것은?",
+          "explanation": "끝 시각에서 지난 25분을 빼면 9시 15분입니다.",
+          "skillCode": "calculate-time-before",
+          "options": [
+            {
+              "id": "c9c63247-1c3e-477c-9ee1-5dd356e89e01",
+              "displayOrder": 1,
+              "text": "9시 65분이며 40+25입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "341dfe49-efb2-413e-b49a-0c98bd624463",
+              "displayOrder": 2,
+              "text": "9시 15분이며 40-25=15분입니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "7ddc711c-5868-425d-a05f-848bc30008be",
+              "displayOrder": 3,
+              "text": "10시 5분이며 25분을 더합니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "e3f55ddd-c093-42e4-903a-06972b748718",
+              "displayOrder": 4,
+              "text": "9시 25분이며 40-25=25입니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "63cad63d-789c-481d-ac3f-0fe348ab9f29",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "시침과 분침의 역할을 바르게 설명한 것은?",
+          "explanation": "시침은 몇 시인지, 분침은 몇 분인지 읽는 데 사용합니다.",
+          "skillCode": "interpret-clock-hands",
+          "options": [
+            {
+              "id": "ccd3417f-6c8b-495c-a669-f1b04b6090cf",
+              "displayOrder": 1,
+              "text": "짧은 시침은 분만 나타냅니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "b8fb8579-832b-42e6-8b08-6ea419d2fcee",
+              "displayOrder": 2,
+              "text": "긴 분침은 오전과 오후만 나타냅니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "2244ff09-8ef5-4b1b-b15f-60ebd8630166",
+              "displayOrder": 3,
+              "text": "짧은 시침은 시를, 긴 분침은 분을 나타냅니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "9c708d11-fb4e-4f78-9f51-3ed8cd2ba830",
+              "displayOrder": 4,
+              "text": "두 바늘은 언제나 같은 숫자를 가리킵니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "81dd26c7-17f4-49dd-a852-a74cc47c0399",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "오전 11시 50분에서 20분 후의 시각은?",
+          "explanation": "11시 50분에서 10분 후가 낮 12시이고 10분 더 지나 오후 12시 10분입니다.",
+          "skillCode": "calculate-time-after",
+          "options": [
+            {
+              "id": "fff43af4-90a5-4d7c-a2a3-194313a29d3c",
+              "displayOrder": 1,
+              "text": "오전 12시 10분",
+              "isCorrect": false
+            },
+            {
+              "id": "d66f7326-5211-41fb-baff-256f7b3e1e44",
+              "displayOrder": 2,
+              "text": "오후 11시 70분",
+              "isCorrect": false
+            },
+            {
+              "id": "c5f61002-07ab-4b55-8d7b-20acaea45e6e",
+              "displayOrder": 3,
+              "text": "오전 11시 30분",
+              "isCorrect": false
+            },
+            {
+              "id": "20051a26-4356-4550-8190-910ca545b9d3",
+              "displayOrder": 4,
+              "text": "오후 12시 10분",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

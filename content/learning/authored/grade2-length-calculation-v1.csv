@@ -1,0 +1,41 @@
+unit_slug,content_version,stage,question_order,question_text,option_1,option_2,option_3,option_4,correct_option,explanation,weight,skill_code,review_status,review_note
+grade2-length-calculation,v1,seed,1,23cm와 14cm를 이어 붙였습니다. 전체 길이는 얼마입니까?,37cm,38cm,36cm,47cm,1,23cm+14cm=37cm이므로 전체 길이는 37cm입니다.,1,calculate-length-addition,reviewed,length-add:23:14:37:cm
+grade2-length-calculation,v1,seed,2,35cm와 22cm를 이어 붙였습니다. 전체 길이는 얼마입니까?,58cm,57cm,56cm,67cm,2,35cm+22cm=57cm이므로 전체 길이는 57cm입니다.,1,calculate-length-addition,reviewed,length-add:35:22:57:cm
+grade2-length-calculation,v1,seed,3,41cm와 27cm를 이어 붙였습니다. 전체 길이는 얼마입니까?,69cm,67cm,68cm,78cm,3,41cm+27cm=68cm이므로 전체 길이는 68cm입니다.,1,calculate-length-addition,reviewed,length-add:41:27:68:cm
+grade2-length-calculation,v1,seed,4,56cm와 13cm를 이어 붙였습니다. 전체 길이는 얼마입니까?,70cm,68cm,79cm,69cm,4,56cm+13cm=69cm이므로 전체 길이는 69cm입니다.,1,calculate-length-addition,reviewed,length-add:56:13:69:cm
+grade2-length-calculation,v1,seed,5,18cm와 25cm를 이어 붙였습니다. 전체 길이는 얼마입니까?,43cm,44cm,42cm,53cm,1,18cm+25cm=43cm이므로 전체 길이는 43cm입니다.,1,calculate-length-addition,reviewed,length-add:18:25:43:cm
+grade2-length-calculation,v1,seed,6,48cm인 끈에서 15cm를 잘랐습니다. 남은 길이는 얼마입니까?,34cm,33cm,32cm,43cm,2,48cm-15cm=33cm이므로 남은 길이는 33cm입니다.,1,calculate-length-subtraction,reviewed,length-sub:48:15:33:cm
+grade2-length-calculation,v1,seed,7,67cm인 끈에서 24cm를 잘랐습니다. 남은 길이는 얼마입니까?,43cm,44cm,42cm,53cm,1,67cm-24cm=43cm이므로 남은 길이는 43cm입니다.,1,calculate-length-subtraction,reviewed,length-sub:67:24:43:cm
+grade2-length-calculation,v1,seed,8,59cm인 끈에서 18cm를 잘랐습니다. 남은 길이는 얼마입니까?,42cm,41cm,40cm,51cm,2,59cm-18cm=41cm이므로 남은 길이는 41cm입니다.,1,calculate-length-subtraction,reviewed,length-sub:59:18:41:cm
+grade2-length-calculation,v1,seed,9,72cm인 끈에서 31cm를 잘랐습니다. 남은 길이는 얼마입니까?,42cm,40cm,41cm,51cm,3,72cm-31cm=41cm이므로 남은 길이는 41cm입니다.,1,calculate-length-subtraction,reviewed,length-sub:72:31:41:cm
+grade2-length-calculation,v1,seed,10,86cm인 끈에서 42cm를 잘랐습니다. 남은 길이는 얼마입니까?,45cm,43cm,54cm,44cm,4,86cm-42cm=44cm이므로 남은 길이는 44cm입니다.,1,calculate-length-subtraction,reviewed,length-sub:86:42:44:cm
+grade2-length-calculation,v1,leaf,1,12m 길의 다음에 7m 길이 이어집니다. 두 길의 전체 길이는?,19m,20m,18m,29m,1,12m+7m=19m이므로 전체 길이는 19m입니다.,1,solve-total-length,reviewed,length-add:12:7:19:m
+grade2-length-calculation,v1,leaf,2,25m 길의 다음에 14m 길이 이어집니다. 두 길의 전체 길이는?,40m,39m,38m,49m,2,25m+14m=39m이므로 전체 길이는 39m입니다.,1,solve-total-length,reviewed,length-add:25:14:39:m
+grade2-length-calculation,v1,leaf,3,31m 길의 다음에 16m 길이 이어집니다. 두 길의 전체 길이는?,48m,46m,47m,57m,3,31m+16m=47m이므로 전체 길이는 47m입니다.,1,solve-total-length,reviewed,length-add:31:16:47:m
+grade2-length-calculation,v1,leaf,4,리본이 40cm 있었습니다. 13cm를 사용했다면 남은 길이는?,28cm,26cm,37cm,27cm,4,40cm-13cm=27cm이므로 남은 리본은 27cm입니다.,1,solve-remaining-length,reviewed,length-sub:40:13:27:cm
+grade2-length-calculation,v1,leaf,5,리본이 52cm 있었습니다. 21cm를 사용했다면 남은 길이는?,32cm,30cm,31cm,41cm,3,52cm-21cm=31cm이므로 남은 리본은 31cm입니다.,1,solve-remaining-length,reviewed,length-sub:52:21:31:cm
+grade2-length-calculation,v1,leaf,6,리본이 63cm 있었습니다. 28cm를 사용했다면 남은 길이는?,36cm,34cm,45cm,35cm,4,63cm-28cm=35cm이므로 남은 리본은 35cm입니다.,1,solve-remaining-length,reviewed,length-sub:63:28:35:cm
+grade2-length-calculation,v1,leaf,7,46cm 막대와 29cm 막대의 길이 차는 얼마입니까?,17cm,18cm,16cm,27cm,1,더 긴 46cm에서 29cm를 빼면 46-29=17이므로 차는 17cm입니다.,1,compare-length-difference,reviewed,length-diff:46:29:17:cm
+grade2-length-calculation,v1,leaf,8,71cm 막대와 38cm 막대의 길이 차는 얼마입니까?,34cm,33cm,32cm,43cm,2,더 긴 71cm에서 38cm를 빼면 71-38=33이므로 차는 33cm입니다.,1,compare-length-difference,reviewed,length-diff:71:38:33:cm
+grade2-length-calculation,v1,leaf,9,1m와 같은 길이는 어느 것입니까?,10cm,50cm,100cm,1000cm,3,1m=100cm이므로 1m와 같은 길이는 100cm입니다.,1,use-meter-centimeter-relation,reviewed,length-relation:1m:100cm
+grade2-length-calculation,v1,leaf,10,2m와 같은 길이를 cm로 나타낸 것은?,20cm,102cm,2000cm,200cm,4,1m=100cm이므로 2m는 100cm가 2번인 200cm입니다.,1,use-meter-centimeter-relation,reviewed,length-relation:2m:200cm
+grade2-length-calculation,v1,tree,1,18cm+□=47cm입니다. □에 알맞은 길이는?,29cm,30cm,28cm,39cm,1,47cm-18cm=29cm이므로 빈칸은 29cm입니다.,1,infer-missing-length,reviewed,length-missing-add:18:47:29:cm
+grade2-length-calculation,v1,tree,2,26cm+□=61cm입니다. □에 알맞은 길이는?,36cm,35cm,34cm,45cm,2,61cm-26cm=35cm이므로 빈칸은 35cm입니다.,1,infer-missing-length,reviewed,length-missing-add:26:61:35:cm
+grade2-length-calculation,v1,tree,3,35cm+□=79cm입니다. □에 알맞은 길이는?,45cm,43cm,44cm,54cm,3,79cm-35cm=44cm이므로 빈칸은 44cm입니다.,1,infer-missing-length,reviewed,length-missing-add:35:79:44:cm
+grade2-length-calculation,v1,tree,4,42cm+□=90cm입니다. □에 알맞은 길이는?,49cm,47cm,58cm,48cm,4,90cm-42cm=48cm이므로 빈칸은 48cm입니다.,1,infer-missing-length,reviewed,length-missing-add:42:90:48:cm
+grade2-length-calculation,v1,tree,5,74m-□=28m입니다. □에 알맞은 길이는?,46m,47m,45m,56m,1,74m-28m=46m이므로 빈칸은 46m입니다.,1,infer-missing-length,reviewed,length-missing-sub:74:28:46:m
+grade2-length-calculation,v1,tree,6,83m-□=36m입니다. □에 알맞은 길이는?,48m,47m,46m,57m,2,83m-36m=47m이므로 빈칸은 47m입니다.,1,infer-missing-length,reviewed,length-missing-sub:83:36:47:m
+grade2-length-calculation,v1,tree,7,65m-□=19m입니다. □에 알맞은 길이는?,46m,47m,45m,56m,1,65m-19m=46m이므로 빈칸은 46m입니다.,1,infer-missing-length,reviewed,length-missing-sub:65:19:46:m
+grade2-length-calculation,v1,tree,8,32cm와 18cm를 이은 뒤 15cm를 잘랐습니다. 남은 길이는?,36cm,35cm,34cm,45cm,2,32+18=50이고 50-15=35이므로 35cm가 남습니다.,1,solve-remaining-length,reviewed,length-combined:32:18:15:35:cm
+grade2-length-calculation,v1,tree,9,27cm와 24cm를 이은 뒤 19cm를 잘랐습니다. 남은 길이는?,33cm,31cm,32cm,42cm,3,27+24=51이고 51-19=32이므로 32cm가 남습니다.,1,solve-remaining-length,reviewed,length-combined:27:24:19:32:cm
+grade2-length-calculation,v1,tree,10,45cm와 16cm를 이은 뒤 22cm를 잘랐습니다. 남은 길이는?,40cm,38cm,49cm,39cm,4,45+16=61이고 61-22=39이므로 39cm가 남습니다.,1,solve-remaining-length,reviewed,length-combined:45:16:22:39:cm
+grade2-length-calculation,v1,crown,1,35cm+24cm=69cm라고 했습니다. 바르게 고친 것은?,35cm+24cm=59cm,35cm+24cm=49cm,35cm-24cm=59cm,35m+24m=59cm,1,35+24=59이므로 69cm가 아니라 59cm입니다.,1,correct-length-calculation-reasoning,reviewed,length-error:add
+grade2-length-calculation,v1,crown,2,80cm에서 27cm를 빼면 63cm라고 했습니다. 바른 계산은?,80cm-27cm=63cm,80cm-27cm=53cm,80cm+27cm=53cm,80m-27m=53cm,2,80-27=53이므로 남은 길이는 53cm입니다.,1,correct-length-calculation-reasoning,reviewed,length-error:sub
+grade2-length-calculation,v1,crown,3,길이가 42cm와 29cm일 때 차를 구하는 식은?,42cm+29cm=71cm,29cm-42cm=13cm,42cm-29cm=13cm,42m-29m=13cm,3,두 길이의 차는 긴 길이에서 짧은 길이를 빼므로 42-29=13cm입니다.,1,compare-length-difference,reviewed,length-reason:diff
+grade2-length-calculation,v1,crown,4,1m=100cm를 바르게 사용한 설명은?,3m는 30cm입니다.,100m는 1cm입니다.,1m는 10cm입니다.,3m는 300cm입니다.,4,1m가 100cm이므로 3m는 100cm가 3번인 300cm입니다.,1,use-meter-centimeter-relation,reviewed,length-reason:relation
+grade2-length-calculation,v1,crown,5,연필 18cm와 자 30cm를 이어 놓았습니다. 전체 길이와 식이 모두 맞는 것은?,30cm-18cm=12cm,18m+30m=48cm,18cm+30cm=48cm,18cm+30cm=38cm,3,전체 길이는 두 길이를 더해 18+30=48cm입니다.,1,solve-total-length,reviewed,length-reason:total
+grade2-length-calculation,v1,crown,6,끈 90cm 중 34cm를 썼습니다. 알맞은 풀이 설명은?,90+34=124이므로 124cm 남습니다.,90-34=66이므로 66cm 남습니다.,34-90=56이므로 56m 남습니다.,90-34=56이므로 56cm 남습니다.,4,전체 90cm에서 사용한 34cm를 빼면 56cm가 남습니다.,1,solve-remaining-length,reviewed,length-reason:remain
+grade2-length-calculation,v1,crown,7,□cm+28cm=73cm의 빈칸과 까닭이 맞는 것은?,45cm이며 73-28=45입니다.,101cm이며 73+28=101입니다.,55cm이며 73-28=55입니다.,45m이며 28+45=73cm입니다.,1,전체 73cm에서 알려진 28cm를 빼면 45cm이므로 빈칸은 45cm입니다.,1,infer-missing-length,reviewed,length-reason:missing
+grade2-length-calculation,v1,crown,8,다음 중 단위를 같게 사용한 계산은?,24cm+15m=39cm,24cm+15cm=39cm,24m-15cm=9m,1m+20cm=21cm,2,24cm와 15cm는 같은 단위이고 24+15=39이므로 39cm입니다.,1,correct-length-calculation-reasoning,reviewed,length-reason:unit
+grade2-length-calculation,v1,crown,9,56m 길과 38m 길의 차를 94m라고 했습니다. 오류를 바르게 설명한 것은?,차는 56+38=94m가 맞습니다.,38-56=18cm입니다.,차는 더하지 않고 56-38=18m입니다.,56-38=28m입니다.,3,차이는 두 길이를 더하지 않고 긴 길이에서 짧은 길이를 빼므로 18m입니다.,1,correct-length-calculation-reasoning,reviewed,length-error:diff
+grade2-length-calculation,v1,crown,10,25cm+□=60cm이고 □에서 12cm를 잘랐습니다. 마지막에 남는 길이는?,35cm,47cm,13cm,23cm,4,빈칸은 60-25=35cm이고 여기서 12cm를 빼면 23cm가 남습니다.,1,infer-missing-length,reviewed,length-combined-missing:25:60:12:23

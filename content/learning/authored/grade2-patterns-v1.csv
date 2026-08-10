@@ -1,0 +1,41 @@
+unit_slug,content_version,stage,question_order,question_text,option_1,option_2,option_3,option_4,correct_option,explanation,weight,skill_code,review_status,review_note
+grade2-patterns,v1,seed,1,"2, 5, 8, 11, □의 규칙에서 다음 수는?",14,15,13,24,1,앞 수에 3씩 더하므로 11+3=14입니다.,1,continue-increasing-pattern,reviewed,pattern-inc:2:3:14
+grade2-patterns,v1,seed,2,"5, 7, 9, 11, □의 규칙에서 다음 수는?",14,13,12,23,2,앞 수에 2씩 더하므로 11+2=13입니다.,1,continue-increasing-pattern,reviewed,pattern-inc:5:2:13
+grade2-patterns,v1,seed,3,"10, 15, 20, 25, □의 규칙에서 다음 수는?",31,29,30,40,3,앞 수에 5씩 더하므로 25+5=30입니다.,1,continue-increasing-pattern,reviewed,pattern-inc:10:5:30
+grade2-patterns,v1,seed,4,"4, 8, 12, 16, □의 규칙에서 다음 수는?",21,19,30,20,4,앞 수에 4씩 더하므로 16+4=20입니다.,1,continue-increasing-pattern,reviewed,pattern-inc:4:4:20
+grade2-patterns,v1,seed,5,"7, 10, 13, 16, □의 규칙에서 다음 수는?",19,20,18,29,1,앞 수에 3씩 더하므로 16+3=19입니다.,1,continue-increasing-pattern,reviewed,pattern-inc:7:3:19
+grade2-patterns,v1,seed,6,"20, 18, 16, 14, □의 규칙에서 다음 수는?",13,12,11,22,2,앞 수에서 2씩 빼므로 14-2=12입니다.,1,continue-decreasing-pattern,reviewed,pattern-dec:20:2:12
+grade2-patterns,v1,seed,7,"35, 30, 25, 20, □의 규칙에서 다음 수는?",15,16,14,25,1,앞 수에서 5씩 빼므로 20-5=15입니다.,1,continue-decreasing-pattern,reviewed,pattern-dec:35:5:15
+grade2-patterns,v1,seed,8,"18, 15, 12, 9, □의 규칙에서 다음 수는?",7,6,5,16,2,앞 수에서 3씩 빼므로 9-3=6입니다.,1,continue-decreasing-pattern,reviewed,pattern-dec:18:3:6
+grade2-patterns,v1,seed,9,"40, 36, 32, 28, □의 규칙에서 다음 수는?",25,23,24,34,3,앞 수에서 4씩 빼므로 28-4=24입니다.,1,continue-decreasing-pattern,reviewed,pattern-dec:40:4:24
+grade2-patterns,v1,seed,10,"27, 24, 21, 18, □의 규칙에서 다음 수는?",16,14,25,15,4,앞 수에서 3씩 빼므로 18-3=15입니다.,1,continue-decreasing-pattern,reviewed,pattern-dec:27:3:15
+grade2-patterns,v1,leaf,1,○ △ ○ △ ○ △ ○ 다음에 올 것은?,△,○,★,가,1,○ △가 반복되므로 다음에는 △이 옵니다.,1,identify-repeating-cycle,reviewed,pattern-cycle:○/△:7:△
+grade2-patterns,v1,leaf,2,★ ★ □ ★ ★ □ ★ 다음에 올 것은?,○,★,가,빨강,2,★ ★ □가 반복되므로 다음에는 ★이 옵니다.,1,identify-repeating-cycle,reviewed,pattern-cycle:★/★/□:7:★
+grade2-patterns,v1,leaf,3,가 나 다 가 나 다 가 다음에 올 것은?,○,★,나,가,3,가 나 다가 반복되므로 다음에는 나이 옵니다.,1,identify-repeating-cycle,reviewed,pattern-cycle:가/나/다:7:나
+grade2-patterns,v1,leaf,4,빨강 파랑 빨강 파랑 빨강 파랑 빨강 다음에 올 것은?,○,★,가,파랑,4,빨강 파랑가 반복되므로 다음에는 파랑이 옵니다.,1,identify-repeating-cycle,reviewed,pattern-cycle:빨강/파랑:7:파랑
+grade2-patterns,v1,leaf,5,1 2 2 1 2 2 1 다음에 올 것은?,○,★,2,가,3,1 2 2가 반복되므로 다음에는 2이 옵니다.,1,identify-repeating-cycle,reviewed,pattern-cycle:1/2/2:7:2
+grade2-patterns,v1,leaf,6,"3, 7, □, 15에서 빈칸은?",7,15,12,11,4,4씩 커지는 규칙이므로 7+4=11입니다.,1,infer-missing-pattern-item,reviewed,pattern-missing-inc:3:4:11
+grade2-patterns,v1,leaf,7,"6, 9, □, 15에서 빈칸은?",12,9,15,13,1,3씩 커지는 규칙이므로 9+3=12입니다.,1,infer-missing-pattern-item,reviewed,pattern-missing-inc:6:3:12
+grade2-patterns,v1,leaf,8,"2, 7, □, 17에서 빈칸은?",7,12,17,13,2,5씩 커지는 규칙이므로 7+5=12입니다.,1,infer-missing-pattern-item,reviewed,pattern-missing-inc:2:5:12
+grade2-patterns,v1,leaf,9,"10, 12, □, 16에서 빈칸은?",12,16,14,15,3,2씩 커지는 규칙이므로 12+2=14입니다.,1,infer-missing-pattern-item,reviewed,pattern-missing-inc:10:2:14
+grade2-patterns,v1,leaf,10,"1, 7, □, 19에서 빈칸은?",7,19,14,13,4,6씩 커지는 규칙이므로 7+6=13입니다.,1,infer-missing-pattern-item,reviewed,pattern-missing-inc:1:6:13
+grade2-patterns,v1,tree,1,"1, 3, 4, 6, 7, □는 “2 더하기, 1 더하기”를 반복합니다. 다음 수는?",9,10,8,19,1,7에서 2를 더할 차례이므로 9입니다.,1,extend-two-step-pattern,reviewed,pattern-two:1:2:9
+grade2-patterns,v1,tree,2,"4, 7, 8, 11, 12, □는 “3 더하기, 1 더하기”를 반복합니다. 다음 수는?",16,15,14,25,2,12에서 3를 더할 차례이므로 15입니다.,1,extend-two-step-pattern,reviewed,pattern-two:4:3:15
+grade2-patterns,v1,tree,3,"2, 6, 7, 11, 12, □는 “4 더하기, 1 더하기”를 반복합니다. 다음 수는?",17,15,16,26,3,12에서 4를 더할 차례이므로 16입니다.,1,extend-two-step-pattern,reviewed,pattern-two:2:4:16
+grade2-patterns,v1,tree,4,"5, 7, 8, 10, 11, □는 “2 더하기, 1 더하기”를 반복합니다. 다음 수는?",14,12,23,13,4,11에서 2를 더할 차례이므로 13입니다.,1,extend-two-step-pattern,reviewed,pattern-two:5:2:13
+grade2-patterns,v1,tree,5,"5, 9, 13, 17의 규칙을 바르게 설명한 것은?",4씩 커집니다.,5씩 커집니다.,항상 같은 수입니다.,4씩 작아집니다.,1,이웃한 두 수의 차가 항상 4이므로 4씩 커집니다.,1,explain-pattern-rule,reviewed,pattern-explain:5:4
+grade2-patterns,v1,tree,6,"30, 27, 24, 21의 규칙을 바르게 설명한 것은?",4씩 작아집니다.,3씩 작아집니다.,항상 같은 수입니다.,3씩 커집니다.,2,이웃한 두 수의 차가 항상 3이므로 3씩 작아집니다.,1,explain-pattern-rule,reviewed,pattern-explain:30:-3
+grade2-patterns,v1,tree,7,"2, 8, 14, 20의 규칙을 바르게 설명한 것은?",6씩 커집니다.,7씩 커집니다.,항상 같은 수입니다.,6씩 작아집니다.,1,이웃한 두 수의 차가 항상 6이므로 6씩 커집니다.,1,explain-pattern-rule,reviewed,pattern-explain:2:6
+grade2-patterns,v1,tree,8,○ △ □가 반복됩니다. 11번째 항목은?,○,△,★,가,2,반복 길이는 3이고 11번째는 주기의 2번째이므로 △입니다.,1,identify-repeating-cycle,reviewed,pattern-index:○/△/□:11:△
+grade2-patterns,v1,tree,9,★ □가 반복됩니다. 11번째 항목은?,○,가,★,빨강,3,반복 길이는 2이고 11번째는 주기의 1번째이므로 ★입니다.,1,identify-repeating-cycle,reviewed,pattern-index:★/□:11:★
+grade2-patterns,v1,tree,10,가 나 나가 반복됩니다. 11번째 항목은?,○,★,가,나,4,반복 길이는 3이고 11번째는 주기의 2번째이므로 나입니다.,1,identify-repeating-cycle,reviewed,pattern-index:가/나/나:11:나
+grade2-patterns,v1,crown,1,"3, 6, 9, 13에서 규칙에 맞지 않는 수는?",13,3,6,9,1,"3씩 커지는 규칙이면 3, 6, 9, 12이므로 13이 잘못되었습니다.",1,correct-pattern-reasoning,reviewed,pattern-error:inc
+grade2-patterns,v1,crown,2,"20, 16, 12, 9를 바르게 고친 배열은?","20, 17, 14, 11","20, 16, 12, 8","20, 16, 12, 9","20, 15, 10, 5",2,4씩 작아지는 규칙이므로 12 다음은 8입니다.,1,correct-pattern-reasoning,reviewed,pattern-error:dec
+grade2-patterns,v1,crown,3,○ △ ○ ○ △ ○ ○ 다음 항목은?,○,□,△,★,3,○ △ ○의 세 항목이 반복되므로 다음은 △입니다.,1,identify-repeating-cycle,reviewed,pattern-reason:cycle
+grade2-patterns,v1,crown,4,"2, 5, 6, 9, 10은 “3 더하기, 1 더하기” 규칙입니다. 다음 수는?",11,12,14,13,4,10 다음에는 3을 더할 차례이므로 13입니다.,1,extend-two-step-pattern,reviewed,pattern-two:2:3:13
+grade2-patterns,v1,crown,5,"□, 14, 18, 22가 4씩 커질 때 □는?",8,12,10,16,3,"14보다 4 작은 수는 10이므로 10, 14, 18, 22가 됩니다.",1,infer-missing-pattern-item,reviewed,pattern-missing-back:14:4:10
+grade2-patterns,v1,crown,6,★ ★ □가 반복될 때 8번째 항목과 까닭이 맞는 것은?,□이며 8번째는 주기의 세 번째입니다.,★이며 모든 항목이 같습니다.,□이며 8을 2로 나눕니다.,★이며 8번째는 주기의 두 번째입니다.,4,반복 길이는 3이고 8번째는 두 번째 자리이므로 ★입니다.,1,identify-repeating-cycle,reviewed,pattern-reason:index
+grade2-patterns,v1,crown,7,"7, 12, 17, 22의 규칙을 3번 더 이어 쓴 것은?","27, 32, 37","23, 24, 25","27, 31, 35","17, 12, 7",1,"5씩 커지므로 22 뒤에 27, 32, 37이 이어집니다.",1,continue-increasing-pattern,reviewed,pattern-extend:7:5:27/32/37
+grade2-patterns,v1,crown,8,"40, 34, 28, 22에서 다음 두 수는?","18, 14","16, 10","16, 12","28, 34",2,"6씩 작아지므로 22-6=16, 16-6=10입니다.",1,continue-decreasing-pattern,reviewed,pattern-extend-dec:40:6:16/10
+grade2-patterns,v1,crown,9,"1, 3, 6, 8, 12에서 “2 더하기, 3 더하기” 규칙에 맞지 않는 수는?",3,6,12,8,3,"1+2=3, 3+3=6, 6+2=8 다음은 8+3=11이어야 하므로 12가 잘못되었습니다.",1,correct-pattern-reasoning,reviewed,pattern-error:two-step
+grade2-patterns,v1,crown,10,"4, 7, 10, □, 16에서 빈칸과 규칙 설명이 모두 맞는 것은?",12이며 2씩 커집니다.,13이며 3씩 작아집니다.,14이며 4씩 커집니다.,13이며 3씩 커집니다.,4,이웃한 수가 3씩 커지므로 10+3=13이고 다음은 16입니다.,1,explain-pattern-rule,reviewed,pattern-reason:missing
