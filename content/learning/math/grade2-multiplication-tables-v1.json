@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "course": {
+    "id": "51000000-0000-4000-8000-000000000001",
+    "slug": "math-core",
+    "internalName": "수학 기초 과정",
+    "subject": "수학"
+  },
+  "unit": {
+    "id": "362cafc9-09b4-4582-a5dd-d6e868e573d6",
+    "slug": "grade2-multiplication-tables",
+    "title": "곱셈구구를 익혀요",
+    "displayOrder": 8
+  },
+  "version": {
+    "id": "db13b15e-752d-4491-832d-75feb9b9eb21",
+    "label": "v1",
+    "number": 1
+  },
+  "recommendation": {
+    "subject": "math",
+    "recommendedStartLevelCode": "elementary_2",
+    "recommendedEndLevelCode": "elementary_2",
+    "parentSortOrder": 8
+  },
+  "stages": [
+    {
+      "id": "fcfdae70-f84c-47c4-8558-cde9ac381187",
+      "difficulty": "seed",
+      "title": "입문",
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "6d061a04-a11d-4e96-a95f-fe99bdbce39d",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "2×3의 값은 얼마입니까?",
+          "explanation": "2를 3번 더하면 2+2+2=6이므로 2×3=6입니다.",
+          "skillCode": "multiply-by-2",
+          "options": [
+            {
+              "id": "1407bbc5-dc20-43c2-b0b7-d9ffa53928b6",
+              "displayOrder": 1,
+              "text": "6",
+              "isCorrect": true
+            },
+            {
+              "id": "7bc33228-2c5f-4b2b-ae27-f9bb92c4e758",
+              "displayOrder": 2,
+              "text": "5",
+              "isCorrect": false
+            },
+            {
+              "id": "58c757bf-ab3f-491d-938b-4fd49bcdcd4d",
+              "displayOrder": 3,
+              "text": "8",
+              "isCorrect": false
+            },
+            {
+              "id": "8f040604-849d-444b-beee-9c4f55d1e205",
+              "displayOrder": 4,
+              "text": "9",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a43e3789-7db5-4c9d-bc8d-16d4b9df3d4c",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "5×4의 값은 얼마입니까?",
+          "explanation": "5를 4번 더하면 5+5+5+5=20이므로 5×4=20입니다.",
+          "skillCode": "multiply-by-5",
+          "options": [
+            {
+              "id": "b5658913-3fe4-4aeb-b229-30e8ea566392",
+              "displayOrder": 1,
+              "text": "25",
+              "isCorrect": false
+            },
+            {
+              "id": "dbb02d73-be77-4a7f-a23a-309d121f6146",
+              "displayOrder": 2,
+              "text": "20",
+              "isCorrect": true
+            },
+            {
+              "id": "897834ed-547c-45bd-ae6b-6d6e657f36b5",
+              "displayOrder": 3,
+              "text": "15",
+              "isCorrect": false
+            },
+            {
+              "id": "351e99e1-6360-41ae-bae0-f1f121179028",
+              "displayOrder": 4,
+              "text": "9",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f3eafca7-b748-47d3-a44f-483a1f88fcc9",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "2×7의 알맞은 곱은?",
+          "explanation": "2씩 7묶음은 2를 7번 더한 14이므로 2×7=14입니다.",
+          "skillCode": "multiply-by-2",
+          "options": [
+            {
+              "id": "6c02621d-d7e5-4af9-a486-dba7b0ae48eb",
+              "displayOrder": 1,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "3f693cff-4e77-4971-bcf1-992990503565",
+              "displayOrder": 2,
+              "text": "16",
+              "isCorrect": false
+            },
+            {
+              "id": "9c8a32ed-1926-4432-b316-c7b600c21578",
+              "displayOrder": 3,
+              "text": "14",
+              "isCorrect": true
+            },
+            {
+              "id": "3391c7a4-2456-49ea-a02b-ccdba012deb0",
+              "displayOrder": 4,
+              "text": "9",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1a299e0f-4d64-493f-bf06-8b2fe831ba52",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "5×6을 바르게 계산한 것은?",
+          "explanation": "5씩 6묶음은 30이므로 5×6=30입니다.",
+          "skillCode": "multiply-by-5",
+          "options": [
+            {
+              "id": "6d50364c-aa40-4498-b5d0-0a7035f17271",
+              "displayOrder": 1,
+              "text": "25",
+              "isCorrect": false
+            },
+            {
+              "id": "55d9b8b5-1176-4dfd-a33d-65ef4e76c104",
+              "displayOrder": 2,
+              "text": "35",
+              "isCorrect": false
+            },
+            {
+              "id": "c08e411f-53fe-494f-8bcd-97c7d1984c9a",
+              "displayOrder": 3,
+              "text": "11",
+              "isCorrect": false
+            },
+            {
+              "id": "1db76670-4367-4aa2-9989-fa02736d8dbe",
+              "displayOrder": 4,
+              "text": "30",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "0ef3e74f-ad8c-4c63-9a4c-5340a6a6ba66",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "2×4=8 다음에 이어지는 2단 식은?",
+          "explanation": "묶음 수가 하나 늘면 2만큼 커지므로 2×5=10입니다.",
+          "skillCode": "identify-multiplication-table-pattern",
+          "options": [
+            {
+              "id": "29d47eb0-a858-4501-837c-b162e8f7d927",
+              "displayOrder": 1,
+              "text": "2×5=10",
+              "isCorrect": true
+            },
+            {
+              "id": "1d927c67-c034-46af-b60a-8ae9166ee770",
+              "displayOrder": 2,
+              "text": "2×5=8",
+              "isCorrect": false
+            },
+            {
+              "id": "9a0d64ae-6511-4d53-9d84-884237ccd50a",
+              "displayOrder": 3,
+              "text": "2×6=10",
+              "isCorrect": false
+            },
+            {
+              "id": "101c2afa-df93-4f50-86dc-441f1d08b78f",
+              "displayOrder": 4,
+              "text": "2×4=10",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f60d6ca8-de60-4d66-8b1b-5815ff277f00",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "5×8의 값은 얼마입니까?",
+          "explanation": "5를 8번 더한 값은 40이므로 5×8=40입니다.",
+          "skillCode": "multiply-by-5",
+          "options": [
+            {
+              "id": "5a8c9d57-6694-4513-bd94-e7c710ae18ad",
+              "displayOrder": 1,
+              "text": "35",
+              "isCorrect": false
+            },
+            {
+              "id": "bec09180-5a9a-4766-85e9-deb08add427f",
+              "displayOrder": 2,
+              "text": "40",
+              "isCorrect": true
+            },
+            {
+              "id": "cc840754-1ba6-4eb2-99bb-f13645dd8974",
+              "displayOrder": 3,
+              "text": "45",
+              "isCorrect": false
+            },
+            {
+              "id": "a4a1605a-2c75-42c7-a120-37212a884098",
+              "displayOrder": 4,
+              "text": "13",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "715abbba-ef59-4bcf-8128-48a6a6c31748",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "2×9의 계산 결과는?",
+          "explanation": "2씩 9묶음은 18이므로 2×9=18입니다.",
+          "skillCode": "multiply-by-2",
+          "options": [
+            {
+              "id": "2d8aff86-90ea-4755-884e-9be6e9e43fd8",
+              "displayOrder": 1,
+              "text": "16",
+              "isCorrect": false
+            },
+            {
+              "id": "18bcd40f-a75e-4354-81a4-b21342f7d958",
+              "displayOrder": 2,
+              "text": "20",
+              "isCorrect": false
+            },
+            {
+              "id": "7185bd93-0a58-4135-a6de-95c6d7fd749d",
+              "displayOrder": 3,
+              "text": "18",
+              "isCorrect": true
+            },
+            {
+              "id": "9fb7d786-dced-4994-abeb-79968b51425a",
+              "displayOrder": 4,
+              "text": "11",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f43290fa-da02-46df-bbd7-f350d7ff5478",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "5×7에 알맞은 값은?",
+          "explanation": "5씩 7묶음은 35이므로 5×7=35입니다.",
+          "skillCode": "multiply-by-5",
+          "options": [
+            {
+              "id": "ccc8ce48-3d09-4d2c-82dd-1209457815ba",
+              "displayOrder": 1,
+              "text": "30",
+              "isCorrect": false
+            },
+            {
+              "id": "2d09e07c-10f4-4490-85fe-8d42eff20fc9",
+              "displayOrder": 2,
+              "text": "40",
+              "isCorrect": false
+            },
+            {
+              "id": "1d12a5c4-8a35-4b20-ac3d-682aee9b7467",
+              "displayOrder": 3,
+              "text": "12",
+              "isCorrect": false
+            },
+            {
+              "id": "9c8fdffc-a73a-4f7a-9c52-1f303eaedcf2",
+              "displayOrder": 4,
+              "text": "35",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "6c10010d-ba70-47fa-b8de-161481d400a7",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "2×6을 바르게 계산한 것은?",
+          "explanation": "2를 6번 더하면 12이므로 2×6=12입니다.",
+          "skillCode": "multiply-by-2",
+          "options": [
+            {
+              "id": "a563b845-2566-4d8b-9b92-337d5e893040",
+              "displayOrder": 1,
+              "text": "12",
+              "isCorrect": true
+            },
+            {
+              "id": "19cfb0c4-17fe-4d21-b182-8aa843cf5a94",
+              "displayOrder": 2,
+              "text": "10",
+              "isCorrect": false
+            },
+            {
+              "id": "7937b64e-677f-4581-aafd-9cd881e3610e",
+              "displayOrder": 3,
+              "text": "14",
+              "isCorrect": false
+            },
+            {
+              "id": "edaf3b62-aed5-4014-961a-e291dbb6d64e",
+              "displayOrder": 4,
+              "text": "8",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "0ac2fb54-0b88-49ad-8e72-e6bf479faa91",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "5×9의 값은 얼마입니까?",
+          "explanation": "5를 9번 더한 값은 45이므로 5×9=45입니다.",
+          "skillCode": "multiply-by-5",
+          "options": [
+            {
+              "id": "8bd3536a-ec34-482f-acf1-944687243b32",
+              "displayOrder": 1,
+              "text": "40",
+              "isCorrect": false
+            },
+            {
+              "id": "dfa25a61-c49d-4b9c-b1d1-6e94de23f05b",
+              "displayOrder": 2,
+              "text": "45",
+              "isCorrect": true
+            },
+            {
+              "id": "6a296cf4-16b0-4ae5-a84b-d98fb2e926b5",
+              "displayOrder": 3,
+              "text": "50",
+              "isCorrect": false
+            },
+            {
+              "id": "20db72f3-58a2-4b7b-b8ca-c851ce666ff7",
+              "displayOrder": 4,
+              "text": "14",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e79a7bb8-879e-42c0-865e-f14278841162",
+      "difficulty": "leaf",
+      "title": "기초",
+      "displayOrder": 2,
+      "questions": [
+        {
+          "id": "0ddd41c0-5946-436f-a09e-2ce3de79dec0",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "3×4의 값은 얼마입니까?",
+          "explanation": "3을 4번 더하면 3+3+3+3=12이므로 3×4=12입니다.",
+          "skillCode": "multiply-by-3",
+          "options": [
+            {
+              "id": "79ff2a2e-8d60-4509-94f2-7a7e191b7f73",
+              "displayOrder": 1,
+              "text": "12",
+              "isCorrect": true
+            },
+            {
+              "id": "88ee5224-dda3-4e5d-acf5-831c4b7c2b69",
+              "displayOrder": 2,
+              "text": "9",
+              "isCorrect": false
+            },
+            {
+              "id": "1ba7a1e2-e518-43b6-bf70-4a5c846d78cd",
+              "displayOrder": 3,
+              "text": "16",
+              "isCorrect": false
+            },
+            {
+              "id": "a102d383-2200-4226-9f97-bcebd20dc75d",
+              "displayOrder": 4,
+              "text": "7",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "d13f6fe4-bacd-4542-a354-a032a54a4bea",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "4×6을 바르게 계산한 것은?",
+          "explanation": "4씩 6묶음은 24이므로 4×6=24입니다.",
+          "skillCode": "multiply-by-4",
+          "options": [
+            {
+              "id": "85f6d044-9e37-4c6b-9916-badd9931f4a3",
+              "displayOrder": 1,
+              "text": "20",
+              "isCorrect": false
+            },
+            {
+              "id": "a3a62147-960a-48bd-a553-6302c90a3c75",
+              "displayOrder": 2,
+              "text": "24",
+              "isCorrect": true
+            },
+            {
+              "id": "23a1cc9c-898c-4c70-9ffc-ba62ce5a862f",
+              "displayOrder": 3,
+              "text": "28",
+              "isCorrect": false
+            },
+            {
+              "id": "8d0d4741-bea8-4048-bef5-67f47a53825e",
+              "displayOrder": 4,
+              "text": "10",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "e9735267-4bc5-4dcc-92e1-d75c7182502d",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "3×□=21에서 □에 알맞은 수는?",
+          "explanation": "3×7=21이므로 빈칸에는 7이 들어갑니다.",
+          "skillCode": "infer-missing-multiplication-factor",
+          "options": [
+            {
+              "id": "1dcce90e-9958-4893-9294-4f007771533b",
+              "displayOrder": 1,
+              "text": "6",
+              "isCorrect": false
+            },
+            {
+              "id": "f758d8f9-47ed-4540-8ae6-d10806efa37c",
+              "displayOrder": 2,
+              "text": "8",
+              "isCorrect": false
+            },
+            {
+              "id": "ac88c2cd-1405-4461-9d28-1f9598a7c940",
+              "displayOrder": 3,
+              "text": "7",
+              "isCorrect": true
+            },
+            {
+              "id": "8d660e1b-e2ec-4aa7-acc9-8e1dbd944bd6",
+              "displayOrder": 4,
+              "text": "9",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "d909587c-6dac-43f2-82bf-f6170f4786ac",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "4×5와 3×6의 크기를 바르게 비교한 것은?",
+          "explanation": "4×5=20이고 3×6=18이므로 4×5가 더 큽니다.",
+          "skillCode": "compare-multiplication-products",
+          "options": [
+            {
+              "id": "07f3f927-31fb-4f15-9e00-af52eb0c1155",
+              "displayOrder": 1,
+              "text": "4×5<3×6",
+              "isCorrect": false
+            },
+            {
+              "id": "a4589ab1-110e-49df-b864-e24d9b456a56",
+              "displayOrder": 2,
+              "text": "4×5=3×6",
+              "isCorrect": false
+            },
+            {
+              "id": "7dc11932-9b62-41e3-8001-ad8a8cb53e56",
+              "displayOrder": 3,
+              "text": "20<18",
+              "isCorrect": false
+            },
+            {
+              "id": "2ce30dd1-737c-4d41-978f-9d7b9a10a95c",
+              "displayOrder": 4,
+              "text": "4×5>3×6",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "3bf4f190-03f0-4a11-a94d-0926a2ac4773",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "연필을 한 사람에게 3자루씩 8명에게 줍니다. 필요한 연필 수를 구하는 식과 답은?",
+          "explanation": "한 묶음의 수 3을 앞에 쓰고 사람 수 8을 뒤에 써서 3×8=24입니다.",
+          "skillCode": "model-multiplication-situation",
+          "options": [
+            {
+              "id": "d1cb67bb-90b6-4be7-86ba-e823be62e0da",
+              "displayOrder": 1,
+              "text": "3×8=24",
+              "isCorrect": true
+            },
+            {
+              "id": "e9af1b69-aae5-438a-84a6-2197988a6ed1",
+              "displayOrder": 2,
+              "text": "8×3=24",
+              "isCorrect": false
+            },
+            {
+              "id": "859aa9a9-3cd7-40c7-9d1e-899d24317cfd",
+              "displayOrder": 3,
+              "text": "3+8=11",
+              "isCorrect": false
+            },
+            {
+              "id": "812c297b-ead3-4d26-99db-9a38edf4c448",
+              "displayOrder": 4,
+              "text": "3×7=21",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "cdf30c28-d61a-4203-b954-b102c6014b54",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "4×7에 알맞은 상황은?",
+          "explanation": "4×7은 한 묶음에 4개씩 7묶음이므로 바구니 7개에 사과가 4개씩 있는 상황입니다.",
+          "skillCode": "model-multiplication-situation",
+          "options": [
+            {
+              "id": "bc0354ac-5a2a-41e0-aee2-48972418edcd",
+              "displayOrder": 1,
+              "text": "바구니 4개에 사과가 7개씩 있음",
+              "isCorrect": false
+            },
+            {
+              "id": "b086031b-3bc8-409d-b361-12f0d99d400c",
+              "displayOrder": 2,
+              "text": "바구니 7개에 사과가 4개씩 있음",
+              "isCorrect": true
+            },
+            {
+              "id": "cdf3e726-6465-4137-965c-6a337fc04545",
+              "displayOrder": 3,
+              "text": "사과 4개와 7개를 더함",
+              "isCorrect": false
+            },
+            {
+              "id": "a7d36d38-0d0a-4843-b863-70eebd1354eb",
+              "displayOrder": 4,
+              "text": "바구니마다 사과 수가 다름",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "92068d41-150b-4585-8316-990e53db6602",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "3×5=15에서 묶음 수가 하나 늘어난 식은?",
+          "explanation": "묶음 수가 5에서 6으로 하나 늘면 곱은 3만큼 커져 3×6=18입니다.",
+          "skillCode": "identify-multiplication-table-pattern",
+          "options": [
+            {
+              "id": "571474e8-4297-42a9-bea7-f0fbf1921de7",
+              "displayOrder": 1,
+              "text": "3×4=12",
+              "isCorrect": false
+            },
+            {
+              "id": "922a8431-f57c-4e28-bf97-97a054fc4b14",
+              "displayOrder": 2,
+              "text": "3×5=18",
+              "isCorrect": false
+            },
+            {
+              "id": "81a3079f-1333-4eaa-9a9a-4605aff9b0e9",
+              "displayOrder": 3,
+              "text": "3×6=18",
+              "isCorrect": true
+            },
+            {
+              "id": "f9aab803-f204-4024-b70a-7b1cb33315db",
+              "displayOrder": 4,
+              "text": "3×6=15",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "56d024fb-d0c4-4cc9-8260-1ff74f61f253",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "4×□=32에서 □에 알맞은 수는?",
+          "explanation": "4×8=32이므로 빈칸에는 8이 들어갑니다.",
+          "skillCode": "infer-missing-multiplication-factor",
+          "options": [
+            {
+              "id": "5240b40b-b557-48fa-a91c-c6ea8c580c24",
+              "displayOrder": 1,
+              "text": "6",
+              "isCorrect": false
+            },
+            {
+              "id": "b1d1151e-292f-4797-aade-b59ca37281ca",
+              "displayOrder": 2,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "43ef8e4d-06da-4097-99dc-95494c0b6926",
+              "displayOrder": 3,
+              "text": "9",
+              "isCorrect": false
+            },
+            {
+              "id": "dc588377-cc15-4b28-a592-8167a41fcd57",
+              "displayOrder": 4,
+              "text": "8",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "a120b3af-fb9f-4cd2-8ae9-aba68ec14297",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "3×9의 값은 얼마입니까?",
+          "explanation": "3을 9번 더한 값은 27이므로 3×9=27입니다.",
+          "skillCode": "multiply-by-3",
+          "options": [
+            {
+              "id": "cfa2a9db-fa89-4d78-82ec-2cef07add6f7",
+              "displayOrder": 1,
+              "text": "24",
+              "isCorrect": false
+            },
+            {
+              "id": "fe9a4f7a-c2be-4f59-b69b-1788a5aee2a6",
+              "displayOrder": 2,
+              "text": "30",
+              "isCorrect": false
+            },
+            {
+              "id": "a976df5b-ca0e-4ecf-a0bd-635750e1ed84",
+              "displayOrder": 3,
+              "text": "27",
+              "isCorrect": true
+            },
+            {
+              "id": "aebf718a-e94e-41ca-a2d9-c78a89d8f271",
+              "displayOrder": 4,
+              "text": "12",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "12989413-5f95-4e0c-90d8-4335ca3718bb",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "상자마다 스티커가 4장씩 있고 상자가 9개입니다. 스티커는 모두 몇 장입니까?",
+          "explanation": "한 상자의 4장이 한 묶음이고 상자가 9개이므로 4×9=36장입니다.",
+          "skillCode": "model-multiplication-situation",
+          "options": [
+            {
+              "id": "d1636a82-823c-4b4c-bad7-7d08b8afd053",
+              "displayOrder": 1,
+              "text": "13장",
+              "isCorrect": false
+            },
+            {
+              "id": "a47e3097-6f83-4473-af6e-6ee86650a5e0",
+              "displayOrder": 2,
+              "text": "32장",
+              "isCorrect": false
+            },
+            {
+              "id": "648a97ac-169d-4768-9e2e-45b14b54706c",
+              "displayOrder": 3,
+              "text": "40장",
+              "isCorrect": false
+            },
+            {
+              "id": "247f272b-ec18-449c-b829-e85721980d94",
+              "displayOrder": 4,
+              "text": "36장",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fe288080-9edb-4420-9faa-27e90f3fcb77",
+      "difficulty": "tree",
+      "title": "심화",
+      "displayOrder": 3,
+      "questions": [
+        {
+          "id": "78ce78d9-6d15-4968-84ba-fe091871ce57",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "6×7의 값은 얼마입니까?",
+          "explanation": "6씩 7묶음은 42이므로 6×7=42입니다.",
+          "skillCode": "multiply-by-6",
+          "options": [
+            {
+              "id": "fdbe9ecf-3f3c-415b-8222-c06282394f80",
+              "displayOrder": 1,
+              "text": "42",
+              "isCorrect": true
+            },
+            {
+              "id": "4da6ed81-956c-4dd9-a7a6-ffaf33f520a9",
+              "displayOrder": 2,
+              "text": "36",
+              "isCorrect": false
+            },
+            {
+              "id": "b17bce55-682d-4768-a4eb-474e8a209b8d",
+              "displayOrder": 3,
+              "text": "48",
+              "isCorrect": false
+            },
+            {
+              "id": "842fa855-8173-4891-9583-da3daec2176b",
+              "displayOrder": 4,
+              "text": "13",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "4e6a0696-742f-4e40-96ac-fc394a4bd4ee",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "7×8을 바르게 계산한 것은?",
+          "explanation": "7씩 8묶음은 56이므로 7×8=56입니다.",
+          "skillCode": "multiply-by-7",
+          "options": [
+            {
+              "id": "b73eae01-b349-4c33-a21f-2bc685762f8b",
+              "displayOrder": 1,
+              "text": "49",
+              "isCorrect": false
+            },
+            {
+              "id": "67511979-8101-4d24-b0fe-abf32e293840",
+              "displayOrder": 2,
+              "text": "56",
+              "isCorrect": true
+            },
+            {
+              "id": "68c2f1a7-5bd2-4316-99ff-f32a916ff9d9",
+              "displayOrder": 3,
+              "text": "64",
+              "isCorrect": false
+            },
+            {
+              "id": "ebfbb124-ab7c-4f19-90d9-e4262d395e49",
+              "displayOrder": 4,
+              "text": "15",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "aaa80252-6e8e-4f9e-a813-e2cd54541fc4",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "8×9의 계산 결과는?",
+          "explanation": "8씩 9묶음은 72이므로 8×9=72입니다.",
+          "skillCode": "multiply-by-8",
+          "options": [
+            {
+              "id": "d7fae798-c773-4408-97cb-8841c929e70b",
+              "displayOrder": 1,
+              "text": "64",
+              "isCorrect": false
+            },
+            {
+              "id": "0e5d6272-7585-4936-aeac-05d6a69f44b1",
+              "displayOrder": 2,
+              "text": "81",
+              "isCorrect": false
+            },
+            {
+              "id": "20ed8327-8537-40a8-be12-6889341b6b91",
+              "displayOrder": 3,
+              "text": "72",
+              "isCorrect": true
+            },
+            {
+              "id": "a47cbf69-5685-417b-bfb9-573ab3487804",
+              "displayOrder": 4,
+              "text": "17",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "28f2774a-2163-443c-8258-679ed4af3311",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "9×6의 값은 얼마입니까?",
+          "explanation": "9를 6번 더한 값은 54이므로 9×6=54입니다.",
+          "skillCode": "multiply-by-9",
+          "options": [
+            {
+              "id": "3fe6628a-bca7-4031-9cb9-7dcdcb908cf2",
+              "displayOrder": 1,
+              "text": "45",
+              "isCorrect": false
+            },
+            {
+              "id": "efc45c61-f4e7-4ac0-923c-9d0e0f5733c1",
+              "displayOrder": 2,
+              "text": "63",
+              "isCorrect": false
+            },
+            {
+              "id": "fa2ab5c2-c52f-42a2-92e8-a41c0aed9fc2",
+              "displayOrder": 3,
+              "text": "15",
+              "isCorrect": false
+            },
+            {
+              "id": "ead1aa87-9b59-4705-aed4-05d6d544c5d8",
+              "displayOrder": 4,
+              "text": "54",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "f9a03926-831d-43a7-bc6f-6c8a30198b4a",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "6×□=48에서 □에 알맞은 수는?",
+          "explanation": "6×8=48이므로 빈칸에는 8이 들어갑니다.",
+          "skillCode": "infer-missing-multiplication-factor",
+          "options": [
+            {
+              "id": "00466354-749f-4bea-a79b-ff71854107e9",
+              "displayOrder": 1,
+              "text": "8",
+              "isCorrect": true
+            },
+            {
+              "id": "871a0d57-f247-42b8-81fd-02d518a35136",
+              "displayOrder": 2,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "d310fdad-e760-4a09-9cce-dbaf7f453c46",
+              "displayOrder": 3,
+              "text": "9",
+              "isCorrect": false
+            },
+            {
+              "id": "d3d77f8d-2688-42f6-85cd-cca25122a545",
+              "displayOrder": 4,
+              "text": "6",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "2540bda6-e257-4638-a18c-daede68cb593",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "7×6과 8×5의 크기를 바르게 비교한 것은?",
+          "explanation": "7×6=42이고 8×5=40이므로 7×6이 더 큽니다.",
+          "skillCode": "compare-multiplication-products",
+          "options": [
+            {
+              "id": "b78cdfad-50a8-455e-b6f8-367a50c8d3b6",
+              "displayOrder": 1,
+              "text": "7×6<8×5",
+              "isCorrect": false
+            },
+            {
+              "id": "c2bd71f9-7c3c-47c7-82f4-36b82ca7dca1",
+              "displayOrder": 2,
+              "text": "7×6>8×5",
+              "isCorrect": true
+            },
+            {
+              "id": "00c53da7-e17a-45b5-adb7-2ea686951a8c",
+              "displayOrder": 3,
+              "text": "7×6=8×5",
+              "isCorrect": false
+            },
+            {
+              "id": "d73ad3d1-c576-49e3-a1c7-74b63f39c2ba",
+              "displayOrder": 4,
+              "text": "42<40",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "eb695d4a-be93-4d13-af18-9ae866ffd5be",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "8×6과 같은 결과를 만드는 식은?",
+          "explanation": "8×6=48이고 6×8=48이므로 두 식의 결과가 같습니다.",
+          "skillCode": "reason-about-multiplication-facts",
+          "options": [
+            {
+              "id": "69af8249-2732-441d-b667-3e83813bb232",
+              "displayOrder": 1,
+              "text": "7×6",
+              "isCorrect": false
+            },
+            {
+              "id": "dde54f56-464a-484e-a9b5-d7b242bd99bf",
+              "displayOrder": 2,
+              "text": "8×5",
+              "isCorrect": false
+            },
+            {
+              "id": "1c6bd2bf-c52f-4503-a50d-05a8ddfc2481",
+              "displayOrder": 3,
+              "text": "6×8",
+              "isCorrect": true
+            },
+            {
+              "id": "8e88e01b-9876-4c2e-b6fd-b7af5841fd3e",
+              "displayOrder": 4,
+              "text": "9×6",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "1bed5f23-1cbe-4a51-a9e1-0b6d9fc731c3",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "9×4=36에서 묶음 수가 하나 늘면 곱은 어떻게 됩니까?",
+          "explanation": "9단에서 묶음 수가 하나 늘면 곱은 9만큼 커져 9×5=45가 됩니다.",
+          "skillCode": "identify-multiplication-table-pattern",
+          "options": [
+            {
+              "id": "963f7367-b26d-4c9d-ba7e-e2d435298972",
+              "displayOrder": 1,
+              "text": "4만큼 커져 40",
+              "isCorrect": false
+            },
+            {
+              "id": "1d250c6d-c5e8-48ef-b5f7-306f70898bfc",
+              "displayOrder": 2,
+              "text": "9만큼 작아져 27",
+              "isCorrect": false
+            },
+            {
+              "id": "d6aa0a62-572c-4173-8d8c-8a25130d1406",
+              "displayOrder": 3,
+              "text": "4만큼 작아져 32",
+              "isCorrect": false
+            },
+            {
+              "id": "8171b5fe-1263-446a-994f-379c7e3f1279",
+              "displayOrder": 4,
+              "text": "9만큼 커져 45",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "51f243fd-04e5-49f3-8daa-28ff26c366c0",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "다음 곱셈식 중 결과가 가장 큰 것은?",
+          "explanation": "7×9=63이고 나머지는 56 또는 54이므로 7×9의 결과가 가장 큽니다.",
+          "skillCode": "compare-multiplication-products",
+          "options": [
+            {
+              "id": "08e09f19-9016-4572-84fb-e5008634f3ac",
+              "displayOrder": 1,
+              "text": "7×9",
+              "isCorrect": true
+            },
+            {
+              "id": "f7d81e29-9b5d-4849-83ea-dbd9478c264b",
+              "displayOrder": 2,
+              "text": "8×7",
+              "isCorrect": false
+            },
+            {
+              "id": "2a969b97-18b6-4089-afd3-5337251c85d7",
+              "displayOrder": 3,
+              "text": "6×9",
+              "isCorrect": false
+            },
+            {
+              "id": "25561046-f32b-4da2-a2b2-ac437e16fc59",
+              "displayOrder": 4,
+              "text": "9×6",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "671565bd-924e-4b79-b9d1-48e31685c594",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "9×□=72에서 □에 알맞은 수는?",
+          "explanation": "9×8=72이므로 빈칸에는 8이 들어갑니다.",
+          "skillCode": "infer-missing-multiplication-factor",
+          "options": [
+            {
+              "id": "edbf63c0-50e8-4052-9526-501fe69195e8",
+              "displayOrder": 1,
+              "text": "7",
+              "isCorrect": false
+            },
+            {
+              "id": "9f83e54c-2a92-4aac-884e-baa6a9585837",
+              "displayOrder": 2,
+              "text": "8",
+              "isCorrect": true
+            },
+            {
+              "id": "e4c23f26-e057-403a-8710-f3fead390ca1",
+              "displayOrder": 3,
+              "text": "9",
+              "isCorrect": false
+            },
+            {
+              "id": "4be1164d-2a76-434c-8823-8b96ed8cfab6",
+              "displayOrder": 4,
+              "text": "6",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5a07eeac-894c-4e77-8598-9aab40ea44c5",
+      "difficulty": "crown",
+      "title": "최상위 도전!",
+      "displayOrder": 4,
+      "questions": [
+        {
+          "id": "37e194a3-1b9f-42af-8c1e-90bf1bc038c0",
+          "displayOrder": 1,
+          "weight": 1,
+          "prompt": "6×8=46이라고 계산했습니다. 바르게 고친 것은?",
+          "explanation": "6씩 8묶음은 48이므로 46이 아니라 6×8=48입니다.",
+          "skillCode": "reason-about-multiplication-facts",
+          "options": [
+            {
+              "id": "9ae8e1b5-ddf8-4b40-93a3-f2c36ad816f7",
+              "displayOrder": 1,
+              "text": "6×8=48",
+              "isCorrect": true
+            },
+            {
+              "id": "9b6615e1-f79d-439a-bfcb-83e838635ce8",
+              "displayOrder": 2,
+              "text": "6×8=42",
+              "isCorrect": false
+            },
+            {
+              "id": "7a17fb4d-6297-43b4-bcd5-4be9ed5fbb9a",
+              "displayOrder": 3,
+              "text": "6×8=54",
+              "isCorrect": false
+            },
+            {
+              "id": "3b2ecd89-56a2-4a87-961f-08c0e94197c7",
+              "displayOrder": 4,
+              "text": "6×8=14",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "2efed665-4b28-4355-b67b-07db1b28ec68",
+          "displayOrder": 2,
+          "weight": 1,
+          "prompt": "봉지마다 구슬이 7개씩 있고 봉지가 6개입니다. 구슬 수를 구한 식과 설명이 알맞은 것은?",
+          "explanation": "한 봉지의 7개가 한 묶음이고 봉지가 6개이므로 7×6=42입니다.",
+          "skillCode": "model-multiplication-situation",
+          "options": [
+            {
+              "id": "0ed7040c-becb-4782-80c2-f148eb283de1",
+              "displayOrder": 1,
+              "text": "6×7=42이고 봉지 수를 앞에 씁니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "995ed56d-dd7a-4121-9856-bfac0d6eb69e",
+              "displayOrder": 2,
+              "text": "7×6=42이고 한 봉지의 수를 앞에 씁니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "b41d77cb-6d85-4920-aa06-de9b72e7b9e9",
+              "displayOrder": 3,
+              "text": "7+6=13이고 두 수를 더합니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "cdac4369-df35-43f8-aa45-0de700470ce3",
+              "displayOrder": 4,
+              "text": "7×5=35이고 봉지 하나를 뺍니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "6be4ae8c-d973-4b4f-a61c-a9bc1bdad77f",
+          "displayOrder": 3,
+          "weight": 1,
+          "prompt": "9×4와 같은 결과를 만드는 곱셈식은?",
+          "explanation": "9×4=36이고 6×6=36이므로 두 식의 결과가 같습니다.",
+          "skillCode": "reason-about-multiplication-facts",
+          "options": [
+            {
+              "id": "c0926896-5d02-47bb-9656-c6d5ab6ad6e7",
+              "displayOrder": 1,
+              "text": "8×4",
+              "isCorrect": false
+            },
+            {
+              "id": "4a67e4de-b5bf-4d49-a761-9b85564bf57b",
+              "displayOrder": 2,
+              "text": "7×5",
+              "isCorrect": false
+            },
+            {
+              "id": "fcd5a1fd-f66f-4221-adbd-2fb349f0677a",
+              "displayOrder": 3,
+              "text": "6×6",
+              "isCorrect": true
+            },
+            {
+              "id": "7f8c4c37-d3a2-4d16-ac91-ddf0dcc53b41",
+              "displayOrder": 4,
+              "text": "5×6",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "bba4724e-cc51-4769-a268-748195ca0f27",
+          "displayOrder": 4,
+          "weight": 1,
+          "prompt": "8×7의 결과와 설명이 모두 알맞은 것은?",
+          "explanation": "8×7=56이고 8×6=48이므로 묶음 수가 하나 늘어 8만큼 큽니다.",
+          "skillCode": "identify-multiplication-table-pattern",
+          "options": [
+            {
+              "id": "7ca4cbba-8442-4010-a074-954e598a9520",
+              "displayOrder": 1,
+              "text": "48이며 8×6보다 8만큼 작습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "1261c8cf-88aa-46e8-9f44-93aa84c6da8e",
+              "displayOrder": 2,
+              "text": "54이며 8과 7을 더했습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "9fd882da-006b-4bc9-8c25-d37e6dcae03e",
+              "displayOrder": 3,
+              "text": "64이며 8×8과 같습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "4687ce22-d399-4d34-bca6-c16d01b59ecb",
+              "displayOrder": 4,
+              "text": "56이며 8×6보다 8만큼 큽니다.",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "d992467c-51fe-443d-83e8-d562a3e15e1b",
+          "displayOrder": 5,
+          "weight": 1,
+          "prompt": "접시 5개에 쿠키가 9개씩 있습니다. 5×9라고 쓴 생각을 바르게 고친 것은?",
+          "explanation": "한 접시의 쿠키 9개가 한 묶음이고 접시가 5개이므로 9×5=45로 씁니다.",
+          "skillCode": "correct-multiplication-reasoning",
+          "options": [
+            {
+              "id": "3d29df10-4af2-4c36-a044-9200dd5dbb07",
+              "displayOrder": 1,
+              "text": "한 묶음의 수 9를 앞에 써서 9×5=45입니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "0c1e0b9e-8148-4030-958e-b505c9efebe2",
+              "displayOrder": 2,
+              "text": "접시 수 5를 앞에 썼으므로 그대로 맞습니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "fda34eb3-924b-4c60-a0b5-6a225a53fcec",
+              "displayOrder": 3,
+              "text": "두 수를 더해 5+9=14입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "7f83c4a8-9beb-49ce-8906-479b38f8c671",
+              "displayOrder": 4,
+              "text": "전체 수를 앞에 써서 45×1입니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "85975377-7e54-4ebb-b773-7dde1df43717",
+          "displayOrder": 6,
+          "weight": 1,
+          "prompt": "7단에서 묶음 수가 하나씩 늘어날 때의 규칙은?",
+          "explanation": "7씩 묶인 묶음이 하나 늘 때마다 7이 더해지므로 곱은 7씩 커집니다.",
+          "skillCode": "identify-multiplication-table-pattern",
+          "options": [
+            {
+              "id": "ed89e919-6ae4-4b9c-bd3e-338e3a21958f",
+              "displayOrder": 1,
+              "text": "곱이 1씩 커집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "ebdd47c1-dd9e-4fe8-bd02-5ac545514f20",
+              "displayOrder": 2,
+              "text": "곱이 7씩 커집니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "5f2e92ca-69be-42fe-8198-73246068bd0a",
+              "displayOrder": 3,
+              "text": "곱이 7씩 작아집니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "08393693-c674-4b1c-bc8d-ab7ca1c98087",
+              "displayOrder": 4,
+              "text": "곱이 항상 같습니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "f1c936b3-b8da-4f23-9fcd-f0bd8ccec4b3",
+          "displayOrder": 7,
+          "weight": 1,
+          "prompt": "다음 중 잘못 계산한 식은?",
+          "explanation": "8×7은 56이므로 8×7=54가 잘못된 계산입니다.",
+          "skillCode": "reason-about-multiplication-facts",
+          "options": [
+            {
+              "id": "2ba1766e-cad2-4cd4-9570-e670b843cfcc",
+              "displayOrder": 1,
+              "text": "6×9=54",
+              "isCorrect": false
+            },
+            {
+              "id": "002cf8ac-f789-4d44-ad22-30535f4207d0",
+              "displayOrder": 2,
+              "text": "7×7=49",
+              "isCorrect": false
+            },
+            {
+              "id": "b3ec5455-1773-415b-b0ed-d1252a98f541",
+              "displayOrder": 3,
+              "text": "8×7=54",
+              "isCorrect": true
+            },
+            {
+              "id": "2983b040-4e32-4669-aa09-c79c919681ee",
+              "displayOrder": 4,
+              "text": "9×8=72",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "70cf1187-5f25-4b96-b3ca-d65c3f904f22",
+          "displayOrder": 8,
+          "weight": 1,
+          "prompt": "결과가 50보다 크고 9단인 식은?",
+          "explanation": "9×6=54는 9단이면서 결과가 50보다 큽니다.",
+          "skillCode": "reason-about-multiplication-facts",
+          "options": [
+            {
+              "id": "843b257f-5e57-495e-a2b5-2959c2a1bb30",
+              "displayOrder": 1,
+              "text": "9×5=45",
+              "isCorrect": false
+            },
+            {
+              "id": "e361ca6f-5355-4138-90bd-ae1d2c37be96",
+              "displayOrder": 2,
+              "text": "8×7=56",
+              "isCorrect": false
+            },
+            {
+              "id": "f0df9f25-1b1a-4e11-bdff-e6fdb0046b95",
+              "displayOrder": 3,
+              "text": "6×8=48",
+              "isCorrect": false
+            },
+            {
+              "id": "bb8e50ea-c4e4-4112-93af-87129a3daf5e",
+              "displayOrder": 4,
+              "text": "9×6=54",
+              "isCorrect": true
+            }
+          ]
+        },
+        {
+          "id": "8568ac74-cfb5-4b98-a122-76c551e60d32",
+          "displayOrder": 9,
+          "weight": 1,
+          "prompt": "□×8=64에서 □에 알맞은 수와 까닭은?",
+          "explanation": "8×8=64이므로 빈칸에 알맞은 수는 8입니다.",
+          "skillCode": "infer-missing-multiplication-factor",
+          "options": [
+            {
+              "id": "46e950a8-e1a4-4537-8bd0-6d7c595708f1",
+              "displayOrder": 1,
+              "text": "7이며 7×8=56이기 때문입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "bce0adf5-7c77-4693-a4cb-34c947ba9c70",
+              "displayOrder": 2,
+              "text": "9이며 9×8=72이기 때문입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "eefcb257-f14f-4bfc-b137-8865df42beb1",
+              "displayOrder": 3,
+              "text": "8이며 8×8=64이기 때문입니다.",
+              "isCorrect": true
+            },
+            {
+              "id": "9910482d-ede6-44dd-a5eb-4a52e923a2cf",
+              "displayOrder": 4,
+              "text": "6이며 6×8=48이기 때문입니다.",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "a9ed729c-94b0-492c-a0f3-d8ea6ae49222",
+          "displayOrder": 10,
+          "weight": 1,
+          "prompt": "6×8과 8×6을 바르게 설명한 것은?",
+          "explanation": "6×8은 6씩 8묶음이고 8×6은 8씩 6묶음이어서 뜻은 다르지만 결과는 모두 48입니다.",
+          "skillCode": "reason-about-multiplication-facts",
+          "options": [
+            {
+              "id": "10df567a-3f2d-43d4-aa28-9326c4b96da7",
+              "displayOrder": 1,
+              "text": "두 식은 뜻과 결과가 모두 다릅니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "a73a4f93-5ef5-4a7d-bb0f-2b295e8d6b65",
+              "displayOrder": 2,
+              "text": "두 식은 뜻이 같고 결과만 다릅니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "42280f09-234e-47c0-bdd0-46c417a1b4d3",
+              "displayOrder": 3,
+              "text": "6×8만 올바른 곱셈식입니다.",
+              "isCorrect": false
+            },
+            {
+              "id": "e0d56565-6c7d-4628-ad80-f7b7e6725dea",
+              "displayOrder": 4,
+              "text": "한 묶음의 수와 묶음 수는 다르지만 결과는 모두 48입니다.",
+              "isCorrect": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
