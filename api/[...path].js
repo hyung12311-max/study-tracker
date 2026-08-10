@@ -9,6 +9,7 @@ const familySession = require("../server/api/family/session");
 const familySessionRestore = require("../server/api/family/session-restore");
 const familyLogout = require("../server/api/family/logout");
 const familyLogoutAll = require("../server/api/family/logout-all");
+const adminUatProvisionFamily = require("../server/api/admin/uat/provision-family");
 const notificationsPublicKey = require("../server/api/notifications/public-key");
 const notificationsPreferences = require("../server/api/notifications/preferences");
 const notificationsStudyComplete = require("../server/api/notifications/study-complete");
@@ -70,6 +71,7 @@ const routes = Object.freeze({
   "family/session/restore": familySessionRestore,
   "family/logout": familyLogout,
   "family/logout-all": familyLogoutAll,
+  "admin/uat/provision-family": adminUatProvisionFamily,
   "notifications/public-key": notificationsPublicKey,
   "notifications/preferences": notificationsPreferences,
   "notifications/study-complete": notificationsStudyComplete,
