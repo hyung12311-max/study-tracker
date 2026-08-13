@@ -9,7 +9,6 @@ import { initLearningAnalysis } from "./learning-analysis.js";
 import { initLearningMistakes } from "./learning-mistakes.js";
 import { initLearningReviewQueue } from "./learning-review-queue.js";
 
-const PARENT_PASSWORD = "1234";
 const BUILD_VERSION = "v39";
 const CACHE_VERSION = 2;
 const STUDY_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -2625,7 +2624,7 @@ function escapeHtml(value) {
 
 function switchView(viewName) {
   if (viewName === "parent" && !isParentMode) {
-    openPasswordDialog();
+    enterParentMode();
     return;
   }
   $$(".tab").forEach((item) => {
@@ -2642,28 +2641,12 @@ function switchView(viewName) {
   history.replaceState(null, "", url);
 }
 
-function openPasswordDialog() {
+function enterParentMode() {
   if (familyChatController?.currentMember()?.role !== "parent") {
     showToast("부모 사용자로 인증해야 부모관리를 이용할 수 있어요.");
     return;
   }
-  const dialog = $("#passwordDialog");
-  $("#parentPasswordInput").value = "";
-  $("#passwordError").textContent = "";
-  if (dialog.showModal) dialog.showModal();
-  else dialog.setAttribute("open", "");
-  $("#parentPasswordInput").focus();
-}
-
-function closePasswordDialog() {
-  const dialog = $("#passwordDialog");
-  if (dialog.close) dialog.close();
-  else dialog.removeAttribute("open");
-}
-
-function enterParentMode() {
   isParentMode = true;
-  closePasswordDialog();
   resetForm();
   render();
   switchView("parent");
@@ -2681,16 +2664,6 @@ function exitParentMode() {
   render();
   switchView("today");
   showToast("아이 화면으로 돌아왔어요.");
-}
-
-function handlePasswordSubmit(event) {
-  event.preventDefault();
-  if ($("#parentPasswordInput").value === PARENT_PASSWORD) {
-    enterParentMode();
-    return;
-  }
-  $("#passwordError").textContent = "비밀번호가 맞지 않아요.";
-  $("#parentPasswordInput").select();
 }
 
 function bindEvents() {
@@ -2844,7 +2817,7 @@ function bindEvents() {
     await handleCompletePlan(id, button);
   });
 
-  $("#parentAccessButton").addEventListener("click", openPasswordDialog);
+  $("#parentAccessButton").addEventListener("click", enterParentMode);
   $("#changeCurrentUserButton").addEventListener("click", () => familyChatController?.changeUser());
   $("#startupRetryButton").addEventListener("click", async () => {
     $("#startupRetryButton").hidden = true;
@@ -2854,8 +2827,6 @@ function bindEvents() {
   });
   $("#returnChildButton").addEventListener("click", exitParentMode);
   $("#installAppButton").addEventListener("click", promptInstallApp);
-  $("#passwordForm").addEventListener("submit", handlePasswordSubmit);
-  $("#closePasswordButton").addEventListener("click", closePasswordDialog);
   $("#planForm").addEventListener("submit", handlePlanSubmit);
   $("#planAssignedMember").addEventListener("change", handlePlanAssigneeChange);
   $("#bookPlanForm")?.addEventListener("submit", handleBookPlanSubmit);
