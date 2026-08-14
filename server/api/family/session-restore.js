@@ -58,6 +58,7 @@ module.exports = async function restoreFamilyDeviceSession(request, response) {
       body: JSON.stringify({ last_used_at: now, expires_at: expiresAt, updated_at: now }),
     });
     u.setDeviceCookie(request, response, rawToken);
+    u.setBootstrapCookie(request, response, member.family_id);
     console.info("[family session restore]", { stage: "complete", ok: true, status: 200, code: null, memberKey });
     return u.json(response, 200, {
       ok: true,

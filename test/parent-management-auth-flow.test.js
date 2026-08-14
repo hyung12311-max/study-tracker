@@ -28,7 +28,8 @@ test("Child and unauthenticated actors remain outside parent management", () => 
 test("Parent selection still verifies the family PIN before creating the session", () => {
   assert.match(familyChat, /selected\.role\s*===\s*"child"/);
   assert.match(familyChat, /request\("\/api\/family\/verify-pin"/);
-  assert.match(familyChat, /body:JSON\.stringify\(\{memberKey:selected\.member_key,pin,/);
+  assert.match(familyChat, /body:JSON\.stringify\(\{memberId:selected\.id,pin,/);
+  assert.doesNotMatch(familyChat, /memberKey:selected\.member_key,pin/);
   assert.match(html, /id="familyPinInput"[^>]*pattern="\[0-9\]\{4\}"/);
 });
 

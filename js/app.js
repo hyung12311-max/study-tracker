@@ -350,21 +350,6 @@ function createSupabaseRepository(config) {
     });
   }
 
-  async function ensureRewardSettings() {
-    try {
-      const { data: settings } = await request(
-        "보상 설정 확인 실패",
-        client.from("reward_settings").select("id").limit(1).maybeSingle()
-      );
-
-      if (!settings) {
-        await saveReward(DEFAULT_REWARD);
-      }
-    } catch (error) {
-      warnReadFallback("reward_settings check", error);
-    }
-  }
-
   async function load({ essentialOnly = false } = {}) {
     const localData = readLocalData();
     if (!configured) {
@@ -421,8 +406,6 @@ function createSupabaseRepository(config) {
       order: { study_date: "asc" },
       cacheKey: localDataKey(),
     });
-    if (!essentialOnly) ensureRewardSettings();
-
     const [
       { data: plans },
       { data: bookPlans },
@@ -443,7 +426,11 @@ function createSupabaseRepository(config) {
       ),
       requestOrFallback(
         "보상 설정 불러오기 실패",
-        essentialOnly ? Promise.resolve({ data: localData.reward, error: null }) : client.from("reward_settings").select("id,target_stickers,reward_name").limit(1).maybeSingle(),
+        essentialOnly || !familyAuthHeaders()
+          ? Promise.resolve({ data: localData.reward, error: null })
+          : requestJson("/api/rewards/settings", { headers: familyAuthHeaders() })
+              .then((result) => ({ data: result.setting, error: null }))
+              .catch((error) => ({ data: null, error })),
         localData.reward
       ),
       requestOrFallback(
@@ -655,19 +642,11 @@ function createSupabaseRepository(config) {
 
   async function saveReward(reward) {
     assertConfigured();
-    const payload = sanitizePayload({
-      target_stickers: Number(reward.goal),
-      reward_name: reward.name,
+    await requestJson("/api/rewards/settings", {
+      method: "PUT",
+      headers: familyAuthHeaders(),
+      body: JSON.stringify({ goal: Number(reward.goal), name: reward.name }),
     });
-    const { data: current } = await request(
-      "보상 설정 확인 실패",
-      client.from("reward_settings").select("id").limit(1).maybeSingle()
-    );
-    if (current?.id) {
-      await request("보상 설정 저장 실패", client.from("reward_settings").update(payload).eq("id", current.id));
-      return;
-    }
-    await request("보상 설정 저장 실패", client.from("reward_settings").insert(payload));
   }
 
   async function saveRewardMilestones(milestones) {
@@ -753,9 +732,7 @@ function createSupabaseRepository(config) {
     const channel = client
       .channel("study-tracker-single-user")
       .on("postgres_changes", { event: "*", schema: "public", table: "study_plans" }, onChange)
-      .on("postgres_changes", { event: "*", schema: "public", table: "reward_settings" }, onChange)
       .on("postgres_changes", { event: "*", schema: "public", table: "reward_milestones" }, onChange)
-      .on("postgres_changes", { event: "*", schema: "public", table: "sticker_history" }, onChange)
       .on("postgres_changes", { event: "*", schema: "public", table: "academy_schedules" }, onChange)
       .on("postgres_changes", { event: "*", schema: "public", table: "academy_completion_history" }, onChange)
       .subscribe((status, error) => {
@@ -910,8 +887,7 @@ async function loadPlanAssignees() {
     const data = await requestJson("/api/family/members", { headers: familyAuthHeaders() });
     planAssignees = (data.members || [])
       .filter((member) => (
-        member.family_id === currentMember.family_id
-        && member.role === "child"
+        member.role === "child"
         && member.is_active === true
       ))
       .map((member) => ({

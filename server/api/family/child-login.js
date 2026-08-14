@@ -3,9 +3,10 @@ const u = require("./_utils");
 module.exports = async function childLogin(request, response) {
   if (request.method !== "POST") return u.allow(response, ["POST"]);
   try {
+    const scope = await u.trustedFamilyScope(request, response);
     const body = await u.readJson(request);
     if (!/^[0-9a-f-]{36}$/i.test(body.memberId || "")) throw u.err("Select a child member.");
-    const rows = await u.supabaseFetch(`family_members?select=id,family_id,member_key,display_name,role,avatar_emoji,is_active&id=eq.${encodeURIComponent(body.memberId)}&role=eq.child&is_active=eq.true&limit=1`);
+    const rows = await u.supabaseFetch(`family_members?select=id,family_id,member_key,display_name,role,avatar_emoji,is_active&id=eq.${encodeURIComponent(body.memberId)}&family_id=eq.${encodeURIComponent(scope.familyId)}&role=eq.child&is_active=eq.true&limit=1`);
     const member = rows?.[0];
     if (!member) throw u.err("Active child member not found.", 404);
     let deviceSession = null;

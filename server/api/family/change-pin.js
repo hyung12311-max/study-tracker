@@ -31,9 +31,9 @@ module.exports = async function changeFamilyPin(request, response) {
     if (currentPin === newPin) throw u.err("새 PIN은 현재 PIN과 다르게 입력해 주세요.", 400, "PIN_UNCHANGED");
     if (isSimplePin(newPin)) throw u.err("너무 단순한 PIN은 사용할 수 없습니다.", 400, "PIN_TOO_SIMPLE");
 
-    const rows = await u.supabaseFetch("rpc/verify_family_member_pin", {
+    const rows = await u.supabaseFetch("rpc/verify_family_parent_pin", {
       method: "POST",
-      body: JSON.stringify({ p_member_key: memberKey, p_pin: currentPin }),
+      body: JSON.stringify({ p_family_id: claims.family, p_member_id: claims.sub, p_pin: currentPin }),
     });
     const member = rows?.[0];
 

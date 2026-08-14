@@ -15,16 +15,15 @@ function classifyError(error){
 module.exports=async function(req,res){
  if(!["GET","PATCH"].includes(req.method))return u.allow(res,["GET","PATCH"]);
  try{
-  let claims=null;
-  if(req.headers.authorization)claims=u.authenticate(req);
+  const scope=await u.trustedFamilyScope(req,res,{allowLegacyDefault:req.method==="GET"});
+  let claims=scope.claims;
   if(req.method==="PATCH"){
-   claims=u.authenticate(req,"parent");const body=await u.readJson(req);
+   if(claims?.role!=="parent")throw u.err("Parent permission is required.",403);const body=await u.readJson(req);
    if(body.familySettings){const s={};if(typeof body.familySettings.chatNotificationsEnabled==="boolean")s.chat_notifications_enabled=body.familySettings.chatNotificationsEnabled;if(typeof body.familySettings.systemNotificationsEnabled==="boolean")s.system_notifications_enabled=body.familySettings.systemNotificationsEnabled;await u.supabaseFetch(`families?id=eq.${claims.family}`,{method:"PATCH",body:JSON.stringify(s)});}else{if(!/^[0-9a-f-]{36}$/i.test(body.memberId||""))throw u.err("memberId is required.");const changes={updated_at:new Date().toISOString()};if(typeof body.isActive==="boolean")changes.is_active=body.isActive;if(typeof body.notificationsEnabled==="boolean")changes.notifications_enabled=body.notificationsEnabled;await u.supabaseFetch(`family_members?id=eq.${body.memberId}&family_id=eq.${claims.family}`,{method:"PATCH",body:JSON.stringify(changes)});}
   }
-  const filter=claims?`&family_id=eq.${claims.family}`:"";
-  const rows=await u.supabaseFetch(`family_members?select=id,family_id,member_key,display_name,role,avatar_emoji,is_active,notifications_enabled${filter}&order=created_at.asc`);
+  const rows=await u.supabaseFetch(`family_members?select=id,display_name,role,avatar_emoji,is_active,notifications_enabled&family_id=eq.${encodeURIComponent(scope.familyId)}&order=created_at.asc`);
   let settings=null;if(claims){settings=(await u.supabaseFetch(`families?select=chat_notifications_enabled,system_notifications_enabled&id=eq.${claims.family}&limit=1`))?.[0]||null;if(claims.role==="parent"){const devices=await u.supabaseFetch(`family_push_subscriptions?select=member_id&family_id=eq.${claims.family}&is_active=eq.true&member_id=not.is.null`);for(const row of rows||[])row.device_count=(devices||[]).filter(d=>d.member_id===row.id).length}}
-  const members=(rows||[]).filter(row=>claims||row.is_active).map(row=>claims?row:((({family_id,...safe})=>safe)(row)));
+  const members=(rows||[]).filter(row=>claims?.role==="parent"||row.is_active).map(row=>{const safe={id:row.id,display_name:row.display_name,role:row.role,avatar_emoji:row.avatar_emoji};if(claims?.role==="parent")Object.assign(safe,{is_active:row.is_active,notifications_enabled:row.notifications_enabled,device_count:row.device_count||0});return safe});
   console.info("[family members] query success",{rowCount:Array.isArray(rows)?rows.length:0,activeMemberCount:members.length,authenticated:Boolean(claims)});
   if(!members.length){console.warn("[family members] no active family members found");return u.json(res,200,{members:[],settings,message:"가족 구성원이 없습니다."});}
   return u.json(res,200,{members,settings});

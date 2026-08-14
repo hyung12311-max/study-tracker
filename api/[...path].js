@@ -24,6 +24,7 @@ const rewards = require("../server/api/rewards");
 const rewardsAcademyComplete = require("../server/api/rewards/academy-complete");
 const rewardsExchange = require("../server/api/rewards/exchange");
 const rewardsProducts = require("../server/api/rewards/products");
+const rewardsSettings = require("../server/api/rewards/settings");
 const rewardsWishlist = require("../server/api/rewards/wishlist");
 const rewardsStickerSettings = require("../server/api/rewards/sticker-settings");
 const rewardsStudyComplete = require("../server/api/rewards/study-complete");
@@ -86,6 +87,7 @@ const routes = Object.freeze({
   "rewards/academy-complete": rewardsAcademyComplete,
   "rewards/exchange": rewardsExchange,
   "rewards/products": rewardsProducts,
+  "rewards/settings": rewardsSettings,
   "rewards/wishlist": rewardsWishlist,
   "rewards/sticker-settings": rewardsStickerSettings,
   "rewards/study-complete": rewardsStudyComplete,

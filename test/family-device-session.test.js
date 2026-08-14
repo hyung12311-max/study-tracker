@@ -36,6 +36,7 @@ const child = {
 test("child login creates the same persistent device session used by parent login", async () => {
   const calls = [];
   const restore = replaceUtils({
+    trustedFamilyScope: async () => ({ familyId: child.family_id, source: "bootstrap" }),
     readJson: async () => ({ memberId: child.id, rememberDevice: true, deviceSessionToken: "old-token" }),
     supabaseFetch: async (path) => {
       calls.push(path);
@@ -79,6 +80,7 @@ test("device session restore accepts an active child and applies 90-day sliding 
     signToken: () => "family-token",
     signRealtimeToken: () => "realtime-token",
     setDeviceCookie: () => {},
+    setBootstrapCookie: () => {},
   });
   try {
     const before = Date.now() + 89 * 24 * 60 * 60 * 1000;

@@ -41,8 +41,8 @@ test("message retry reuses client_message_id without inserting or pushing twice"
     supabaseFetch: async (path) => {
       calls.push(path);
       if (path.startsWith("family_members?select=")) return [{ id: "member-id", member_key: "hagyeom", display_name: "하겸이", avatar_emoji: "👦", is_active: true }];
-      if (path === "family_messages?on_conflict=client_message_id") return [];
-      if (path.startsWith("family_messages?select=*&client_message_id=eq.")) return [row];
+      if (path === "family_messages?on_conflict=family_id,client_message_id") return [];
+      if (path.startsWith("family_messages?select=*&family_id=eq.family-id&client_message_id=eq.")) return [row];
       return [];
     },
     sendPush: async () => { pushes += 1; },
@@ -56,7 +56,8 @@ test("message retry reuses client_message_id without inserting or pushing twice"
     assert.equal(response.body.message.id, row.id);
     assert.equal(response.body.message.client_message_id, clientMessageId);
     assert.equal(pushes, 0);
-    assert.ok(calls.includes("family_messages?on_conflict=client_message_id"));
+    assert.ok(calls.includes("family_messages?on_conflict=family_id,client_message_id"));
+    assert.ok(calls.some((path) => path.includes("family_id=eq.family-id")));
     assert.ok(calls.some((path) => path.includes(`client_message_id=eq.${clientMessageId}`)));
   } finally {
     restore();

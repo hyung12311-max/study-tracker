@@ -41,16 +41,17 @@ module.exports = async function verifyFamilyPin(request, response) {
   if (request.method !== "POST") return u.allow(response, ["POST"]);
 
   try {
+    const scope = await u.trustedFamilyScope(request, response);
     const body = await u.readJson(request);
-    const memberKey = String(body.memberKey || body.member_key || "");
+    const memberId = String(body.memberId || body.member_id || "");
     const pin = String(body.pin || "");
-    if (!/^[a-z0-9_-]{2,40}$/.test(memberKey) || !/^\d{4}$/.test(pin)) {
+    if (!/^[0-9a-f-]{36}$/i.test(memberId) || !/^\d{4}$/.test(pin)) {
       throw u.err("Select a member and enter a 4-digit PIN.", 400, "PIN_INPUT_INVALID");
     }
 
-    const rpcResult = await u.supabaseFetch("rpc/verify_family_member_pin", {
+    const rpcResult = await u.supabaseFetch("rpc/verify_family_parent_pin", {
       method: "POST",
-      body: JSON.stringify({ p_member_key: memberKey, p_pin: pin }),
+      body: JSON.stringify({ p_family_id: scope.familyId, p_member_id: memberId, p_pin: pin }),
     });
     const member = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
 
