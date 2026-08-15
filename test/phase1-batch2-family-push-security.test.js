@@ -80,6 +80,8 @@ test("Family message GET uses only the active context Family and member", async 
     assert.equal(response.statusCode, 200);
     assert.ok(calls.includes(`fetch:${FAMILY_A}`));
     assert.ok(calls.some((path) => path.includes(`family_id=eq.${FAMILY_A}`)));
+    assert.ok(calls.some((path) => path.includes("family_message_reads!family_message_reads_message_scope_fk(member_id)")));
+    assert.ok(!calls.some((path) => path.includes("family_message_reads!left(member_id)")));
     assert.ok(calls.every((path) => !path.includes(FAMILY_B)));
   } finally { restoreFamily(); restoreAuth(); }
 });

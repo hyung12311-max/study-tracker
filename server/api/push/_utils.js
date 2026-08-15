@@ -123,13 +123,6 @@ function validateSubscriptionPayload(subscription) {
   return { endpoint, p256dh, auth };
 }
 
-async function markInactive(endpoint) {
-  await supabaseFetch(`push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`, {
-    method: "PATCH",
-    body: JSON.stringify({ is_active: false }),
-  });
-}
-
 function methodNotAllowed(response) {
   response.setHeader("Allow", "GET, POST");
   return json(response, 405, { error: "Method not allowed." });
@@ -139,7 +132,6 @@ module.exports = {
   configureWebPush,
   env,
   json,
-  markInactive,
   methodNotAllowed,
   normalizeSubscription,
   readJson,

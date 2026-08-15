@@ -6,7 +6,7 @@ module.exports=async function(req,res){
   const context=await authorization.authenticateActiveMember(req,{allowRoles:["parent","child"]});
   if(req.method==="GET"){
    const url=new URL(req.url,"http://localhost"),messages=await u.fetchMessages(context.familyId,url.searchParams.get("before"),url.searchParams.get("limit"));
-   const rows=await u.supabaseFetch(`family_messages?select=id,sender_id,family_message_reads!left(member_id)&family_id=eq.${encodeURIComponent(context.familyId)}&deleted_at=is.null&or=(sender_id.is.null,sender_id.neq.${encodeURIComponent(context.memberId)})`);
+   const rows=await u.supabaseFetch(`family_messages?select=id,sender_id,family_message_reads!family_message_reads_message_scope_fk(member_id)&family_id=eq.${encodeURIComponent(context.familyId)}&deleted_at=is.null&or=(sender_id.is.null,sender_id.neq.${encodeURIComponent(context.memberId)})`);
    const unread=(rows||[]).filter(row=>!(row.family_message_reads||[]).some(read=>String(read.member_id)===context.memberId)).length;
    return u.json(res,200,{messages,unread});
   }

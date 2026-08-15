@@ -84,9 +84,23 @@ test("default integration requires a valid unexpired signed family token", async
     assert.equal(databaseRead, true);
 
     databaseRead = false;
+    const validSegments = valid.split(".");
+    assert.equal(validSegments.length, 2);
+    const [validPayload, validSignature] = validSegments;
+    const validSignatureBytes = Buffer.from(validSignature, "base64url");
+    const tamperedSignatureBytes = Buffer.from(validSignatureBytes);
+    tamperedSignatureBytes[0] ^= 0x01;
+    const tamperedSignature = tamperedSignatureBytes.toString("base64url");
+    const tampered = `${validPayload}.${tamperedSignature}`;
+    const tamperedSegments = tampered.split(".");
+    assert.notEqual(tampered, valid);
+    assert.equal(tamperedSegments.length, validSegments.length);
+    assert.equal(tamperedSegments[0], validPayload);
+    assert.equal(tamperedSignatureBytes.length, validSignatureBytes.length);
+    assert.notDeepEqual(tamperedSignatureBytes, validSignatureBytes);
     await assert.rejects(
       authorization.authenticateActiveMember({
-        headers: { authorization: `Bearer ${valid.slice(0, -1)}x` },
+        headers: { authorization: `Bearer ${tampered}` },
       }),
       (error) => error.statusCode === 401 && error.code === "AUTH_INVALID"
     );
