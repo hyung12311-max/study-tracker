@@ -2,6 +2,15 @@
 
 const PUBLIC_CODE = /^[A-Z][A-Z0-9_]{1,80}$/;
 const SAFE_KEY = /^[A-Za-z][A-Za-z0-9_]{0,79}$/;
+const OPAQUE_MEMBER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PRIVATE_MEMBER_FIELDS = Object.freeze(new Set([
+  "family_id",
+  "member_key",
+  "pin",
+  "pin_hash",
+  "failed_attempts",
+  "locked_until",
+]));
 
 const contract = (definition) => Object.freeze({
   ...definition,
@@ -364,4 +373,76 @@ async function runIdorMatrix(execute, contracts = IDOR_CONTRACTS) {
   });
 }
 
-module.exports = { IDOR_CONTRACTS, diagnoseIdorResponse, runIdorMatrix };
+function diagnosePublicMemberScope({
+  expectedMemberIds,
+  actualMembers,
+  foreignMemberIds = [],
+  expectedRoles = { parent: 1, child: 2 },
+}) {
+  if (!Array.isArray(expectedMemberIds) || !Array.isArray(actualMembers) || !Array.isArray(foreignMemberIds)) {
+    throw new TypeError("Member scope inputs must be arrays.");
+  }
+  if (!expectedRoles || typeof expectedRoles !== "object" || Array.isArray(expectedRoles)) {
+    throw new TypeError("Expected member roles must be an object.");
+  }
+
+  const expected = new Set(expectedMemberIds);
+  const actualIds = actualMembers.map((member) => member?.id);
+  const actual = new Set(actualIds);
+  const foreign = new Set(foreignMemberIds);
+  if (expected.size !== expectedMemberIds.length
+    || expectedMemberIds.some((id) => !OPAQUE_MEMBER_ID.test(id || ""))
+    || foreign.size !== foreignMemberIds.length
+    || foreignMemberIds.some((id) => !OPAQUE_MEMBER_ID.test(id || ""))) {
+    throw new TypeError("Expected member identity sets are invalid.");
+  }
+
+  const missingCount = [...expected].filter((id) => !actual.has(id)).length;
+  const unexpectedCount = [...actual].filter((id) => !expected.has(id)).length;
+  const foreignIntersectionCount = [...actual].filter((id) => foreign.has(id)).length;
+  const invalidIdentityCount = actualIds.filter((id) => !OPAQUE_MEMBER_ID.test(id || "")).length;
+  const duplicateIdentityCount = actualIds.length - actual.size;
+  const forbiddenFieldCount = actualMembers.reduce((count, member) => {
+    if (!member || typeof member !== "object" || Array.isArray(member)) return count + 1;
+    return count + Object.keys(member).filter(
+      (key) => PRIVATE_MEMBER_FIELDS.has(key) || /(?:^|_)(?:token|session)(?:_|$)/i.test(key)
+    ).length;
+  }, 0);
+  const roleCounts = Object.fromEntries(Object.keys(expectedRoles).map((role) => [
+    role,
+    actualMembers.filter((member) => member?.role === role).length,
+  ]));
+  const roleMismatchCount = Object.entries(expectedRoles).filter(
+    ([role, count]) => roleCounts[role] !== count
+  ).length;
+
+  const diagnostic = Object.freeze({
+    expectedCount: expected.size,
+    actualCount: actualMembers.length,
+    missingCount,
+    unexpectedCount,
+    foreignIntersectionCount,
+    invalidIdentityCount,
+    duplicateIdentityCount,
+    forbiddenFieldCount,
+    roleCounts: Object.freeze({ ...roleCounts }),
+    roleMismatchCount,
+  });
+  const failure = forbiddenFieldCount > 0 ? "PRIVATE_MEMBER_FIELD_EXPOSED"
+    : invalidIdentityCount > 0 ? "PUBLIC_MEMBER_ID_INVALID"
+      : duplicateIdentityCount > 0 ? "PUBLIC_MEMBER_ID_DUPLICATED"
+        : missingCount > 0 ? "EXPECTED_MEMBER_MISSING"
+          : unexpectedCount > 0 ? "UNEXPECTED_MEMBER_EXPOSED"
+            : foreignIntersectionCount > 0 ? "FOREIGN_MEMBER_EXPOSED"
+              : roleMismatchCount > 0 ? "MEMBER_ROLE_SHAPE_UNEXPECTED"
+                : null;
+  return Object.freeze({ pass: failure === null, failure, diagnostic });
+}
+
+module.exports = {
+  IDOR_CONTRACTS,
+  PRIVATE_MEMBER_FIELDS,
+  diagnoseIdorResponse,
+  diagnosePublicMemberScope,
+  runIdorMatrix,
+};
