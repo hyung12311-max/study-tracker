@@ -333,10 +333,10 @@ test("notification preferences Parent target lookup and mutation remain same-Fam
   const calls = [];
   const restoreAuth = replace(authorization, { authenticateActiveMember: async () => context() });
   const restoreUtils = replace(notifications, {
-    readJson: async () => ({ member_key: "child-a", study_complete_enabled: false }),
+    readJson: async () => ({ member_key: "child1", study_complete_enabled: false }),
     supabaseFetch: async (path, options = {}) => {
       calls.push({ path, options });
-      if (path.startsWith("family_members?")) return [{ id: CHILD_A, family_id: FAMILY_A, member_key: "child-a", is_active: true }];
+      if (path.startsWith("family_members?")) return [{ id: CHILD_A, family_id: FAMILY_A, member_key: "child1", is_active: true }];
       return [];
     },
   });
@@ -347,6 +347,39 @@ test("notification preferences Parent target lookup and mutation remain same-Fam
     assert.equal(calls.length, 2);
     assert.ok(calls.every(({ path }) => path.includes(`family_id=eq.${FAMILY_A}`)));
     assert.equal(JSON.parse(calls[1].options.body).study_complete_enabled, false);
+  } finally { restoreUtils(); restoreAuth(); }
+});
+
+test("notification foreign-only member key returns safe 404 with zero mutation", async () => {
+  const calls = [];
+  let mutations = 0;
+  const preferences = {
+    a: { child1: true, child2: true },
+    b: { child1: true, child2: true, child3: true },
+  };
+  const before = structuredClone(preferences);
+  const restoreAuth = replace(authorization, { authenticateActiveMember: async () => context() });
+  const restoreUtils = replace(notifications, {
+    readJson: async () => ({ member_key: "child3", family_chat_enabled: false }),
+    supabaseFetch: async (path, options = {}) => {
+      calls.push(path);
+      if (options.method) mutations += 1;
+      return [];
+    },
+  });
+  try {
+    const response = responseCapture();
+    await preferencesHandler({ method: "PATCH", headers: {} }, response);
+    assert.equal(response.statusCode, 404);
+    assert.equal(response.body.code, "FAMILY_CHILD_NOT_FOUND");
+    assert.deepEqual(Object.keys(response.body).sort(), ["code", "error", "ok"]);
+    assert.equal(mutations, 0);
+    assert.deepEqual(preferences.a, before.a);
+    assert.deepEqual(preferences.b, before.b);
+    assert.equal(calls.length, 1);
+    assert.match(calls[0], new RegExp(`family_id=eq\\.${FAMILY_A}`));
+    assert.match(calls[0], /member_key=eq\.child3/);
+    assert.doesNotMatch(JSON.stringify(response.body), /[0-9a-f]{8}-[0-9a-f-]{27,}|family_id|member_key|constraint|supabase|sql/i);
   } finally { restoreUtils(); restoreAuth(); }
 });
 
@@ -364,6 +397,7 @@ test("notification preference child override and session drift have zero mutatio
       const response = responseCapture();
       await preferencesHandler({ method: "PATCH", headers: {} }, response);
       assert.equal(response.statusCode, mode === "drift" ? 401 : 403);
+      assert.equal(response.body.code, mode === "drift" ? "AUTH_SESSION_INVALID" : "AUTH_ROLE_REQUIRED");
       assert.equal(calls, 0);
     } finally { restoreUtils(); restoreAuth(); }
   }

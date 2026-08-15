@@ -31,6 +31,14 @@ test("canonical IDOR contracts use symbolic routes and source/test evidence", ()
   }
 });
 
+test("notification #17 contract requires a foreign-only member key", () => {
+  const definition = IDOR_CONTRACTS.find(({ routeId }) => routeId === "notification-target-cross-family");
+  assert.equal(definition.attack, "foreign-only-family-member-key");
+  assert.match(definition.routeTemplate, /foreignOnlyMemberKey/);
+  assert.deepEqual(definition.expectedStatuses, [404]);
+  assert.deepEqual(definition.expectedCodes, ["FAMILY_CHILD_NOT_FOUND"]);
+});
+
 test("route-specific 403 and 404 contracts pass without widening status sets", () => {
   const notFound = diagnoseIdorResponse("learning-assignment-cross-family-child", {
     status: 404,
