@@ -4,6 +4,7 @@ const push = require("../push/_utils");
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FAMILY_LABEL_PATTERN = /^uat-[a-z0-9][a-z0-9-]{2,20}$/;
 const SIMPLE_PINS = new Set(["0000", "1111", "1234", "4321"]);
+const MAX_UAT_CHILDREN = 5;
 
 function err(message, statusCode, code) {
   const error = new Error(message);
@@ -122,6 +123,55 @@ function provisioningRequest(body) {
   return request;
 }
 
+function provisioningRequestV2(body) {
+  exactObject(body, new Set(["requestId", "purpose", "familyLabel", "parent", "children"]), "INVALID_PROVISIONING_REQUEST");
+  if (!UUID_PATTERN.test(body.requestId || "")) throw err("A valid request ID is required.", 400, "INVALID_REQUEST_ID");
+  if (body.purpose !== "uat") throw err("Only UAT provisioning is allowed.", 400, "UAT_PURPOSE_REQUIRED");
+  if (typeof body.familyLabel !== "string" || !FAMILY_LABEL_PATTERN.test(body.familyLabel)) {
+    throw err("A valid uat- family label is required.", 400, "INVALID_UAT_FAMILY_LABEL");
+  }
+  if (!Array.isArray(body.children) || body.children.length < 1 || body.children.length > MAX_UAT_CHILDREN) {
+    throw err(`UAT provisioning requires between 1 and ${MAX_UAT_CHILDREN} children.`, 400, "INVALID_CHILD_COUNT");
+  }
+
+  const parentInput = exactObject(body.parent, new Set(["displayName", "pin"]), "INVALID_PARENT");
+  const parent = {
+    memberKey: "parent",
+    displayName: displayName(parentInput.displayName, "Parent"),
+    pin: pin(parentInput.pin),
+  };
+  const children = body.children.map((value, index) => {
+    const child = exactObject(value, new Set(["displayName", "pin"]), "INVALID_CHILD");
+    return {
+      memberKey: `child${index + 1}`,
+      displayName: displayName(child.displayName, `Child ${index + 1}`),
+      pin: pin(child.pin),
+    };
+  });
+  const pins = [parent.pin, ...children.map((child) => child.pin)];
+  if (new Set(pins).size !== pins.length) {
+    throw err("Every UAT bootstrap PIN must be distinct.", 400, "BOOTSTRAP_PIN_REUSE");
+  }
+
+  const request = {
+    requestId: body.requestId.toLowerCase(),
+    purpose: "uat",
+    familyKey: body.familyLabel,
+    familyDisplayName: `UAT ${body.familyLabel}`,
+    parent,
+    children,
+  };
+  request.digest = crypto.createHash("sha256").update(JSON.stringify({
+    purpose: request.purpose,
+    familyKey: request.familyKey,
+    familyDisplayName: request.familyDisplayName,
+    parentMemberKey: request.parent.memberKey,
+    parentDisplayName: request.parent.displayName,
+    children: request.children.map(({ memberKey, displayName: childDisplayName }) => ({ memberKey, displayName: childDisplayName })),
+  })).digest("hex");
+  return request;
+}
+
 function safeError(response, error) {
   const message = String(error.supabaseMessage || "");
   if (error.supabaseCode === "55000" && message.includes("IDEMPOTENCY_CONFLICT")) {
@@ -129,6 +179,9 @@ function safeError(response, error) {
   }
   if ((error.supabaseCode === "55000" && message.includes("UAT_FAMILY_CONFLICT")) || error.supabaseCode === "23505") {
     return send(response, 409, { ok: false, error: "UAT family label is already reserved.", code: "UAT_FAMILY_CONFLICT" });
+  }
+  if (error.supabaseCode === "55000" && message.includes("UAT_REQUEST_CONFLICT")) {
+    return send(response, 409, { ok: false, error: "UAT request ID is already reserved.", code: "UAT_REQUEST_CONFLICT" });
   }
   if (error.statusCode && !error.supabaseCode) {
     return send(response, error.statusCode, { ok: false, error: error.message, code: error.code || "PROVISIONING_REJECTED" });
@@ -143,6 +196,7 @@ function safeError(response, error) {
 module.exports = {
   allow,
   provisioningRequest,
+  provisioningRequestV2,
   push,
   requireAdmin,
   requireMutationGuard,
