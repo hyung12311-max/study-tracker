@@ -154,6 +154,89 @@ test("reward exchange POST resolves same-Family child and product before scoped 
   } finally { restore(); }
 });
 
+test("child self exchange accepts current and null availability windows", async () => {
+  for (const availability of [
+    { available_from: null, available_until: null },
+    { available_from: new Date(Date.now() - 60_000).toISOString(), available_until: new Date(Date.now() + 60_000).toISOString() },
+  ]) {
+    let productPath = "";
+    let rpcBody;
+    const restore = replace(rewards, {
+      authenticateActiveMember: async () => context("child"),
+      readJson: async () => ({ productId: PRODUCT_A, clientRequestId: "request_child_01" }),
+      supabaseFetch: async (path, options = {}) => {
+        if (path.startsWith("reward_products?")) {
+          productPath = path;
+          return [{ id: PRODUCT_A, family_id: FAMILY_A, is_active: true, stock: 1, ...availability }];
+        }
+        if (path === "rpc/create_reward_exchange_request_v2") {
+          rpcBody = JSON.parse(options.body);
+          return [{ id: REQUEST_A, member_id: CHILD_A, product_name: "Book", product_emoji: "📘", sticker_cost: 1, status: "pending" }];
+        }
+        return [];
+      },
+      insertSystemMessage: async () => ({ created: true }),
+      sendTargetedPush: async () => ({ success: 0 }),
+    });
+    try {
+      const response = responseCapture();
+      await exchangeHandler({ method: "POST", headers: {} }, response);
+      assert.equal(response.statusCode, 201);
+      assert.match(decodeURIComponent(productPath), /available_from,available_until/);
+      assert.equal(rpcBody.p_actor_member_id, CHILD_A);
+      assert.equal(rpcBody.p_target_member_id, CHILD_A);
+      assert.equal(rpcBody.p_family_id, FAMILY_A);
+    } finally { restore(); }
+  }
+});
+
+test("future and expired reward products stop before exchange RPC", async () => {
+  for (const availability of [
+    { available_from: new Date(Date.now() + 60_000).toISOString(), available_until: null },
+    { available_from: null, available_until: new Date(Date.now() - 60_000).toISOString() },
+  ]) {
+    let rpcCalls = 0;
+    const restore = replace(rewards, {
+      authenticateActiveMember: async () => context("child"),
+      readJson: async () => ({ productId: PRODUCT_A, clientRequestId: "request_child_02" }),
+      supabaseFetch: async (path) => {
+        if (path.startsWith("reward_products?")) return [{ id: PRODUCT_A, family_id: FAMILY_A, is_active: true, stock: 1, ...availability }];
+        if (path === "rpc/create_reward_exchange_request_v2") rpcCalls += 1;
+        return [];
+      },
+    });
+    try {
+      const response = responseCapture();
+      await exchangeHandler({ method: "POST", headers: {} }, response);
+      assert.equal(response.statusCode, 409);
+      assert.equal(response.body.code, "REWARD_PRODUCT_UNAVAILABLE");
+      assert.equal(rpcCalls, 0);
+    } finally { restore(); }
+  }
+});
+
+test("insufficient exchange RPC remains a sanitized 409 with zero created request", async () => {
+  const restore = replace(rewards, {
+    authenticateActiveMember: async () => context("child"),
+    readJson: async () => ({ productId: PRODUCT_A, clientRequestId: "request_child_03" }),
+    supabaseFetch: async (path) => {
+      if (path.startsWith("reward_products?")) return [{ id: PRODUCT_A, family_id: FAMILY_A, is_active: true, stock: 1, available_from: null, available_until: null }];
+      const error = new Error("private reward balance detail");
+      error.statusCode = 400;
+      error.supabaseCode = "55000";
+      error.supabaseMessage = "INSUFFICIENT_AVAILABLE_STICKERS";
+      throw error;
+    },
+  });
+  try {
+    const response = responseCapture();
+    await exchangeHandler({ method: "POST", headers: {} }, response);
+    assert.equal(response.statusCode, 409);
+    assert.equal(response.body.code, "REWARD_BALANCE_INSUFFICIENT");
+    assert.doesNotMatch(JSON.stringify(response.body), /55000|private|STICKERS/);
+  } finally { restore(); }
+});
+
 test("cross-family exchange product or request produces 404 and zero RPC/mutation", async () => {
   for (const [method, body] of [
     ["POST", { productId: PRODUCT_B, memberId: CHILD_A, clientRequestId: "request_12345678" }],
