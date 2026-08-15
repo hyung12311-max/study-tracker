@@ -86,47 +86,45 @@ function exactBody(value, allowed) {
 }
 
 async function activeMember(request, role) {
-  const claims = u.authenticate(request, role);
-  const member = await u.memberInFamily(claims.sub, claims.family);
-  if (
-    !member
-    || String(member.id) !== String(claims.sub)
-    || String(member.family_id) !== String(claims.family)
-    || member.is_active !== true
-    || member.role !== claims.role
-    || (role && member.role !== role)
-  ) {
-    throw u.err(
-      role === "parent" ? "활성 부모 권한이 필요합니다." : "활성 가족 구성원 인증이 필요합니다.",
-      403,
-      role === "parent" ? "ACTIVE_PARENT_REQUIRED" : "ACTIVE_MEMBER_REQUIRED"
-    );
-  }
-  return { claims, member };
+  let claims;
+  const foundation = u.createAuthorizationFoundation({
+    authenticate: (value) => {
+      claims = u.authenticate(value);
+      return claims;
+    },
+    supabaseFetch: async () => {
+      const member = await u.memberInFamily(claims.sub, claims.family);
+      return member ? [member] : [];
+    },
+  });
+  const context = await foundation.authenticateActiveMember(
+    request,
+    role ? { requiredRole: role } : { allowRoles: ["parent", "child"] }
+  );
+  return { claims: context.claims, member: context.member, context };
 }
 
-async function activeChild(familyId, assignedMemberId) {
-  const child = (await u.supabaseFetch(
-    `family_members?select=id,family_id,role,is_active&id=eq.${encodeURIComponent(assignedMemberId)}&family_id=eq.${encodeURIComponent(familyId)}&role=eq.child&is_active=eq.true&limit=1`
-  ))?.[0];
-  if (!child) {
-    throw u.err("배정 대상을 찾을 수 없습니다.", 404, "LEARNING_TARGET_NOT_FOUND");
-  }
+async function activeChild(context, assignedMemberId) {
+  const foundation = u.createAuthorizationFoundation({
+    authenticate: () => context.claims,
+    supabaseFetch: (...args) => u.supabaseFetch(...args),
+  });
+  const child = await foundation.resolveActiveFamilyChild(context, assignedMemberId);
   return String(child.id);
 }
 
 async function parentScope(request, assignedMemberId) {
-  const { claims, member } = await activeMember(request, "parent");
+  const { claims, member, context } = await activeMember(request, "parent");
   const childId = uuid(
     assignedMemberId,
     assignedMemberId ? "INVALID_ASSIGNED_MEMBER" : "ASSIGNED_MEMBER_REQUIRED"
   );
-  await activeChild(claims.family, childId);
-  return { claims, member, assignedMemberId: childId };
+  await activeChild(context, childId);
+  return { claims, member, context, assignedMemberId: childId };
 }
 
 async function assignmentReadScope(request) {
-  const { claims, member } = await activeMember(request);
+  const { claims, member, context } = await activeMember(request);
   const url = new URL(request.url || "/api/learning/assignments", "http://localhost");
   const requested = url.searchParams.get("assignedMemberId");
   if (member.role === "child") {
@@ -137,7 +135,7 @@ async function assignmentReadScope(request) {
         "CHILD_ASSIGNEE_OVERRIDE_NOT_ALLOWED"
       );
     }
-    return { claims, member, assignedMemberId: String(claims.sub), viewerRole: "child" };
+    return { claims, member, context, assignedMemberId: u.childSelfScope(context), viewerRole: "child" };
   }
   const scope = await parentScope(request, requested);
   return { ...scope, viewerRole: "parent" };
@@ -175,6 +173,10 @@ function allow(response, methods) {
 }
 
 function safeError(response, error) {
+  const authorizationFailure = u.publicAuthorizationError(error);
+  if (authorizationFailure.status !== 500) {
+    return send(response, authorizationFailure.status, authorizationFailure.body);
+  }
   const databaseCode = error.supabaseCode;
   if (databaseCode === "23505") {
     return send(response, 409, {
@@ -204,7 +206,8 @@ function safeError(response, error) {
       code: "LEARNING_ACCESS_DENIED",
     });
   }
-  const isPublic = Boolean(error.statusCode && !databaseCode);
+  const isPublic = Boolean(error.statusCode >= 400 && error.statusCode < 500 && !databaseCode);
+  const controlledInternal = Boolean(error.statusCode === 500 && error.code && !databaseCode);
   console.error("[learning API failed]", {
     status: error.statusCode || 500,
     code: databaseCode || error.code || null,
@@ -212,7 +215,7 @@ function safeError(response, error) {
   return send(response, isPublic ? error.statusCode : 500, {
     ok: false,
     error: isPublic ? error.message : "문제풀이 학습 요청을 처리하지 못했습니다.",
-    code: error.code || databaseCode || "LEARNING_REQUEST_FAILED",
+    code: (isPublic || controlledInternal) && error.code ? error.code : "LEARNING_REQUEST_FAILED",
   });
 }
 

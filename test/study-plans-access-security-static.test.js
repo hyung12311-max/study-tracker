@@ -301,9 +301,9 @@ test("service-role routes scope study plan lookups and updates to the authentica
     serverBoundarySources,
     /study_plans\?(?:select=[^`]*&)?id=eq\.\$\{encodeURIComponent\([^)]*(?:planId|relatedId|plan\.id)[^)]*\)\}(?![^`]*family_id=eq\.)/
   );
-  assert.match(serverBoundarySources, /family_id=eq\.\$\{encodeURIComponent\(claims\.family\)\}/);
-  assert.match(serverBoundarySources, /assigned_member_id=eq\.\$\{encodeURIComponent\(claims\.sub\)\}/);
-  assert.match(serverBoundarySources, /const claims=family\.authenticate\(request\)|const claims = u\.authenticate\(request\)/);
+  assert.match(serverBoundarySources, /family_id=eq\.\$\{encodeURIComponent\(context\.familyId\)\}/);
+  assert.match(serverBoundarySources, /assigned_member_id=eq\.\$\{encodeURIComponent\(context\.memberId\)\}/);
+  assert.match(serverBoundarySources, /authenticateActiveMember\([^)]*\{\s*(?:allowRoles|requiredRole)/);
 });
 
 test("bigint study plan ids stay canonical decimal strings at server boundaries", () => {

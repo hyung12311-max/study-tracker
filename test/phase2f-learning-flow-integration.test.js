@@ -131,6 +131,9 @@ test("review answer completion leaves official score, progress, reward, and weak
   const restore = replace(authenticated({
     supabaseFetch: async (query, options) => {
       observed.push({ query, options });
+      if (query.startsWith("learning_mistake_review_sessions?")) return [{ id: REVIEW, family_id: FAMILY, assigned_member_id: CHILD, assignment_id: ASSIGNMENT }];
+      if (query.startsWith("learning_assignments?")) return [{ id: ASSIGNMENT }];
+      if (query.startsWith("learning_mistake_review_items?")) return [{ id: ITEM, session_id: REVIEW }];
       if (query !== "rpc/submit_learning_mistake_review_answer") throw new Error("unexpected query");
       return [{
         review_answer_id: "b0000000-0000-4000-8000-000000000001",
@@ -152,7 +155,7 @@ test("review answer completion leaves official score, progress, reward, and weak
     assert.equal(result.statusCode, 200);
     assert.equal(result.body.review.status, "completed");
     assert.equal(result.body.feedback.isCorrect, true);
-    assert.equal(observed.length, 1);
+    assert.equal(observed.filter(({ query }) => query === "rpc/submit_learning_mistake_review_answer").length, 1);
     assert.deepEqual({ attempts: official.attempts, questionRows: official.questionRows, answerRows: official.answerRows }, beforeRows);
     assert.deepEqual(analysis.skillSummaries(official), beforeSkills);
     assert.equal(beforeSkills[0].weak, true);
@@ -162,8 +165,7 @@ test("review answer completion leaves official score, progress, reward, and weak
 test("empty official learning state remains a stable empty analysis state", async () => {
   const observed = [];
   const restore = replace({
-    authenticate: (_request, role) => {
-      assert.equal(role, "parent");
+    authenticate: (_request) => {
       return { sub: PARENT, family: FAMILY, role: "parent" };
     },
     memberInFamily: async (id) => ({ id, family_id: FAMILY, role: id === PARENT ? "parent" : "child", is_active: true }),
@@ -219,8 +221,7 @@ test("unauthorized analysis is blocked before any family data query", async () =
 test("other-family child scope is hidden before official learning queries", async () => {
   const observed = [];
   const restore = replace({
-    authenticate: (_request, role) => {
-      assert.equal(role, "parent");
+    authenticate: (_request) => {
       return { sub: PARENT, family: FAMILY, role: "parent" };
     },
     memberInFamily: async (id) => ({ id, family_id: FAMILY, role: "parent", is_active: true }),
@@ -234,7 +235,7 @@ test("other-family child scope is hidden before official learning queries", asyn
     const result = response();
     await skillsHandler(skillsRequest(), result);
     assert.equal(result.statusCode, 404);
-    assert.equal(result.body.code, "LEARNING_TARGET_NOT_FOUND");
+    assert.equal(result.body.code, "FAMILY_CHILD_NOT_FOUND");
     assert.equal(observed.some((query) => query.startsWith("learning_assignments?")), false);
   } finally { restore(); }
 });

@@ -20,36 +20,35 @@ function seoulDate() {
 
 function completionError(error) {
   if (error.statusCode === 401) return { status: 401, code: error.code || "AUTH_EXPIRED", error: "로그인이 만료되었습니다." };
-  if (error.statusCode === 403 || error.supabaseCode === "42501") return { status: 403, code: error.code || error.supabaseCode || "FORBIDDEN", error: "권한이 없습니다." };
+  if (error.statusCode === 403 || error.supabaseCode === "42501") return { status: 403, code: error.supabaseCode ? "FORBIDDEN" : (error.code || "FORBIDDEN"), error: "권한이 없습니다." };
   if (error.supabaseCode === "PGRST202") {
     return { status: 500, code: "STUDY_COMPLETION_RPC_MISSING", error: "학습 완료 서버 구성이 누락되었습니다." };
   }
   if (error.statusCode === 404 && !error.supabaseCode) return { status: 404, code: error.code || "STUDY_PLAN_NOT_FOUND", error: error.message };
-  return { status: error.statusCode >= 400 && error.statusCode < 500 ? error.statusCode : 500, code: error.code || error.supabaseCode || "STUDY_COMPLETION_FAILED", error: error.statusCode && !error.supabaseCode ? error.message : "서버 오류가 발생했습니다." };
+  return { status: error.statusCode >= 400 && error.statusCode < 500 ? error.statusCode : 500, code: error.supabaseCode ? "STUDY_COMPLETION_FAILED" : (error.code || "STUDY_COMPLETION_FAILED"), error: error.statusCode && !error.supabaseCode ? error.message : "서버 오류가 발생했습니다." };
 }
 
 module.exports = async function handler(request, response) {
   if (request.method !== "POST") return u.allow(response, ["POST"]);
   try {
-    const claims = u.authenticate(request);
+    const context = await u.authenticateActiveMember(request, { requiredRole: "child" });
     const body = await u.readJson(request);
     const requestedPlanId = planId(body.planId);
 
-    const member = await u.memberInFamily(claims.sub, claims.family);
-    if (member?.role !== "child" || member.is_active === false) throw u.err("권한이 없습니다.", 403, "CHILD_PERMISSION_REQUIRED");
+    const member = context.member;
     const plan = (await u.supabaseFetch(
-      `study_plans?select=id,subject,workbook,status,reading_plan_id,reading_plans(family_id)&id=eq.${encodeURIComponent(requestedPlanId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}&limit=1`
+      `study_plans?select=id,subject,workbook,status,reading_plan_id,reading_plans(family_id)&id=eq.${encodeURIComponent(requestedPlanId)}&family_id=eq.${encodeURIComponent(context.familyId)}&assigned_member_id=eq.${encodeURIComponent(context.memberId)}&limit=1`
     ))?.[0];
     if (!plan) throw u.err("학습 계획을 찾을 수 없습니다.", 404, "STUDY_PLAN_NOT_FOUND");
-    if (plan.reading_plan_id && plan.reading_plans?.family_id !== claims.family) {
+    if (plan.reading_plan_id && plan.reading_plans?.family_id !== context.familyId) {
       throw u.err("학습 계획을 찾을 수 없습니다.", 404, "STUDY_PLAN_NOT_FOUND");
     }
 
     const rows = await u.supabaseFetch("rpc/complete_study_plan_with_reward_for_member", {
       method: "POST",
       body: JSON.stringify({
-        p_family_id: claims.family,
-        p_member_id: claims.sub,
+        p_family_id: context.familyId,
+        p_member_id: context.memberId,
         p_plan_id: requestedPlanId,
         p_completed_date: seoulDate(),
       }),
@@ -75,9 +74,9 @@ module.exports = async function handler(request, response) {
     let parentNotification = { success: 0, failure: 0, subscriptionCount: 0, skipped: true };
     let familyMessage = { created: false, skipped: true };
     if (!completion.alreadyCompleted) {
-      familyMessage = await u.insertSystemMessage(claims.family, "study_complete", requestedPlanId, completionMessage);
+      familyMessage = await u.insertSystemMessage(context.familyId, "study_complete", requestedPlanId, completionMessage);
       parentNotification = await u.sendTargetedPush({
-        familyId: claims.family,
+        familyId: context.familyId,
         target: "parent",
         event: "study_complete",
         title: "⭐ 학습 완료",
@@ -85,7 +84,7 @@ module.exports = async function handler(request, response) {
         tag: `study-complete-${requestedPlanId}`,
         url: "/?tab=today",
       });
-      await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(requestedPlanId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}`, {
+      await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(requestedPlanId)}&family_id=eq.${encodeURIComponent(context.familyId)}&assigned_member_id=eq.${encodeURIComponent(context.memberId)}`, {
         method: "PATCH",
         body: JSON.stringify({
           parent_notified_at: Number(parentNotification.success || 0) > 0 ? new Date().toISOString() : null,
@@ -111,6 +110,6 @@ module.exports = async function handler(request, response) {
       supabaseStatus: error.supabaseStatus || null,
       supabaseCode: error.supabaseCode || null,
     });
-    return u.json(response, failure.status, { ok: false, ...failure, details: error.supabaseDetails || null });
+    return u.json(response, failure.status, { ok: false, ...failure });
   }
 };

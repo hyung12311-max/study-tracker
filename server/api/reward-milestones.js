@@ -1,10 +1,5 @@
 const u = require("./family/_utils");
-
-async function activeMember(claims) {
-  return (await u.supabaseFetch(
-    `family_members?select=id,role,is_active&id=eq.${encodeURIComponent(claims.sub)}&family_id=eq.${encodeURIComponent(claims.family)}&is_active=eq.true&limit=1`
-  ))?.[0] || null;
-}
+const authorization = require("./_authorization");
 
 function cleanMilestones(value) {
   if (!Array.isArray(value) || value.length > 20) throw u.err("보상 마일스톤 목록을 확인해 주세요.", 400, "INVALID_MILESTONES");
@@ -23,28 +18,28 @@ function cleanMilestones(value) {
 module.exports = async function rewardMilestones(request, response) {
   if (!["GET", "PUT"].includes(request.method)) return u.allow(response, ["GET", "PUT"]);
   try {
-    const claims = u.authenticate(request, request.method === "PUT" ? "parent" : undefined);
-    if (!await activeMember(claims)) throw u.err("권한이 없습니다.", 403, "ACTIVE_MEMBER_REQUIRED");
+    const context = await u.authenticateActiveMember(request, { requiredRole: "parent" });
+    const familyId = encodeURIComponent(context.familyId);
     if (request.method === "GET") {
-      const rows = await u.supabaseFetch(
-        `reward_milestones?select=id,required_stickers,reward_name,sort_order,created_at,updated_at&family_id=eq.${encodeURIComponent(claims.family)}&order=required_stickers.asc,sort_order.asc`
-      );
+      const rows = await u.supabaseFetch(`reward_milestones?select=id,required_stickers,reward_name,sort_order,created_at,updated_at&family_id=eq.${familyId}&order=required_stickers.asc,sort_order.asc`);
       return u.json(response, 200, { milestones: rows || [] });
     }
-    const body = await u.readJson(request);
-    const milestones = cleanMilestones(body.milestones);
-    await u.supabaseFetch(`reward_milestones?family_id=eq.${encodeURIComponent(claims.family)}`, { method: "DELETE" });
-    let rows = [];
-    if (milestones.length) {
-      rows = await u.supabaseFetch("reward_milestones", {
-        method: "POST",
-        headers: { Prefer: "return=representation" },
-        body: JSON.stringify(milestones.map((item) => ({ ...item, family_id: claims.family }))),
-      });
-    }
+    const milestones = cleanMilestones((await u.readJson(request)).milestones);
+    await u.supabaseFetch(`reward_milestones?family_id=eq.${familyId}`, { method: "DELETE" });
+    const rows = milestones.length ? await u.supabaseFetch("reward_milestones", {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify(milestones.map((item) => ({ ...item, family_id: context.familyId }))),
+    }) : [];
     return u.json(response, 200, { ok: true, milestones: rows || [] });
   } catch (error) {
-    console.error("[reward milestones failed]", { status: error.statusCode || 500, code: error.supabaseCode || error.code || null, message: error.supabaseMessage || error.message, details: error.supabaseDetails || null });
-    return u.json(response, error.supabaseCode ? 500 : (error.statusCode || 500), { error: error.statusCode === 401 ? "로그인이 만료되었습니다." : error.statusCode === 403 ? "권한이 없습니다." : error.statusCode ? error.message : "서버 오류가 발생했습니다.", code: error.supabaseCode || error.code || "REWARD_MILESTONES_FAILED" });
+    const safe = authorization.publicAuthorizationError(error);
+    if (safe.status !== 500) return u.json(response, safe.status, safe.body);
+    const controlled = Boolean(error.statusCode >= 400 && error.statusCode < 500 && !error.supabaseCode);
+    return u.json(response, controlled ? error.statusCode : 500, {
+      ok: false,
+      error: controlled ? error.message : "보상 마일스톤을 처리하지 못했습니다.",
+      code: controlled && error.code ? error.code : "REWARD_MILESTONES_FAILED",
+    });
   }
 };

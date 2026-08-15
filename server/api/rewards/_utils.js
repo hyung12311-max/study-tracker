@@ -1,4 +1,5 @@
 const family = require("../family/_utils");
+const authorization = require("../_authorization");
 
 function productSafe(row) {
   return {
@@ -95,4 +96,32 @@ async function memberInFamily(memberId, familyId) {
   ))?.[0] || null;
 }
 
-module.exports = { ...family, insertSystemMessage, memberInFamily, productSafe, requestSafe, sendTargetedPush };
+function publicRouteError(error, fallback, fallbackCode) {
+  const authorizationFailure = authorization.publicAuthorizationError(error);
+  if (authorizationFailure.status !== 500) return authorizationFailure;
+  const controlled = Boolean(
+    error?.statusCode >= 400
+    && error.statusCode < 500
+    && !error.supabaseCode
+    && !String(error.code || "").startsWith("SUPABASE_")
+  );
+  return {
+    status: controlled ? error.statusCode : 500,
+    body: {
+      ok: false,
+      error: controlled ? error.message : fallback,
+      code: controlled && error.code ? error.code : fallbackCode,
+    },
+  };
+}
+
+module.exports = {
+  ...family,
+  ...authorization,
+  insertSystemMessage,
+  memberInFamily,
+  productSafe,
+  publicRouteError,
+  requestSafe,
+  sendTargetedPush,
+};

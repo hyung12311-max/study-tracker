@@ -235,7 +235,7 @@ test("other-family child is hidden before learning evidence access", async () =>
     const result = response();
     await handler(request(), result);
     assert.equal(result.statusCode, 404);
-    assert.equal(result.body.code, "LEARNING_TARGET_NOT_FOUND");
+    assert.equal(result.body.code, "FAMILY_CHILD_NOT_FOUND");
     assert.equal(observed.some((query) => query.startsWith("learning_assignments?")), false);
   } finally { restore(); }
 });

@@ -44,8 +44,7 @@ function replaceUtils(overrides) {
 
 function parentMocks(supabaseFetch) {
   return {
-    authenticate: (_request, role) => {
-      assert.equal(role, "parent");
+    authenticate: (_request) => {
       return { sub: PARENT_ID, family: FAMILY_ID, role: "parent" };
     },
     memberInFamily: async () => ({
@@ -195,10 +194,8 @@ test("roadmap exposes one user status with completed, active, and cancelled prec
 test("child cannot access parent roadmap metadata", async () => {
   let queried = false;
   const restore = replaceUtils({
-    authenticate: (_request, role) => {
-      assert.equal(role, "parent");
-      throw utils.err("활성 부모 권한이 필요합니다.", 403, "ACTIVE_PARENT_REQUIRED");
-    },
+    authenticate: (_request) => ({ sub: CHILD_ID, family: FAMILY_ID, role: "child" }),
+    memberInFamily: async () => ({ id: CHILD_ID, family_id: FAMILY_ID, role: "child", is_active: true }),
     supabaseFetch: async () => { queried = true; return []; },
   });
   try {

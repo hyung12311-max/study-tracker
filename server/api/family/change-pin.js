@@ -48,9 +48,14 @@ module.exports = async function changeFamilyPin(request, response) {
       throw u.err("현재 PIN 번호가 일치하지 않습니다.", 401, "CURRENT_PIN_INVALID");
     }
 
-    await u.supabaseFetch("rpc/set_family_member_pin", {
+    await u.supabaseFetch("rpc/set_family_member_pin_v2", {
       method: "POST",
-      body: JSON.stringify({ p_member_id: claims.sub, p_family_id: claims.family, p_pin: newPin }),
+      body: JSON.stringify({
+        p_family_id: claims.family,
+        p_actor_member_id: claims.sub,
+        p_target_member_id: claims.sub,
+        p_pin: newPin,
+      }),
     });
     try{const currentToken=u.cookieToken(request),currentHash=currentToken?u.tokenHash(currentToken):"";const keepCurrent=currentHash?`&token_hash=neq.${currentHash}`:"";await u.supabaseFetch(`family_device_sessions?family_id=eq.${claims.family}&member_id=eq.${claims.sub}&revoked_at=is.null${keepCurrent}`,{method:"PATCH",body:JSON.stringify({revoked_at:new Date().toISOString(),revoked_reason:"pin_changed"})})}catch(sessionError){console.warn("[change pin] device session cleanup failed",{statusCode:sessionError.statusCode||500,code:sessionError.supabaseCode||sessionError.code||null})}
 

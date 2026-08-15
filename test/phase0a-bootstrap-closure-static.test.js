@@ -37,5 +37,5 @@ test("browser code no longer queries global reward settings and member results s
   assert.doesNotMatch(app, /table:\s*"(?:reward_settings|sticker_history)"/);
   assert.match(app, /\/api\/rewards\/settings/);
   assert.doesNotMatch(members, /select=id,family_id,member_key,display_name/);
-  assert.match(messages, /family_id=eq\.\$\{encodeURIComponent\(claims\.family\)\}&client_message_id/);
+  assert.match(messages, /family_id=eq\.\$\{encodeURIComponent\(context\.familyId\)\}&client_message_id/);
 });

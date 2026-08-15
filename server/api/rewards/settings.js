@@ -14,15 +14,9 @@ module.exports = async function rewardSettings(request, response) {
   try {
     const { claims } = await u.activeAuthenticatedMember(request, request.method === "PUT" ? "parent" : undefined);
     if (request.method === "GET") {
-      let row = (await u.supabaseFetch(
+      const row = (await u.supabaseFetch(
         `family_reward_settings?select=target_stickers,reward_name&family_id=eq.${encodeURIComponent(claims.family)}&limit=1`
       ))?.[0];
-      if (!row) {
-        const isDefault = Boolean((await u.supabaseFetch(
-          `families?select=id&id=eq.${encodeURIComponent(claims.family)}&family_key=eq.default&limit=1`
-        ))?.[0]);
-        if (isDefault) row = (await u.supabaseFetch("reward_settings?select=target_stickers,reward_name&limit=1"))?.[0];
-      }
       return u.json(response, 200, { ok: true, setting: safe(row || DEFAULT_SETTING) });
     }
 

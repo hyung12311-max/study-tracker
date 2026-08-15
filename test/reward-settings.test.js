@@ -43,6 +43,22 @@ test("GET reward settings reads only the authenticated family row", async () => 
   } finally { restore(); }
 });
 
+test("GET missing family settings returns server defaults without legacy fallback", async () => {
+  const calls = [];
+  const restore = replaceUtils({
+    activeAuthenticatedMember: async () => ({ claims: { family: FAMILY_A, role: "child" } }),
+    supabaseFetch: async (path) => { calls.push(path); return []; },
+  });
+  try {
+    const response = responseCapture();
+    await handler({ method: "GET", headers: {} }, response);
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body.setting, { target_stickers: 10, reward_name: "5,000원 용돈" });
+    assert.equal(calls.length, 1);
+    assert.match(calls[0], /^family_reward_settings\?/);
+  } finally { restore(); }
+});
+
 test("PUT reward settings derives family_id from the active parent session", async () => {
   let authRole;
   let write;

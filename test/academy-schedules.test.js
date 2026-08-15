@@ -298,6 +298,7 @@ test("completion-history deletion conflict and cross-scope not-found are sanitiz
 test("academy completion GET validates the active child before listing scoped history", async () => {
   const calls = [];
   const restore = replaceUtils({
+    authenticateActiveMember: async () => ({ familyId: FAMILY_ID, memberId: CHILD_ID, memberKey: "child", role: "child", member: { id: CHILD_ID, family_id: FAMILY_ID, member_key: "child", role: "child", display_name: "자녀", is_active: true } }),
     authenticate: () => ({ sub: CHILD_ID, family: FAMILY_ID, role: "child" }),
     memberInFamily: async (memberId, familyId) => {
       calls.push(`member:${memberId}:${familyId}`);
@@ -331,8 +332,8 @@ test("academy completion GET validates the active child before listing scoped hi
     }, response);
     assert.equal(response.statusCode, 200);
     assert.deepEqual(response.body.completions.map((row) => row.id), [COMPLETION_ID]);
-    assert.match(calls[0], /^member:/);
-    assert.match(calls[1], /^academy_completion_history\?/);
+    assert.equal(calls.some((call) => String(call).startsWith("member:")), false);
+    assert.match(calls[0], /^academy_completion_history\?/);
   } finally {
     restore();
   }
@@ -340,16 +341,22 @@ test("academy completion GET validates the active child before listing scoped hi
 
 test("academy completion GET blocks missing, inactive, wrong-family, and non-child members before listing", async () => {
   const deniedCases = [
-    { claimsRole: "child", member: null },
-    { claimsRole: "child", member: { id: CHILD_ID, family_id: FAMILY_ID, role: "child", is_active: false } },
-    { claimsRole: "child", member: { id: CHILD_ID, family_id: "99999999-9999-4999-8999-999999999999", role: "child", is_active: true } },
-    { claimsRole: "parent", member: { id: PARENT_ID, family_id: FAMILY_ID, role: "parent", is_active: true } },
-    { claimsRole: "parent", member: { id: CHILD_ID, family_id: FAMILY_ID, role: "child", is_active: true } },
-    { claimsRole: "guardian", member: { id: CHILD_ID, family_id: FAMILY_ID, role: "guardian", is_active: true } },
+    { claimsRole: "child", member: null, expectedStatus: 401 },
+    { claimsRole: "child", member: { id: CHILD_ID, family_id: FAMILY_ID, role: "child", is_active: false }, expectedStatus: 401 },
+    { claimsRole: "child", member: { id: CHILD_ID, family_id: "99999999-9999-4999-8999-999999999999", role: "child", is_active: true }, expectedStatus: 401 },
+    { claimsRole: "parent", member: { id: PARENT_ID, family_id: FAMILY_ID, role: "parent", is_active: true }, expectedStatus: 403 },
+    { claimsRole: "parent", member: { id: CHILD_ID, family_id: FAMILY_ID, role: "child", is_active: true }, expectedStatus: 401 },
+    { claimsRole: "guardian", member: { id: CHILD_ID, family_id: FAMILY_ID, role: "guardian", is_active: true }, expectedStatus: 401 },
   ];
-  for (const { claimsRole, member } of deniedCases) {
+  for (const { claimsRole, member, expectedStatus } of deniedCases) {
     let listed = false;
     const restore = replaceUtils({
+      authenticateActiveMember: async () => {
+        const error = new Error("private authorization reason");
+        error.statusCode = expectedStatus;
+        error.code = expectedStatus === 403 ? "AUTH_ROLE_REQUIRED" : "AUTH_SESSION_INVALID";
+        throw error;
+      },
       authenticate: () => ({ sub: CHILD_ID, family: FAMILY_ID, role: claimsRole }),
       memberInFamily: async () => member,
       supabaseFetch: async () => {
@@ -360,8 +367,8 @@ test("academy completion GET blocks missing, inactive, wrong-family, and non-chi
     try {
       const response = responseCapture();
       await completionHandler({ method: "GET", headers: {} }, response);
-      assert.equal(response.statusCode, 403);
-      assert.equal(response.body.code, "CHILD_PERMISSION_REQUIRED");
+      assert.equal(response.statusCode, expectedStatus);
+      assert.equal(response.body.code, expectedStatus === 403 ? "AUTH_ROLE_REQUIRED" : "AUTH_SESSION_INVALID");
       assert.equal(listed, false);
     } finally {
       restore();
@@ -373,6 +380,7 @@ test("academy completion POST blocks an inactive child before reading input or c
   let read = false;
   let called = false;
   const restore = replaceUtils({
+    authenticateActiveMember: async () => { const error = new Error("inactive"); error.statusCode = 401; error.code = "AUTH_SESSION_INVALID"; throw error; },
     authenticate: () => ({ sub: CHILD_ID, family: FAMILY_ID, role: "child" }),
     memberInFamily: async () => ({
       id: CHILD_ID,
@@ -392,8 +400,8 @@ test("academy completion POST blocks an inactive child before reading input or c
   try {
     const response = responseCapture();
     await completionHandler({ method: "POST", headers: {} }, response);
-    assert.equal(response.statusCode, 403);
-    assert.equal(response.body.code, "CHILD_PERMISSION_REQUIRED");
+    assert.equal(response.statusCode, 401);
+    assert.equal(response.body.code, "AUTH_SESSION_INVALID");
     assert.equal(read, false);
     assert.equal(called, false);
   } finally {
@@ -431,6 +439,7 @@ test("academy schedule GET returns a safe message for an unsupported active role
 test("child completion uses the assignee-scoped wrapper and preserves duplicate-safe result", async () => {
   let rpcBody;
   const restore = replaceUtils({
+    authenticateActiveMember: async () => ({ familyId: FAMILY_ID, memberId: CHILD_ID, memberKey: "child", role: "child", member: { id: CHILD_ID, family_id: FAMILY_ID, member_key: "child", display_name: "자녀", role: "child", is_active: true } }),
     authenticate: () => ({ sub: CHILD_ID, family: FAMILY_ID, role: "child" }),
     memberInFamily: async () => ({
       id: CHILD_ID,

@@ -29,8 +29,7 @@ test("GET rewards returns only the authenticated member sticker wallet", async (
     { id: "history-2", study_plan_id: "plan-2", sticker_count: 2 },
   ];
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "hagyeom-id", family: "family-id", key: "hagyeom", role: "child" }),
-    memberInFamily: async () => ({ id: "hagyeom-id", member_key: "hagyeom", display_name: "하겸", role: "child", is_active: true }),
+    authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "hagyeom-id", memberKey: "hagyeom", role: "child", member: { id: "hagyeom-id", member_key: "hagyeom", display_name: "하겸", role: "child", is_active: true } }),
     supabaseFetch: async (path) => {
       calls.push(path);
       if (path.startsWith("sticker_transactions?select=amount")) return [{ amount: 5 }, { amount: 3 }];
@@ -49,7 +48,7 @@ test("GET rewards returns only the authenticated member sticker wallet", async (
     assert.deepEqual(response.body.stickerHistory, stickerHistory);
     assert.equal(response.body.viewer.memberKey, "hagyeom");
     assert.equal(response.body.viewer.walletMemberKey, "hagyeom");
-    assert.ok(calls.some((path) => path.includes("sticker_transactions?select=amount&member_id=eq.hagyeom-id")));
+    assert.ok(calls.some((path) => path.includes("sticker_transactions?select=amount&family_id=eq.family-id&member_id=eq.hagyeom-id")));
     assert.ok(calls.some((path) => path.includes("sticker_history?") && path.includes("family_id=eq.family-id") && path.includes("member_id=eq.hagyeom-id")));
     assert.ok(calls.every((path) => !path.includes("member_id=eq.other-member")));
   } finally {
@@ -60,8 +59,7 @@ test("GET rewards returns only the authenticated member sticker wallet", async (
 test("GET rewards rejects a restored session whose member_key no longer matches", async () => {
   let queriedWallet = false;
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "hagyeom-id", family: "family-id", key: "hagyeom", role: "child" }),
-    memberInFamily: async () => ({ id: "hagyeom-id", member_key: "other-child", role: "child", is_active: true }),
+    authenticateActiveMember: async () => { const error = new Error("private drift"); error.code = "AUTH_SESSION_INVALID"; error.statusCode = 401; throw error; },
     supabaseFetch: async () => { queriedWallet = true; return []; },
   });
 
@@ -69,7 +67,7 @@ test("GET rewards rejects a restored session whose member_key no longer matches"
     const response = responseCapture();
     await handler({ method: "GET", headers: {}, url: "/api/rewards" }, response);
 
-    assert.equal(response.statusCode, 403);
+    assert.equal(response.statusCode, 401);
     assert.equal(queriedWallet, false);
   } finally {
     restore();

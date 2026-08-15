@@ -8,7 +8,9 @@ module.exports = async function abandonMistakeReview(request, response) {
     const body = learning.exactBody(await learning.u.readJson(request), new Set(["requestId"]));
     const reviewId = learning.uuid(request.query?.reviewId || "", "INVALID_REVIEW_ID");
     const requestId = learning.uuid(body.requestId, "INVALID_REQUEST_ID");
-    const { claims } = await learning.activeMember(request);
+    const scope = await learning.activeMember(request);
+    const { claims } = scope;
+    await reviews.scopedReviewSession(scope, reviewId);
     const rows = await learning.u.supabaseFetch("rpc/abandon_learning_mistake_review", {
       method: "POST",
       body: JSON.stringify({

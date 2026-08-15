@@ -169,7 +169,8 @@ test("inactive parent and inactive child are blocked", async () => {
         : "/api/learning/assignments";
       const response = responseCapture();
       await assignmentHandler(request("GET", url), response);
-      assert.equal(response.statusCode, 403);
+      assert.equal(response.statusCode, 401);
+      assert.equal(response.body.code, "AUTH_SESSION_INVALID");
       assert.equal(queried, false);
     } finally {
       restore();
@@ -374,7 +375,7 @@ test("other-family or non-child targets are hidden behind the same 404", async (
     const response = responseCapture();
     await assignmentHandler(request("POST", "/api/learning/assignments"), response);
     assert.equal(response.statusCode, 404);
-    assert.equal(response.body.code, "LEARNING_TARGET_NOT_FOUND");
+    assert.equal(response.body.code, "FAMILY_CHILD_NOT_FOUND");
   } finally {
     restore();
   }

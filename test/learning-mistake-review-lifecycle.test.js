@@ -10,6 +10,7 @@ const abandonHandler = require("../server/api/learning/mistake-reviews/[reviewId
 const FAMILY = "10000000-0000-4000-8000-000000000001";
 const PARENT = "20000000-0000-4000-8000-000000000001";
 const CHILD = "20000000-0000-4000-8000-000000000002";
+const ASSIGNMENT = "30000000-0000-4000-8000-000000000001";
 const REVIEW = "a0000000-0000-4000-8000-000000000001";
 const ITEM = "b0000000-0000-4000-8000-000000000001";
 const OPTION = "90000000-0000-4000-8000-000000000002";
@@ -70,6 +71,9 @@ function mocks(observed = [], answerOverrides = {}, abandonOverrides = {}) {
     }),
     supabaseFetch: async (query, options) => {
       observed.push({ query, options });
+      if (query.startsWith("learning_mistake_review_sessions?")) return [{ id: REVIEW, family_id: FAMILY, assigned_member_id: CHILD, assignment_id: ASSIGNMENT }];
+      if (query.startsWith("learning_assignments?")) return [{ id: ASSIGNMENT }];
+      if (query.startsWith("learning_mistake_review_items?")) return [{ id: ITEM, session_id: REVIEW }];
       if (query === "rpc/submit_learning_mistake_review_answer") {
         return [{
           review_answer_id: "d0000000-0000-4000-8000-000000000001",
@@ -123,7 +127,7 @@ test("child submits a correct immutable-snapshot review answer and completes the
       submittedAt: "2026-08-08T03:00:00Z",
     });
     assert.equal(result.body.review.status, "completed");
-    const payload = JSON.parse(observed[0].options.body);
+    const payload = JSON.parse(observed.find(({ query }) => query === "rpc/submit_learning_mistake_review_answer").options.body);
     assert.equal(payload.p_family_id, FAMILY);
     assert.equal(payload.p_actor_member_id, CHILD);
     assert.equal(payload.p_session_id, REVIEW);
@@ -159,7 +163,7 @@ test("active parent may submit for a review in the same family", async () => {
     const result = response();
     await answerHandler(request({ role: "parent" }), result);
     assert.equal(result.statusCode, 200);
-    assert.equal(JSON.parse(observed[0].options.body).p_actor_member_id, PARENT);
+    assert.equal(JSON.parse(observed.find(({ query }) => query === "rpc/submit_learning_mistake_review_answer").options.body).p_actor_member_id, PARENT);
   } finally { restore(); }
 });
 
@@ -206,17 +210,15 @@ test("other-family or wrong session item is hidden as not found", async () => {
   const restore = replace({
     ...mocks(),
     supabaseFetch: async (query) => {
-      if (query !== "rpc/submit_learning_mistake_review_answer") throw new Error("unexpected query");
-      const error = new Error("hidden scope");
-      error.supabaseCode = "P0002";
-      throw error;
+      if (query.startsWith("learning_mistake_review_sessions?")) return [];
+      throw new Error("unexpected query");
     },
   });
   try {
     const result = response();
     await answerHandler(request(), result);
     assert.equal(result.statusCode, 404);
-    assert.equal(result.body.code, "REVIEWABLE_MISTAKES_NOT_FOUND");
+    assert.equal(result.body.code, "MISTAKE_REVIEW_NOT_FOUND");
     assert.doesNotMatch(JSON.stringify(result.body), /hidden scope|family_id|session_id/i);
   } finally { restore(); }
 });
@@ -256,7 +258,7 @@ test("parent or self-child can explicitly abandon an active review", async () =>
       await abandonHandler(request({ action: "abandon", role }), result);
       assert.equal(result.statusCode, 200);
       assert.equal(result.body.review.status, "abandoned");
-      assert.equal(JSON.parse(observed[0].options.body).p_actor_member_id, role === "parent" ? PARENT : CHILD);
+      assert.equal(JSON.parse(observed.find(({ query }) => query === "rpc/abandon_learning_mistake_review").options.body).p_actor_member_id, role === "parent" ? PARENT : CHILD);
     } finally { restore(); }
   }
 });

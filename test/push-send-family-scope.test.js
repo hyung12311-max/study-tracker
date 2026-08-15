@@ -62,10 +62,9 @@ async function runStudyPush({ childName, failedEndpoint = null }) {
       },
     });
     Object.assign(familyUtils, {
-      authenticate: () => ({ sub: CHILD_ID, family: FAMILY_ID, role: "child" }),
+      authenticate: () => ({ sub: CHILD_ID, family: FAMILY_ID, key: "child", role: "child" }),
       supabaseFetch: async (requestPath) => {
-        assert.match(requestPath, new RegExp(`family_id=eq\\.${FAMILY_ID}`));
-        return [{ id: CHILD_ID, role: "child", is_active: true }];
+        return [{ id: CHILD_ID, family_id: FAMILY_ID, member_key: "child", role: "child", is_active: true }];
       },
     });
     delete require.cache[sendPath];
@@ -120,3 +119,35 @@ test("the family push path contains no hard-coded child name", () => {
   assert.doesNotMatch(source, /하겸이 (?:학습|일정) 완료|하겸이가/);
   assert.match(source, /family_push_subscriptions\?id=eq\./);
 });
+
+for (const [label, member] of [
+  ["role drift", { id: CHILD_ID, family_id: FAMILY_ID, member_key: "parent", role: "child", is_active: true }],
+  ["family drift", { id: CHILD_ID, family_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", member_key: "parent", role: "parent", is_active: true }],
+]) {
+  test(`push send rejects ${label} before configuration or target access`, async () => {
+    const originalPush = { ...pushUtils };
+    const originalFamily = { ...familyUtils };
+    let configured = false;
+    try {
+      Object.assign(pushUtils, {
+        configureWebPush: () => { configured = true; },
+        readJson: async () => { throw new Error("body must not be read"); },
+      });
+      Object.assign(familyUtils, {
+        authenticate: () => ({ sub: CHILD_ID, family: FAMILY_ID, key: "parent", role: "parent" }),
+        supabaseFetch: async () => [member],
+      });
+      delete require.cache[sendPath];
+      const handler = require(sendPath);
+      const response = responseCapture();
+      await handler({ method: "POST", headers: {} }, response);
+      assert.equal(response.statusCode, 401);
+      assert.equal(response.body.code, "AUTH_SESSION_INVALID");
+      assert.equal(configured, false);
+    } finally {
+      Object.assign(pushUtils, originalPush);
+      Object.assign(familyUtils, originalFamily);
+      delete require.cache[sendPath];
+    }
+  });
+}

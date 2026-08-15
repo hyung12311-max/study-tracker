@@ -102,7 +102,7 @@ test("child, inactive parent, and non-family child are blocked before profile da
     try {
       const response = responseCapture();
       await handler(request("GET"), response);
-      assert.ok([403, 404].includes(response.statusCode));
+      assert.ok([401, 403, 404].includes(response.statusCode));
       assert.equal(profileAccess, false);
     } finally { restore(); }
   }

@@ -28,7 +28,7 @@ function reviewFilters(value = {}) {
 }
 
 async function reviewScope(request, assignedMemberId) {
-  const { claims, member } = await learning.activeMember(request);
+  const { claims, member, context } = await learning.activeMember(request);
   if (member.role === "child") {
     if (assignedMemberId !== undefined && assignedMemberId !== null) {
       throw learning.u.err(
@@ -37,14 +37,37 @@ async function reviewScope(request, assignedMemberId) {
         "CHILD_ASSIGNEE_OVERRIDE_NOT_ALLOWED"
       );
     }
-    return { claims, member, assignedMemberId: String(claims.sub), viewerRole: "child" };
+    return { claims, member, context, assignedMemberId: learning.u.childSelfScope(context), viewerRole: "child" };
   }
   const childId = learning.uuid(
     assignedMemberId,
     assignedMemberId ? "INVALID_ASSIGNED_MEMBER" : "ASSIGNED_MEMBER_REQUIRED"
   );
-  await learning.activeChild(claims.family, childId);
-  return { claims, member, assignedMemberId: childId, viewerRole: "parent" };
+  await learning.activeChild(context, childId);
+  return { claims, member, context, assignedMemberId: childId, viewerRole: "parent" };
+}
+
+async function scopedReviewSession(scope, reviewId, itemId) {
+  const family = encodeURIComponent(scope.claims.family);
+  const childFilter = scope.member.role === "child"
+    ? `&assigned_member_id=eq.${encodeURIComponent(scope.claims.sub)}`
+    : "";
+  const session = (await learning.u.supabaseFetch(
+    `learning_mistake_review_sessions?select=id,family_id,assigned_member_id,assignment_id,content_version_id,status,filter_status,filter_stage_id,filter_skill_code,started_at,completed_at,abandoned_at&id=eq.${encodeURIComponent(reviewId)}&family_id=eq.${family}${childFilter}&limit=1`
+  ))?.[0];
+  if (!session) throw learning.u.err("오답 복습을 찾을 수 없습니다.", 404, "MISTAKE_REVIEW_NOT_FOUND");
+  const assignment = (await learning.u.supabaseFetch(
+    `learning_assignments?select=id&id=eq.${encodeURIComponent(session.assignment_id)}&family_id=eq.${family}&assigned_member_id=eq.${encodeURIComponent(session.assigned_member_id)}&limit=1`
+  ))?.[0];
+  if (!assignment) throw learning.u.err("오답 복습을 찾을 수 없습니다.", 404, "MISTAKE_REVIEW_NOT_FOUND");
+  let item = null;
+  if (itemId) {
+    item = (await learning.u.supabaseFetch(
+      `learning_mistake_review_items?select=id,session_id&id=eq.${encodeURIComponent(itemId)}&session_id=eq.${encodeURIComponent(session.id)}&limit=1`
+    ))?.[0];
+    if (!item) throw learning.u.err("오답 복습 문항을 찾을 수 없습니다.", 404, "MISTAKE_REVIEW_ITEM_NOT_FOUND");
+  }
+  return { session, assignment, item };
 }
 
 function publicOptions(options, selectedOptionId) {
@@ -64,15 +87,7 @@ function selectedOptionText(options, selectedOptionId) {
 
 async function loadReviewForScope(scope, reviewId) {
   const family = encodeURIComponent(scope.claims.family);
-  const childFilter = scope.member.role === "child"
-    ? `&assigned_member_id=eq.${encodeURIComponent(scope.claims.sub)}`
-    : "";
-  const session = (await learning.u.supabaseFetch(
-    `learning_mistake_review_sessions?select=id,assigned_member_id,assignment_id,content_version_id,status,filter_status,filter_stage_id,filter_skill_code,started_at,completed_at,abandoned_at&id=eq.${encodeURIComponent(reviewId)}&family_id=eq.${family}${childFilter}&limit=1`
-  ))?.[0];
-  if (!session) {
-    throw learning.u.err("오답 복습을 찾을 수 없습니다.", 404, "MISTAKE_REVIEW_NOT_FOUND");
-  }
+  const { session } = await scopedReviewSession(scope, reviewId);
 
   const items = await learning.u.supabaseFetch(
     `learning_mistake_review_items?select=id,session_id,source_attempt_id,source_attempt_question_id,source_answer_id,display_order&session_id=eq.${encodeURIComponent(reviewId)}&order=display_order.asc`
@@ -245,4 +260,5 @@ module.exports = {
   reviewError,
   reviewFilters,
   reviewScope,
+  scopedReviewSession,
 };

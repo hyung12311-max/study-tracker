@@ -40,7 +40,7 @@ test("completion notifications preserve valid bigint plan ids through lookup, in
     await t.test(value, async () => {
       let insertedPlanId = null;
       const restore = replaceUtils({
-        authenticate: () => ({ sub: "child-id", family: "family-id", role: "child" }),
+        authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "child-key", role: "child", member: { id: "child-id", family_id: "family-id", member_key: "child-key", role: "child", is_active: true } }),
         readJson: async () => validNotificationBody(value),
         supabaseFetch: async (path, options = {}) => {
           if (path.startsWith("family_members?")) return [{ id: "child-id", role: "child", is_active: true }];
@@ -94,7 +94,7 @@ test("completion notifications reject non-canonical or non-string bigint ids bef
     await t.test(JSON.stringify(value), async () => {
       let planOrInsertCalls = 0;
       const restore = replaceUtils({
-        authenticate: () => ({ sub: "child-id", family: "family-id", role: "child" }),
+        authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "child-key", role: "child", member: { id: "child-id", family_id: "family-id", member_key: "child-key", role: "child", is_active: true } }),
         readJson: async () => validNotificationBody(value),
         supabaseFetch: async (path) => {
           if (path.startsWith("family_members?")) return [{ id: "child-id", role: "child", is_active: true }];
@@ -117,7 +117,7 @@ test("completion notifications reject non-canonical or non-string bigint ids bef
 
 test("completion notification GET exposes bigint foreign keys as decimal strings", async () => {
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "child-id", family: "family-id", role: "child" }),
+    authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "child-key", role: "child", member: { id: "child-id", family_id: "family-id", member_key: "child-key", role: "child", is_active: true } }),
     supabaseFetch: async (path) => {
       if (path.startsWith("family_members?")) return [{ id: "child-id", role: "child", is_active: true }];
       return [

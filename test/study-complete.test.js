@@ -25,7 +25,7 @@ function replaceUtils(overrides) {
 test("POST study-complete returns 200 after plan completion, sticker award, and parent targeting", async () => {
   const calls = [];
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "hagyeom", role: "child", member: { id: "child-id", display_name: "하겸이", role: "child", is_active: true } }),
     readJson: async () => ({ planId: "36" }),
     memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
     supabaseFetch: async (path, options = {}) => {
@@ -79,7 +79,7 @@ test("delayed completion uses the same one-sticker result in chat and parent pus
   let chatBody = "";
   let pushBody = "";
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "hagyeom", role: "child", member: { id: "child-id", display_name: "하겸이", role: "child", is_active: true } }),
     readJson: async () => ({ planId: "37" }),
     memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
     supabaseFetch: async (path) => {
@@ -123,7 +123,7 @@ test("repeated completion does not award or notify twice", async () => {
   let chatCalls = 0;
   let pushCalls = 0;
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "hagyeom", role: "child", member: { id: "child-id", display_name: "하겸이", role: "child", is_active: true } }),
     readJson: async () => ({ planId: "38" }),
     memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
     supabaseFetch: async (path) => {
@@ -170,7 +170,7 @@ test("repeated completion does not award or notify twice", async () => {
 
 test("missing Supabase completion RPC is reported as server configuration error, not API 404", async () => {
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "hagyeom", role: "child", member: { id: "child-id", display_name: "하겸이", role: "child", is_active: true } }),
     readJson: async () => ({ planId: "36" }),
     memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
     supabaseFetch: async (path) => {
@@ -196,7 +196,7 @@ test("missing Supabase completion RPC is reported as server configuration error,
 test("a reading plan from another family cannot be completed", async () => {
   let completed = false;
   const restore = replaceUtils({
-    authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+    authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "hagyeom", role: "child", member: { id: "child-id", display_name: "하겸이", role: "child", is_active: true } }),
     readJson: async () => ({ planId: "36" }),
     memberInFamily: async () => ({ id: "child-id", display_name: "하겸이", role: "child", is_active: true }),
     supabaseFetch: async (path) => {
@@ -226,7 +226,7 @@ test("study completion preserves every valid bigint plan id as a decimal string"
     await t.test(value, async () => {
       let rpcPlanId = null;
       const restore = replaceUtils({
-        authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+        authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "hagyeom", role: "child", member: { id: "child-id", display_name: "child", role: "child", is_active: true } }),
         readJson: async () => ({ planId: value }),
         memberInFamily: async () => ({ id: "child-id", display_name: "child", role: "child", is_active: true }),
         supabaseFetch: async (path, options = {}) => {
@@ -289,7 +289,7 @@ test("study completion rejects non-canonical or non-string bigint ids before DB 
     await t.test(JSON.stringify(value), async () => {
       let databaseCalls = 0;
       const restore = replaceUtils({
-        authenticate: () => ({ sub: "child-id", family: "family-id", key: "hagyeom", role: "child" }),
+        authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "child-id", memberKey: "hagyeom", role: "child", member: { id: "child-id", display_name: "child", role: "child", is_active: true } }),
         readJson: async () => ({ planId: value }),
         supabaseFetch: async () => {
           databaseCalls += 1;

@@ -1,4 +1,5 @@
 const u = require("./_utils");
+const authorization = require("../_authorization");
 
 function errorPayload(error) {
   return {
@@ -15,7 +16,8 @@ module.exports = async function handler(request, response) {
   if (request.method !== "POST") return u.allow(response, ["POST"]);
   let claims = null;
   try {
-    claims = u.authenticate(request);
+    const context = await authorization.authenticateActiveMember(request, { allowRoles: ["parent", "child"] });
+    claims = context.claims;
     const body = await u.readJson(request);
     const row = await u.upsertSubscription({ request, claims, subscription: body.subscription || body, body });
     console.log("[push subscribe] success", {
@@ -35,9 +37,8 @@ module.exports = async function handler(request, response) {
     return u.json(response, failure.status, {
       ok: false,
       error: "알림 등록에 실패했습니다. 로그인 권한 또는 기기 알림 설정을 확인해 주세요.",
-      code: failure.code,
-      message: failure.message,
-      details: failure.details,
+      code: error.supabaseCode ? "PUSH_SUBSCRIBE_FAILED" : failure.code,
+      message: failure.status < 500 && !error.supabaseCode ? failure.message : undefined,
     });
   }
 };

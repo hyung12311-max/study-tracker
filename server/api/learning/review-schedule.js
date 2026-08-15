@@ -66,6 +66,10 @@ module.exports = async function learningReviewSchedule(request, response) {
     learning.requireMutationGuard(request);
     const input = scheduleRequest(await learning.u.readJson(request));
     const scope = await learning.parentScope(request, input.assignedMemberId);
+    const assignment = (await learning.u.supabaseFetch(
+      `learning_assignments?select=id&id=eq.${encodeURIComponent(input.assignmentId)}&family_id=eq.${encodeURIComponent(scope.claims.family)}&assigned_member_id=eq.${encodeURIComponent(scope.assignedMemberId)}&limit=1`
+    ))?.[0];
+    if (!assignment) throw learning.u.err("복습 일정 대상을 찾을 수 없습니다.", 404, "REVIEW_SCHEDULE_NOT_FOUND");
     const rows = await learning.u.supabaseFetch("rpc/set_learning_review_schedule_override", {
       method: "POST",
       body: JSON.stringify({

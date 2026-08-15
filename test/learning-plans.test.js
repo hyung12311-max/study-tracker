@@ -46,7 +46,7 @@ function body(extra = {}) {
 
 function base(supabaseFetch, requestBody = body()) {
   return {
-    authenticate: (_request, role) => { assert.equal(role, "parent"); return { sub: PARENT, family: FAMILY, role: "parent" }; },
+    authenticate: (_request) => ({ sub: PARENT, family: FAMILY, role: "parent" }),
     memberInFamily: async () => ({ id: PARENT, family_id: FAMILY, role: "parent", is_active: true }),
     readJson: async () => requestBody,
     supabaseFetch,

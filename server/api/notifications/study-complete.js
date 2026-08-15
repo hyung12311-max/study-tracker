@@ -1,4 +1,5 @@
 const u = require("./_utils");
+const authorization = require("../_authorization");
 
 function isDone(status) {
   return ["done", "완료"].includes(status);
@@ -7,34 +8,30 @@ function isDone(status) {
 module.exports = async function handler(request, response) {
   if (request.method !== "POST") return u.allow(response, ["POST"]);
   try {
-    const claims = u.authenticate(request);
+    const context = await authorization.authenticateActiveMember(request, { requiredRole: "child" });
     const body = await u.readJson(request);
     if (!body.planId) throw u.err("planId is required.");
-    const member = await u.memberInFamily(claims.sub, claims.family);
-    if (!member || member.role !== "child" || member.is_active === false) {
-      throw u.err("권한이 없습니다.", 403, "ACTIVE_CHILD_REQUIRED");
-    }
 
     const rows = await u.supabaseFetch(
-      `study_plans?select=id,subject,workbook,status,parent_notified_at&id=eq.${encodeURIComponent(body.planId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}&limit=1`
+      `study_plans?select=id,subject,workbook,status,parent_notified_at&id=eq.${encodeURIComponent(body.planId)}&family_id=eq.${encodeURIComponent(context.familyId)}&assigned_member_id=eq.${encodeURIComponent(context.memberId)}&limit=1`
     );
     const plan = rows?.[0];
     if (!plan) return u.json(response, 404, { ok: false, error: "학습 기록을 찾지 못했습니다." });
     if (!isDone(plan.status)) return u.json(response, 409, { ok: false, error: "완료된 학습만 알림을 보낼 수 있습니다." });
     if (plan.parent_notified_at) return u.json(response, 200, { ok: true, skipped: true, reason: "already-notified" });
 
-    const members = await u.supabaseFetch(`family_members?select=member_key,display_name,role&family_id=eq.${claims.family}&is_active=eq.true`);
+    const members = await u.supabaseFetch(`family_members?select=member_key,display_name,role&family_id=eq.${encodeURIComponent(context.familyId)}&is_active=eq.true`);
     const parentKeys = (members || [])
-      .filter((member) => member.role === "parent" && member.member_key !== claims.key)
+      .filter((member) => member.role === "parent" && member.member_key !== context.memberKey)
       .map((member) => member.member_key);
-    const sender = (members || []).find((member) => member.member_key === claims.key);
+    const sender = context.member;
     const subject = plan.subject || plan.workbook || "학습";
-    const reward=(await u.supabaseFetch(`sticker_history?select=sticker_count,reward_type&study_plan_id=eq.${encodeURIComponent(plan.id)}&member_id=eq.${encodeURIComponent(claims.sub)}&limit=1`))?.[0];
+    const reward=(await u.supabaseFetch(`sticker_history?select=sticker_count,reward_type&family_id=eq.${encodeURIComponent(context.familyId)}&study_plan_id=eq.${encodeURIComponent(plan.id)}&member_id=eq.${encodeURIComponent(context.memberId)}&limit=1`))?.[0];
     const count=Number(reward?.sticker_count||0),rewardLabel=reward?.reward_type==="study_early"?"미리 완료":reward?.reward_type==="study_on_time"?"계획한 날짜에 완료":reward?.reward_type==="study_delayed"?"지연된 학습 완료":"학습 완료";
     const result = await u.sendToFamily({
-      familyId: claims.family,
+      familyId: context.familyId,
       memberKeys: parentKeys,
-      excludeMemberKey: claims.key,
+      excludeMemberKey: context.memberKey,
       event: "study_complete",
       payload: {
         title: "⭐ 학습 완료",
@@ -42,11 +39,11 @@ module.exports = async function handler(request, response) {
         icon: "/icons/icon-192.png",
         badge: "/icons/icon-192.png",
         url: "/?tab=today",
-        tag: `study-complete:${plan.id}:${claims.key}`,
+        tag: `study-complete:${plan.id}:${context.memberKey}`,
       },
     });
 
-    await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(plan.id)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(claims.sub)}`, {
+    await u.supabaseFetch(`study_plans?id=eq.${encodeURIComponent(plan.id)}&family_id=eq.${encodeURIComponent(context.familyId)}&assigned_member_id=eq.${encodeURIComponent(context.memberId)}`, {
       method: "PATCH",
       body: JSON.stringify({
         parent_notified_at: result.success > 0 ? new Date().toISOString() : null,
@@ -55,12 +52,14 @@ module.exports = async function handler(request, response) {
     });
     return u.json(response, 200, { ok: true, ...result });
   } catch (error) {
+    const safe=authorization.publicAuthorizationError(error);
+    if(safe.status!==500)return u.json(response,safe.status,safe.body);
     const status=error.supabaseCode?500:(error.statusCode||500);
     console.error("[study complete notification failed]",{status,code:error.supabaseCode||error.code||null,message:error.supabaseMessage||error.message,details:error.supabaseDetails||null});
     return u.json(response, status, {
       ok: false,
       error: status===401?"로그인이 만료되었습니다.":status===403?"권한이 없습니다.":"서버 오류가 발생했습니다.",
-      code:error.supabaseCode||error.code||"STUDY_NOTIFICATION_FAILED",
+      code:error.statusCode&&!error.supabaseCode?error.code||"STUDY_NOTIFICATION_FAILED":"STUDY_NOTIFICATION_FAILED",
     });
   }
 };

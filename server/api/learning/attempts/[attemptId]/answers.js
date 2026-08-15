@@ -13,6 +13,10 @@ async function answer(request) {
   const optionId = learning.uuid(body.optionId, "INVALID_OPTION_ID");
   const requestId = learning.uuid(body.requestId, "INVALID_REQUEST_ID");
   await shared.scopedAttempt(claims, attemptId);
+  const question = (await learning.u.supabaseFetch(
+    `learning_attempt_questions?select=id,attempt_id&id=eq.${encodeURIComponent(questionId)}&attempt_id=eq.${encodeURIComponent(attemptId)}&limit=1`
+  ))?.[0];
+  if (!question) throw learning.u.err("문제풀이 문항을 찾을 수 없습니다.", 404, "LEARNING_NOT_FOUND");
   const rows = await learning.u.supabaseFetch("rpc/submit_learning_attempt_answer", {
     method: "POST",
     body: JSON.stringify({

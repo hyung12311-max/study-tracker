@@ -81,8 +81,7 @@ function rows(overrides = {}) {
 
 function parentMocks(data = rows(), observed = []) {
   return {
-    authenticate: (_request, role) => {
-      assert.equal(role, "parent");
+    authenticate: (_request) => {
       return { sub: PARENT, family: FAMILY, role: "parent" };
     },
     memberInFamily: async () => ({ id: PARENT, family_id: FAMILY, role: "parent", is_active: true }),
@@ -223,7 +222,7 @@ test("invalid or other-family child scope is hidden before assignment access", a
     const result = response();
     await historyHandler(request("attempt-history"), result);
     assert.equal(result.statusCode, 404);
-    assert.equal(result.body.code, "LEARNING_TARGET_NOT_FOUND");
+    assert.equal(result.body.code, "FAMILY_CHILD_NOT_FOUND");
     assert.equal(observed.some((query) => query.startsWith("learning_assignments?")), false);
   } finally { restore(); }
 });

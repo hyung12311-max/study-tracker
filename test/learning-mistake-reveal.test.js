@@ -54,6 +54,9 @@ function mocks(role = "parent", observed = []) {
     readJson: async () => ({ requestId: REQUEST }),
     supabaseFetch: async (resource, options) => {
       observed.push({ resource, options });
+      if (resource.startsWith("learning_assignments?")) return [{ id: ASSIGNMENT, assigned_member_id: CHILD }];
+      if (resource.startsWith("learning_attempts?")) return [{ id: "22222222-2222-4222-8222-222222222222" }];
+      if (resource.startsWith("learning_attempt_questions?")) return [{ id: QUESTION, attempt_id: "22222222-2222-4222-8222-222222222222" }];
       assert.equal(resource, "rpc/reveal_learning_mistake_solution");
       return [{ correct_answer: "30", explanation: "3은 십의 자리이므로 30입니다.", review_status: "reviewed", revealed_at: "2026-08-08T00:00:00Z" }];
     },
@@ -74,7 +77,7 @@ for (const role of ["parent", "child"]) {
         reviewStatus: "reviewed",
         revealedAt: "2026-08-08T00:00:00Z",
       });
-      const payload = JSON.parse(observed[0].options.body);
+      const payload = JSON.parse(observed.find(({ resource }) => resource === "rpc/reveal_learning_mistake_solution").options.body);
       assert.equal(payload.p_family_id, FAMILY);
       assert.equal(payload.p_actor_member_id, role === "parent" ? PARENT : CHILD);
       assert.equal(payload.p_assignment_id, ASSIGNMENT);
@@ -133,7 +136,7 @@ test("duplicate request results stay stable and contain one solution only", asyn
     await handler(request(), first);
     await handler(request(), second);
     assert.deepEqual(second.body, first.body);
-    assert.equal(observed.length, 2);
+    assert.equal(observed.filter(({ resource }) => resource === "rpc/reveal_learning_mistake_solution").length, 2);
   } finally { restore(); }
 });
 

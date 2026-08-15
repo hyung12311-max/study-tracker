@@ -13,7 +13,9 @@ module.exports = async function submitMistakeReviewAnswer(request, response) {
     const itemId = learning.uuid(request.query?.itemId || "", "INVALID_REVIEW_ITEM_ID");
     const optionId = learning.uuid(body.optionId, "INVALID_OPTION_ID");
     const requestId = learning.uuid(body.requestId, "INVALID_REQUEST_ID");
-    const { claims } = await learning.activeMember(request);
+    const scope = await learning.activeMember(request);
+    const { claims } = scope;
+    await reviews.scopedReviewSession(scope, reviewId, itemId);
     const rows = await learning.u.supabaseFetch("rpc/submit_learning_mistake_review_answer", {
       method: "POST",
       body: JSON.stringify({

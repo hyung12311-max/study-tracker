@@ -40,7 +40,7 @@ test("message retry reuses client_message_id without inserting or pushing twice"
     readJson: async () => ({ content: "안녕하세요", clientMessageId }),
     supabaseFetch: async (path) => {
       calls.push(path);
-      if (path.startsWith("family_members?select=")) return [{ id: "member-id", member_key: "hagyeom", display_name: "하겸이", avatar_emoji: "👦", is_active: true }];
+      if (path.startsWith("family_members?select=")) return [{ id: "member-id", family_id: "family-id", member_key: "hagyeom", display_name: "하겸이", avatar_emoji: "👦", role: "child", is_active: true }];
       if (path === "family_messages?on_conflict=family_id,client_message_id") return [];
       if (path.startsWith("family_messages?select=*&family_id=eq.family-id&client_message_id=eq.")) return [row];
       return [];

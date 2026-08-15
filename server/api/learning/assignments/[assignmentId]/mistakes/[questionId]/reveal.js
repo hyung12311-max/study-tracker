@@ -32,7 +32,23 @@ module.exports = async function revealLearningMistake(request, response) {
     const questionId = learning.uuid(request.query?.questionId || "", "INVALID_QUESTION_ID");
     const body = learning.exactBody(await learning.u.readJson(request), new Set(["requestId"]));
     const requestId = learning.uuid(body.requestId, "INVALID_REQUEST_ID");
-    const { claims } = await learning.activeMember(request);
+    const { claims, member } = await learning.activeMember(request);
+    const childFilter = member.role === "child"
+      ? `&assigned_member_id=eq.${encodeURIComponent(claims.sub)}`
+      : "";
+    const assignment = (await learning.u.supabaseFetch(
+      `learning_assignments?select=id,assigned_member_id&id=eq.${encodeURIComponent(assignmentId)}&family_id=eq.${encodeURIComponent(claims.family)}${childFilter}&limit=1`
+    ))?.[0];
+    if (!assignment) throw learning.u.err("공개할 오답을 찾을 수 없습니다.", 404, "MISTAKE_NOT_FOUND");
+    const attempts = await learning.u.supabaseFetch(
+      `learning_attempts?select=id&assignment_id=eq.${encodeURIComponent(assignmentId)}&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignment.assigned_member_id)}&status=in.(passed,failed)`
+    ) || [];
+    const attemptIds = learning.idList(attempts);
+    if (!attemptIds.length) throw learning.u.err("공개할 오답을 찾을 수 없습니다.", 404, "MISTAKE_NOT_FOUND");
+    const question = (await learning.u.supabaseFetch(
+      `learning_attempt_questions?select=id,attempt_id&id=eq.${encodeURIComponent(questionId)}&attempt_id=in.(${learning.inFilter(attemptIds)})&limit=1`
+    ))?.[0];
+    if (!question) throw learning.u.err("공개할 오답을 찾을 수 없습니다.", 404, "MISTAKE_NOT_FOUND");
     const rows = await learning.u.supabaseFetch("rpc/reveal_learning_mistake_solution", {
       method: "POST",
       body: JSON.stringify({

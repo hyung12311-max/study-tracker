@@ -134,6 +134,7 @@ function mocks(data = rows(), observed = [], role = "parent") {
         return [{ review_session_id: REVIEW, review_status: "in_progress", item_count: data.items.length }];
       }
       if (query.startsWith("learning_mistake_review_sessions?")) return data.sessions;
+      if (query.startsWith("learning_assignments?")) return data.sessions.length ? [{ id: ASSIGNMENT }] : [];
       if (query.startsWith("learning_mistake_review_items?")) return data.items;
       if (query.startsWith("learning_attempts?")) return data.attempts;
       if (query.startsWith("learning_attempt_questions?")) return data.questions;

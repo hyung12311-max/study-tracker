@@ -62,14 +62,14 @@ function replace(overrides) {
 function parentMocks(observed = []) {
   return {
     readJson: async (req) => req.testBody,
-    authenticate: (_request, role) => {
-      assert.equal(role, "parent");
+    authenticate: (_request) => {
       return { sub: PARENT, family: FAMILY, role: "parent" };
     },
     memberInFamily: async () => ({ id: PARENT, family_id: FAMILY, role: "parent", is_active: true }),
     supabaseFetch: async (query, options) => {
       observed.push({ query, options });
       if (query.startsWith("family_members?")) return [{ id: CHILD, family_id: FAMILY, role: "child", is_active: true }];
+      if (query.startsWith("learning_assignments?")) return [{ id: ASSIGNMENT }];
       if (query === "rpc/set_learning_review_schedule_override") return [{
         schedule_override_id: "b0000000-0000-4000-8000-000000000001",
         schedule_assignment_id: ASSIGNMENT,
@@ -258,7 +258,7 @@ test("child scheduling is denied because only parent policy is approved", async 
     const result = response();
     await handler(request(), result);
     assert.equal(result.statusCode, 403);
-    assert.equal(result.body.code, "ACTIVE_PARENT_REQUIRED");
+    assert.equal(result.body.code, "AUTH_ROLE_REQUIRED");
     assert.equal(mutated, false);
   } finally { restore(); }
 });
@@ -276,7 +276,7 @@ test("other-family child is hidden before schedule RPC", async () => {
     const result = response();
     await handler(request(), result);
     assert.equal(result.statusCode, 404);
-    assert.equal(result.body.code, "LEARNING_TARGET_NOT_FOUND");
+    assert.equal(result.body.code, "FAMILY_CHILD_NOT_FOUND");
     assert.equal(observed.some(({ query }) => query === "rpc/set_learning_review_schedule_override"), false);
   } finally { restore(); }
 });

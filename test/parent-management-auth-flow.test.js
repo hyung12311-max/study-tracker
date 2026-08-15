@@ -34,6 +34,6 @@ test("Parent selection still verifies the family PIN before creating the session
 });
 
 test("Parent-only APIs keep server-side Parent authorization", () => {
-  assert.match(familyPinApi, /authenticate\(req,"parent"\)/);
+  assert.match(familyPinApi, /authenticateActiveMember\(req,\{requiredRole:"parent"\}\)/);
   assert.match(bookPlansApi, /authenticate\(request, "parent"\)/);
 });

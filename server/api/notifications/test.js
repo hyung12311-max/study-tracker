@@ -1,17 +1,13 @@
 const u = require("./_utils");
+const authorization = require("../_authorization");
 
 module.exports = async function handler(request, response) {
   if (request.method !== "POST") return u.allow(response, ["POST"]);
   try {
-    const claims = u.authenticate(request);
-    console.log("[notifications/test] request", {
-      familyId: claims.family,
-      memberKey: claims.key,
-      nodeEnv: process.env.NODE_ENV || null,
-    });
+    const context = await authorization.authenticateActiveMember(request, { requiredRole: "parent" });
     const result = await u.sendToFamily({
-      familyId: claims.family,
-      memberKeys: [claims.key],
+      familyId: context.familyId,
+      memberKeys: [context.memberKey],
       event: "family_chat",
       payload: {
         title: "테스트 알림",
@@ -19,18 +15,13 @@ module.exports = async function handler(request, response) {
         icon: "/icons/icon-192.png",
         badge: "/icons/icon-192.png",
         url: "/?tab=family-chat",
-        tag: `test-${claims.key}-${Date.now()}`,
+        tag: `test-${context.memberKey}-${Date.now()}`,
       },
     });
-    console.log("[notifications/test] result", result);
     return u.json(response, 200, { ok: true, ...result });
   } catch (error) {
-    console.error("[notifications/test]", error);
-
-    return u.json(response, error.statusCode || 500, {
-      ok: false,
-      error: error.message,
-      stack: process.env.NODE_ENV !== "production" ? error.stack : undefined,
-    });
+    const safe = authorization.publicAuthorizationError(error);
+    if (safe.status !== 500) return u.json(response, safe.status, safe.body);
+    return u.json(response, 500, { ok: false, error: "테스트 알림을 보내지 못했습니다.", code: "NOTIFICATION_TEST_FAILED" });
   }
 };

@@ -13,6 +13,12 @@ module.exports = async function startLearningMistakeReview(request, response) {
     const filters = reviews.reviewFilters(body);
     const requestId = learning.uuid(body.requestId, "INVALID_REQUEST_ID");
     const scope = await reviews.reviewScope(request, body.assignedMemberId);
+    const assignment = (await learning.u.supabaseFetch(
+      `learning_assignments?select=id&id=eq.${encodeURIComponent(assignmentId)}&family_id=eq.${encodeURIComponent(scope.claims.family)}&assigned_member_id=eq.${encodeURIComponent(scope.assignedMemberId)}&limit=1`
+    ))?.[0];
+    if (!assignment) {
+      throw learning.u.err("복습할 학습 배정을 찾을 수 없습니다.", 404, "REVIEWABLE_MISTAKES_NOT_FOUND");
+    }
     const rows = await learning.u.supabaseFetch("rpc/start_learning_mistake_review", {
       method: "POST",
       body: JSON.stringify({
