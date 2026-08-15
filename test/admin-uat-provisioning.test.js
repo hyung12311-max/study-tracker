@@ -133,6 +133,7 @@ test("valid provisioning calls one atomic RPC and returns no UUID or credential"
     const response = responseCapture();
     await handler(request(), response);
     assert.equal(response.statusCode, 201);
+    assert.equal(Object.hasOwn(response.headers, "Set-Cookie"), false);
     assert.equal(response.body.created, true);
     assert.equal(rpcBody.p_family_key, "uat-final-one");
     assert.equal(rpcBody.p_parent_member_key, "uat-final-one-parent");

@@ -79,6 +79,26 @@ test("a tampered bootstrap cookie is rejected without default-family fallback", 
   }
 });
 
+test("an expired signed bootstrap cookie is rejected", async () => {
+  const previousSecret = process.env.FAMILY_AUTH_SECRET;
+  const originalNow = Date.now;
+  process.env.FAMILY_AUTH_SECRET = "f".repeat(48);
+  try {
+    const response = responseCapture();
+    utils.setBootstrapCookie({ headers: { "x-forwarded-proto": "https" } }, response, FAMILY_A);
+    const cookie = String(response.headers["Set-Cookie"] || "").split(";", 1)[0];
+    Date.now = () => originalNow() + (8 * 60 * 60 * 1000) + 1000;
+    await assert.rejects(
+      utils.trustedFamilyScope({ headers: { cookie } }, responseCapture()),
+      (error) => error.statusCode === 401 && error.code === "FAMILY_CONTEXT_EXPIRED"
+    );
+  } finally {
+    Date.now = originalNow;
+    if (previousSecret === undefined) delete process.env.FAMILY_AUTH_SECRET;
+    else process.env.FAMILY_AUTH_SECRET = previousSecret;
+  }
+});
+
 test("member listing is family scoped and omits family and member keys", async () => {
   const calls = [];
   const restore = replaceUtils({

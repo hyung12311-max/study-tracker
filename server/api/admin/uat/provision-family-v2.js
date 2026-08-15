@@ -1,4 +1,5 @@
 const u = require("../_utils");
+const familyAuth = require("../../family/_utils");
 const OPAQUE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 module.exports = async function provisionUatFamilyV2(request, response) {
@@ -7,6 +8,7 @@ module.exports = async function provisionUatFamilyV2(request, response) {
     u.requireMutationGuard(request);
     u.requireAdmin(request);
     const input = u.provisioningRequestV2(await u.push.readJson(request));
+    familyAuth.requireFamilyAuthConfiguration();
     const result = await u.push.supabaseFetch("rpc/provision_uat_family_v2", {
       method: "POST",
       body: JSON.stringify({
@@ -37,6 +39,7 @@ module.exports = async function provisionUatFamilyV2(request, response) {
       || child.member_key !== input.children[index].memberKey)) {
       throw new Error("Provisioning child identity was invalid.");
     }
+    familyAuth.setBootstrapCookie(request, response, provisioned.family_id);
     return u.send(response, 201, {
       ok: true,
       created: true,
