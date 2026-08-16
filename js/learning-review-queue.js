@@ -28,6 +28,7 @@ export function initLearningReviewQueue({
   currentMember,
   selectedAssignee,
   openReview,
+  onChange = () => {},
 }) {
   let generation = 0;
   let queue = [];
@@ -48,6 +49,10 @@ export function initLearningReviewQueue({
       : member?.role === "child"
         ? document.querySelector("#childLearningReviewQueue")
         : null;
+  }
+
+  function snapshot() {
+    return { queue: [...queue], loading, failed };
   }
 
   function card(item, index) {
@@ -80,9 +85,12 @@ export function initLearningReviewQueue({
   function render() {
     const parentSection = document.querySelector("#parentLearningReviewQueueSection");
     const childSection = document.querySelector("#childLearningReviewQueueSection");
+    const childDetails = document.querySelector("#childLearningReviewQueueDetails");
     const member = currentMember();
+    onChange(snapshot());
     if (parentSection) parentSection.hidden = member?.role !== "parent";
     if (childSection) childSection.hidden = member?.role !== "child";
+    if (childDetails) childDetails.hidden = member?.role !== "child";
     const container = target();
     if (!container) return;
     container.closest(".learning-review-queue-section")?.setAttribute("aria-busy", String(loading));
@@ -195,6 +203,7 @@ export function initLearningReviewQueue({
   return {
     refresh,
     render,
+    snapshot,
     reset() {
       generation += 1;
       queue = [];

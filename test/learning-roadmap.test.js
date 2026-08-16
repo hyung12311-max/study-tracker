@@ -105,7 +105,7 @@ test("parent roadmap merges the curriculum order with published and assignment s
     }
     if (path.startsWith("learning_assignment_plans?")) {
       assert.match(path, new RegExp(`family_id=eq\\.${FAMILY_ID}`));
-      return [{ assignment_id: GRADE2_ASSIGNMENT, plan_state: "active", planned_start_date: "2026-06-01", target_completion_date: "2026-07-05", revision: 3 }];
+      return [{ assignment_id: "54000000-0000-4000-8000-000000000003", plan_state: "active", planned_start_date: "2026-06-01", target_completion_date: "2026-07-05", revision: 3 }];
     }
     if (path.startsWith("learning_stages?")) {
       return [
@@ -147,11 +147,11 @@ test("parent roadmap merges the curriculum order with published and assignment s
     assert.deepEqual(units.map((unit) => unit.curriculumOrder), Array.from({ length: 12 }, (_, index) => index + 1));
     assert.equal(units[0].unitCode, "grade2-three-digit-numbers");
     assert.equal(units[0].availability, "published");
-    assert.equal(units[0].assignmentState, "completed");
-    assert.equal(units[0].userStatus, "completed");
+    assert.equal(units[0].assignmentState, "active");
+    assert.equal(units[0].userStatus, "assigned");
     assert.equal(units[0].hasPlan, true);
     assert.equal(units[0].currentRevision, 3);
-    assert.equal(units[0].targetStatus, "completed");
+    assert.equal(units[0].targetStatus, "active");
     assert.deepEqual(units[0].publishedVersion, {
       contentVersionId: GRADE2_V1,
       versionNumber: 1,
@@ -172,7 +172,7 @@ test("parent roadmap merges the curriculum order with published and assignment s
   }
 });
 
-test("roadmap exposes one user status with completed, active, and cancelled precedence", () => {
+test("roadmap exposes one user status with current active taking precedence over history", () => {
   const states = roadmapHandler.assignmentStates([
     { unit_id: "available", status: "cancelled" },
     { unit_id: "assigned", status: "cancelled" },
@@ -183,7 +183,7 @@ test("roadmap exposes one user status with completed, active, and cancelled prec
   const version = { id: GRADE2_V1 };
   assert.equal(states.get("available"), undefined);
   assert.equal(states.get("assigned"), "active");
-  assert.equal(states.get("completed"), "completed");
+  assert.equal(states.get("completed"), "active");
   assert.equal(roadmapHandler.userStatus(null, "active"), "preparing");
   assert.equal(roadmapHandler.userStatus(version, "unassigned"), "available");
   assert.equal(roadmapHandler.userStatus(version, "active"), "assigned");

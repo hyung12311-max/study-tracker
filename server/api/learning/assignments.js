@@ -10,7 +10,7 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
   const unitIds = learning.idList(assignments, "unit_id");
   const versionIds = learning.idList(assignments, "content_version_id");
   const assignmentIds = learning.idList(assignments);
-  const [units, stages, progress, attempts] = await Promise.all([
+  const [units, stages, progress, attempts, plans] = await Promise.all([
     learning.u.supabaseFetch(
       `learning_units?select=id,course_id,display_title&id=in.(${learning.inFilter(unitIds)})`
     ),
@@ -23,7 +23,14 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
     learning.u.supabaseFetch(
       `learning_attempts?select=id,assignment_id,stage_id,status,total_questions,started_at&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}&assignment_id=in.(${learning.inFilter(assignmentIds)})&status=eq.in_progress`
     ),
+    learning.u.supabaseFetch(
+      `learning_assignment_plans?select=id,assignment_id,plan_state,planned_start_date,target_completion_date&family_id=eq.${encodeURIComponent(claims.family)}&assigned_member_id=eq.${encodeURIComponent(assignedMemberId)}&assignment_id=in.(${learning.inFilter(assignmentIds)})`
+    ),
   ]);
+  const planIds = learning.idList(plans);
+  const targets = planIds.length ? await learning.u.supabaseFetch(
+    `learning_assignment_stage_targets?select=plan_id,assignment_id,stage_id,target_date&plan_id=in.(${learning.inFilter(planIds)})`
+  ) : [];
   const courseIds = learning.idList(units, "course_id");
   const courses = courseIds.length ? await learning.u.supabaseFetch(
     `learning_courses?select=id,internal_name,subject_name&id=in.(${learning.inFilter(courseIds)})`
@@ -36,10 +43,17 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
   const attemptByKey = new Map((attempts || []).map(
     (row) => [`${row.assignment_id}:${row.stage_id}`, row]
   ));
+  const planByAssignment = new Map((plans || []).map(
+    (row) => [String(row.assignment_id), row]
+  ));
+  const targetByKey = new Map((targets || []).map(
+    (row) => [`${row.assignment_id}:${row.stage_id}`, row]
+  ));
 
   return assignments.map((assignment) => {
     const unit = unitById.get(String(assignment.unit_id));
     const course = unit && courseById.get(String(unit.course_id));
+    const plan = planByAssignment.get(String(assignment.id));
     const dto = {
       id: String(assignment.id),
       unitId: String(assignment.unit_id),
@@ -48,11 +62,17 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
       assignedAt: assignment.assigned_at,
       completedAt: assignment.completed_at,
       cancelledAt: assignment.cancelled_at,
+      target: plan ? {
+        state: plan.plan_state,
+        plannedStartDate: plan.planned_start_date,
+        unitTargetCompletionDate: plan.target_completion_date,
+      } : null,
       stages: (stages || [])
         .filter((stage) => String(stage.content_version_id) === String(assignment.content_version_id))
         .map((stage) => {
           const stageProgress = progressByKey.get(`${assignment.id}:${stage.id}`);
           const attempt = attemptByKey.get(`${assignment.id}:${stage.id}`);
+          const target = targetByKey.get(`${assignment.id}:${stage.id}`);
           return {
             id: String(stage.id),
             title: stage.display_title,
@@ -61,6 +81,10 @@ async function listForScope(claims, assignedMemberId, viewerRole) {
             status: stageProgress?.status || "locked",
             unlockedAt: stageProgress?.unlocked_at || null,
             passedAt: stageProgress?.passed_at || null,
+            targetDate: target?.target_date || null,
+            actionable: assignment.status === "active"
+              && stageProgress?.status === "unlocked"
+              && plan?.plan_state !== "paused",
             attempt: attempt ? {
               id: String(attempt.id),
               status: attempt.status,

@@ -174,6 +174,71 @@ function buildReviewQueue(data, now = new Date()) {
   ));
 }
 
+function buildReviewSummary(data, queue = []) {
+  const attemptById = new Map((data.attempts || []).map((row) => [String(row.id), row]));
+  const itemById = new Map((data.reviewItems || []).map((row) => [String(row.id), row]));
+  const historyByQuestion = new Map();
+  for (const answer of data.reviewAnswers || []) {
+    const item = itemById.get(String(answer.review_item_id));
+    if (!item) continue;
+    const questionId = String(item.source_attempt_question_id);
+    if (!historyByQuestion.has(questionId)) historyByQuestion.set(questionId, []);
+    historyByQuestion.get(questionId).push({ ...answer, session_id: item.session_id });
+  }
+  const byAssignment = {};
+  const ensure = (assignmentId) => {
+    const key = String(assignmentId || "");
+    byAssignment[key] ||= {
+      historicalMistakes: 0,
+      unresolvedMistakes: 0,
+      resolvedMistakes: 0,
+      queueCount: 0,
+      dueQueueCount: 0,
+      inProgressCount: 0,
+      snoozedCount: 0,
+      completedSessions: 0,
+    };
+    return byAssignment[key];
+  };
+  const seenQuestions = new Set();
+  for (const answer of data.answerRows || []) {
+    const questionId = String(answer.attempt_question_id || "");
+    if (!questionId || seenQuestions.has(questionId)) continue;
+    const attempt = attemptById.get(String(answer.attempt_id));
+    if (!attempt) continue;
+    seenQuestions.add(questionId);
+    const summary = ensure(attempt.assignment_id);
+    summary.historicalMistakes += 1;
+    if (resolution(historyByQuestion.get(questionId) || []).status === "resolved") summary.resolvedMistakes += 1;
+    else summary.unresolvedMistakes += 1;
+  }
+  for (const session of data.reviewSessions || []) {
+    const summary = ensure(session.assignment_id);
+    if (session.status === "completed") summary.completedSessions += 1;
+  }
+  for (const item of queue || []) {
+    const summary = ensure(item.assignmentId);
+    summary.queueCount += 1;
+    if (["start", "resume"].includes(item.action?.type)) summary.dueQueueCount += 1;
+    if (item.action?.type === "resume") summary.inProgressCount += 1;
+    if (item.action?.type === "scheduled" && item.scheduleSource === "override") summary.snoozedCount += 1;
+  }
+  const totals = Object.values(byAssignment).reduce((result, summary) => {
+    for (const key of Object.keys(result)) result[key] += Number(summary[key] || 0);
+    return result;
+  }, {
+    historicalMistakes: 0,
+    unresolvedMistakes: 0,
+    resolvedMistakes: 0,
+    queueCount: 0,
+    dueQueueCount: 0,
+    inProgressCount: 0,
+    snoozedCount: 0,
+    completedSessions: 0,
+  });
+  return { ...totals, byAssignment };
+}
+
 async function load(request) {
   const scope = await learning.assignmentReadScope(request);
   const family = encodeURIComponent(scope.claims.family);
@@ -256,4 +321,4 @@ async function load(request) {
   };
 }
 
-module.exports = { REVIEW_QUEUE_POLICY, buildReviewQueue, load, resolution };
+module.exports = { REVIEW_QUEUE_POLICY, buildReviewQueue, buildReviewSummary, load, resolution };

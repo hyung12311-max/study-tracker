@@ -2,7 +2,7 @@ const curriculum = require("../../../content/learning/curriculum/math/grade-2-20
 const learning = require("./_utils");
 
 const PREPARATION_UNIT_CODES = Object.freeze(["make-ten"]);
-const ASSIGNMENT_STATE_RANK = Object.freeze({ active: 1, completed: 2 });
+const ASSIGNMENT_STATE_RANK = Object.freeze({ completed: 1, active: 2 });
 
 function latestPublishedVersions(rows) {
   const latest = new Map();

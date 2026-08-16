@@ -1,3 +1,12 @@
+import {
+  combineLearningReviewToday,
+  deriveLearningToday,
+  deriveReviewToday,
+  localCalendarDate,
+  primaryToday,
+} from "./learning-today.js";
+import { metricPercent } from "./learning-progress.js";
+
 const difficultyLabels = {
   seed: "입문",
   leaf: "기초",
@@ -23,7 +32,22 @@ const roadmapStatusLabels = {
   preparing: "준비 중",
   available: "배정 가능",
   assigned: "배정됨",
+  paused: "일시 중지",
   completed: "완료",
+};
+
+const planStateLabels = { active: "계획 진행 중", paused: "계획 일시 중지" };
+const todayDueLabels = {
+  overdue: "목표일 지남",
+  dueToday: "오늘까지",
+  dueSoon: "곧 목표일",
+  upcoming: "예정",
+  noTarget: "목표일 없음",
+  reviewOverdue: "복습 기한 지남",
+  reviewDueToday: "오늘 복습",
+  reviewDueSoon: "곧 복습",
+  reviewUpcoming: "예정 복습",
+  reviewSnoozed: "미룬 복습",
 };
 
 function escapeHtml(value) {
@@ -50,6 +74,8 @@ export function initLearning({
   requireSelectedAssignee,
   showToast,
   refreshStickerWallet = async () => {},
+  reviewTodaySnapshot = () => ({ queue: [], loading: false, failed: false }),
+  openReviewToday = () => {},
 }) {
   let generation = 0;
   let catalog = [];
@@ -57,10 +83,12 @@ export function initLearning({
   let selectedRoadmapUnitCode = "";
   let roadmapSelectionIdentity = "";
   let assignments = [];
+  let planning = [];
   let profile = null;
   let profileReady = false;
   let loading = false;
   let error = "";
+  let planError = "";
   let attempt = null;
   let attemptContext = null;
   let attemptIdentity = "";
@@ -84,9 +112,9 @@ export function initLearning({
       <li class="learning-stage learning-stage-${escapeHtml(stage.status || "locked")}">
         <strong>${escapeHtml(stageDisplayTitle(stage))}</strong>
         <div class="learning-stage-actions">
-          <small>${stageStatusLabels[stage.status] || "잠김"}</small>
+          <small>${stageStatusLabels[stage.status] || "잠김"}${stage.targetDate ? ` · 목표 ${escapeHtml(stage.targetDate)}` : ""}</small>
           ${parent && stage.attempt?.status === "in_progress" ? `<button type="button" class="delete-btn" data-learning-action="abandon-attempt" data-assignment-id="${assignment.id}" data-attempt-id="${stage.attempt.id}">응시 초기화</button>` : ""}
-          ${!parent && assignment.status === "active" && stage.status === "unlocked" ? `<button type="button" class="primary" data-learning-action="${stage.attempt ? "resume-attempt" : "start-attempt"}" data-assignment-id="${assignment.id}" data-stage-id="${stage.id}" data-unit-title="${escapeHtml(assignment.unitTitle)}" data-stage-title="${escapeHtml(stage.title)}" data-stage-difficulty="${escapeHtml(stage.difficulty)}" data-stage-order="${stage.order}" ${stage.attempt ? `data-attempt-id="${stage.attempt.id}"` : ""}>${stage.attempt ? "문제풀이로 이동" : "문제풀이로 이동"}</button>` : ""}
+          ${!parent && stage.actionable ? `<button type="button" class="primary" data-learning-action="${stage.attempt ? "resume-attempt" : "start-attempt"}" data-assignment-id="${assignment.id}" data-stage-id="${stage.id}" data-unit-title="${escapeHtml(assignment.unitTitle)}" data-stage-title="${escapeHtml(stage.title)}" data-stage-difficulty="${escapeHtml(stage.difficulty)}" data-stage-order="${stage.order}" ${stage.attempt ? `data-attempt-id="${stage.attempt.id}"` : ""}>문제풀이로 이동</button>` : ""}
         </div>
       </li>
     `).join("")}</ol>`;
@@ -111,6 +139,43 @@ export function initLearning({
     return `<ol class="learning-roadmap-stage-list">${stages.map((stage) => `<li><strong>${escapeHtml(stageDisplayTitle(stage))}</strong>${stage.status ? `<span>${escapeHtml(stageStatusLabels[stage.status] || "잠김")}</span>` : ""}${assignment && stage.attempt?.status === "in_progress" ? `<button type="button" class="delete-btn" data-learning-action="abandon-attempt" data-assignment-id="${assignment.id}" data-attempt-id="${stage.attempt.id}">응시 초기화</button>` : ""}</li>`).join("")}</ol>`;
   }
 
+  function dateAfter(days) {
+    const value = new Date(Date.now() + (9 * 60 * 60 * 1000) + (days * 24 * 60 * 60 * 1000));
+    return value.toISOString().slice(0, 10);
+  }
+
+  function planningForAssignment(assignmentId) {
+    return planning.find((entry) => entry.assignmentId === assignmentId) || null;
+  }
+
+  function planForm(catalogItem, assignment, stages) {
+    const planningEntry = assignment ? planningForAssignment(assignment.id) : null;
+    const plan = planningEntry?.plan || null;
+    if (assignment?.status === "completed") {
+      return plan
+        ? `<section class="learning-plan-summary"><strong>완료된 학습 계획</strong><span>${escapeHtml(plan.plannedStartDate)} ~ ${escapeHtml(plan.unitTargetCompletionDate)}</span></section>`
+        : '<p class="learning-roadmap-completed-note">완료한 단원입니다.</p>';
+    }
+    const start = plan?.plannedStartDate || dateAfter(0);
+    const completion = plan?.unitTargetCompletionDate || dateAfter(7);
+    const targets = new Map((plan?.stageTargets || []).map((target) => [target.stageId, target.targetDate]));
+    const mode = !assignment ? "assignment" : plan ? "update" : "create";
+    const busyKey = mode === "assignment"
+      ? `assign:${catalogItem?.contentVersionId}`
+      : plan ? `plan-update:${plan.id}` : `plan-create:${assignment.id}`;
+    const busy = pending.has(busyKey);
+    const stageFields = stages.map((stage, index) => `<label><span>${escapeHtml(stageDisplayTitle(stage))} 목표일</span><input type="date" data-plan-stage-id="${escapeHtml(stage.id)}" data-plan-stage-order="${Number(stage.order || index + 1)}" value="${escapeHtml(targets.get(stage.id) || completion)}" required></label>`).join("");
+    const stateAction = plan?.state === "paused" ? "resume" : "pause";
+    const stateBusy = plan && pending.has(`plan-state:${plan.id}`);
+    return `<form class="learning-plan-form" data-learning-plan-form data-plan-mode="${mode}" data-assignment-id="${escapeHtml(assignment?.id || "")}" data-unit-id="${escapeHtml(catalogItem?.unitId || "")}" data-version-id="${escapeHtml(catalogItem?.contentVersionId || "")}" data-plan-id="${escapeHtml(plan?.id || "")}" data-plan-revision="${plan?.currentRevision || ""}">
+      <div class="learning-plan-heading"><strong>${plan ? planStateLabels[plan.state] || "학습 계획" : "학습 계획 설정"}</strong>${plan ? `<small>Revision ${plan.currentRevision}</small>` : ""}</div>
+      <div class="learning-plan-fields"><label><span>시작일</span><input name="plannedStartDate" type="date" value="${escapeHtml(start)}" required></label><label><span>단원 완료 목표일</span><input name="unitTargetCompletionDate" type="date" value="${escapeHtml(completion)}" required></label></div>
+      <fieldset class="learning-stage-target-fields"><legend>단계별 목표일</legend>${stageFields}</fieldset>
+      ${planError ? `<p class="learning-error">${escapeHtml(planError)}</p>` : ""}
+      <div class="learning-plan-actions"><button type="submit" class="primary" data-learning-action="${mode === "assignment" ? "assign" : "save-plan"}" ${busy ? "disabled" : ""}>${busy ? "저장 중…" : mode === "assignment" ? "계획과 함께 배정" : plan ? "계획 수정" : "계획 만들기"}</button>${plan ? `<button type="button" data-learning-action="${stateAction}-plan" ${stateBusy ? "disabled" : ""}>${stateBusy ? "처리 중…" : stateAction === "pause" ? "계획 일시 중지" : "계획 다시 시작"}</button>` : ""}</div>
+    </form>`;
+  }
+
   function selectedRoadmapItem() {
     return [...(roadmap?.preparationUnits || []), ...(roadmap?.curriculumUnits || [])]
       .find((item) => item.unitCode === selectedRoadmapUnitCode) || null;
@@ -131,8 +196,6 @@ export function initLearning({
       : matchingAssignments.find((entry) => entry.status === "active");
     const stages = assignment?.stages || catalogItem?.stages || [];
     const status = roadmapStatusLabels[item.userStatus] || "준비 중";
-    const key = catalogItem ? `assign:${catalogItem.contentVersionId}` : "";
-    const busy = key && pending.has(key);
     if (item.userStatus === "preparing") {
       body.innerHTML = `<article class="learning-roadmap-detail-card"><header><h6>${escapeHtml(item.displayTitle)}</h6><span class="learning-roadmap-status">${status}</span></header><p>아직 문제를 준비하고 있어요. 콘텐츠가 공개되면 배정할 수 있습니다.</p></article>`;
       return;
@@ -140,10 +203,10 @@ export function initLearning({
     const cancelKey = assignment ? `cancel:${assignment.id}` : "";
     const cancelling = cancelKey && pending.has(cancelKey);
     const action = item.userStatus === "available" && catalogItem
-      ? `<button type="button" class="primary" data-learning-action="assign" data-unit-id="${catalogItem.unitId}" data-version-id="${catalogItem.contentVersionId}" ${busy ? "disabled" : ""}>${busy ? "배정 중…" : "이 단원 배정"}</button>`
-      : item.userStatus === "assigned"
-        ? `<div class="learning-roadmap-detail-actions"><p class="learning-roadmap-assigned-note">이미 배정된 단원입니다.</p>${assignment ? `<button type="button" class="delete-btn" data-learning-action="cancel" data-assignment-id="${assignment.id}" ${cancelling ? "disabled" : ""}>${cancelling ? "취소 중…" : "배정 취소"}</button>` : ""}</div>`
-        : '<p class="learning-roadmap-completed-note">완료한 단원입니다.</p>';
+      ? planForm(catalogItem, null, stages)
+      : item.userStatus === "assigned" || item.userStatus === "paused"
+        ? `<div class="learning-roadmap-plan-area"><p class="learning-roadmap-assigned-note">이미 배정된 단원입니다.</p>${planForm(catalogItem, assignment, stages)}${assignment ? `<button type="button" class="delete-btn" data-learning-action="cancel" data-assignment-id="${assignment.id}" ${cancelling ? "disabled" : ""}>${cancelling ? "취소 중…" : "배정 취소"}</button>` : ""}</div>`
+        : planForm(catalogItem, assignment, stages);
     const mistakesAction = assignment
       ? `<button type="button" data-learning-mistakes-assignment="${escapeHtml(assignment.id)}" data-learning-mistakes-title="${escapeHtml(item.displayTitle)}">오답노트 보기</button>`
       : "";
@@ -216,6 +279,57 @@ export function initLearning({
     save.textContent = saving ? "저장 중…" : "저장";
   }
 
+  function renderToday() {
+    const container = document.querySelector("#childLearningToday");
+    const section = document.querySelector("#childLearningTodaySection");
+    if (!container || !section) return;
+    const child = currentMember()?.role === "child";
+    section.hidden = !child;
+    if (!child) return;
+    const reviewSnapshot = reviewTodaySnapshot();
+    const combinedLoading = loading || reviewSnapshot.loading;
+    section.setAttribute("aria-busy", String(combinedLoading));
+    if (combinedLoading) {
+      container.innerHTML = '<p class="learning-today-state">오늘 할 일을 불러오는 중이에요.</p>';
+      return;
+    }
+    const today = localCalendarDate();
+    const learningItems = error ? [] : deriveLearningToday(assignments, { today });
+    const reviewItems = reviewSnapshot.failed ? [] : deriveReviewToday(reviewSnapshot.queue, { today });
+    const items = combineLearningReviewToday(learningItems, reviewItems);
+    const partialError = error && reviewSnapshot.failed
+      ? "오늘 할 일을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
+      : error ? "새 학습을 불러오지 못했지만 복습 일정은 확인할 수 있어요."
+        : reviewSnapshot.failed ? "복습 일정을 불러오지 못했지만 새 학습은 확인할 수 있어요." : "";
+    if (!items.length) {
+      container.innerHTML = `${partialError ? `<p class="learning-error">${escapeHtml(partialError)}</p>` : ""}<p class="learning-today-state">오늘 해야 할 학습이 없어요.</p>`;
+      return;
+    }
+    const primary = primaryToday(items);
+    const displayItems = primary ? [primary, ...items.filter((item) => item !== primary)] : items;
+    const card = (item) => {
+      const dueLabel = todayDueLabels[item.dueState] || todayDueLabels.noTarget;
+      const action = item.type === "review" && item.actionable
+        ? `<button type="button" class="primary learning-today-cta" data-learning-today-review-index="${item.domainIndex}" aria-label="${escapeHtml(item.title)} ${escapeHtml(item.subtitle)} ${item.actionType === "reviewResume" ? "복습 계속하기" : "복습하기"}">${item.actionType === "reviewResume" ? "복습 계속하기" : "복습하기"}</button>`
+        : item.type === "review" && item.actionType === "reviewSnoozed"
+          ? '<button type="button" class="learning-today-cta" disabled>미뤄둔 복습</button>'
+          : item.type === "review"
+            ? '<span class="learning-today-unavailable">예정된 복습이에요</span>'
+            : item.actionable
+              ? `<button type="button" class="primary learning-today-cta" data-learning-action="${item.actionType === "resume" ? "resume-attempt" : "start-attempt"}" data-assignment-id="${escapeHtml(item.assignmentKey)}" data-stage-id="${escapeHtml(item.stageKey)}" data-unit-title="${escapeHtml(item.unitTitle)}" data-stage-title="${escapeHtml(item.stageTitle)}" data-stage-difficulty="${escapeHtml(item.difficulty)}" data-stage-order="${item.stageOrder}" ${item.attemptKey ? `data-attempt-id="${escapeHtml(item.attemptKey)}"` : ""} aria-label="${escapeHtml(item.title)} ${item.actionType === "resume" ? "계속하기" : "학습 시작"}">${item.actionType === "resume" ? "계속하기" : "학습 시작"}</button>`
+        : item.actionType === "paused"
+          ? '<button type="button" class="learning-today-cta" disabled>일시정지된 계획</button>'
+          : '<span class="learning-today-unavailable">현재 시작할 수 없어요</span>';
+      return `<article class="learning-today-card learning-today-${escapeHtml(item.dueState)} ${primary === item ? "learning-today-primary" : ""}">
+        <header><div><small>${primary === item ? "가장 먼저 할 일" : "다음 할 일"}</small><span class="learning-today-type">${item.type === "review" ? "복습" : "새 학습"}</span><h4>${escapeHtml(item.type === "review" ? item.title : item.unitTitle)}</h4></div><span class="learning-today-due">${escapeHtml(dueLabel)}</span></header>
+        <p><strong>${escapeHtml(item.subtitle)}</strong><span>${item.targetDate ? `${item.type === "review" ? "복습일" : "목표일"} ${escapeHtml(item.targetDate)}` : "목표일이 정해지지 않았어요"}</span></p>
+        <div class="learning-today-action"><small>${item.type === "review" ? `남은 복습 · ${escapeHtml(item.progress)}` : `현재 진행 · ${escapeHtml(stageStatusLabels[item.progress] || item.progress)}`}</small>${action}</div>
+      </article>`;
+    };
+    const visibleItems = displayItems.slice(0, 4);
+    container.innerHTML = `${partialError ? `<p class="learning-error">${escapeHtml(partialError)}</p>` : ""}${primary ? "" : '<p class="learning-today-state">지금 시작할 수 있는 학습은 없어요.</p>'}${visibleItems.map(card).join("")}`;
+  }
+
   function renderAssignments(parent) {
     const list = document.querySelector(parent ? "#learningAssignmentList" : "#childLearningAssignmentList");
     if (!list) return;
@@ -241,8 +355,17 @@ export function initLearning({
       const parentMeta = parent && assignment.course
         ? `<small>${escapeHtml(assignment.course.subjectName)} · ${escapeHtml(assignment.course.internalName)}</small>`
         : "";
+      const targetMeta = assignment.target
+        ? `<p class="learning-target-summary"><strong>${escapeHtml(planStateLabels[assignment.target.state] || "학습 계획")}</strong><span>${escapeHtml(assignment.target.plannedStartDate)} ~ ${escapeHtml(assignment.target.unitTargetCompletionDate)}</span></p>`
+        : "";
+      const totalStages = Array.isArray(assignment.stages) ? assignment.stages.length : 0;
+      const passedStages = (assignment.stages || []).filter((stage) => stage.status === "passed").length;
+      const completionPercent = metricPercent(passedStages, totalStages);
+      const progressMeta = `<p class="learning-assignment-progress" aria-label="단계 진행 ${passedStages}/${totalStages}${completionPercent === null ? "" : `, 진행률 ${completionPercent}%`}"><span>단계 진행</span><strong>${passedStages}/${totalStages}</strong><span>${completionPercent === null ? "N/A" : `${completionPercent}%`}</span></p>`;
       return `<article class="learning-card learning-assignment-card">
         <header><div>${parentMeta}<h4>${escapeHtml(assignment.unitTitle)}</h4></div><span class="learning-assignment-status">${escapeHtml(assignmentStatusLabels[assignment.status] || assignment.status)}</span></header>
+        ${targetMeta}
+        ${progressMeta}
         ${stageList(assignment.stages, assignment, parent)}
         ${parent && assignment.status === "active" ? `<button type="button" class="delete-btn" data-learning-action="cancel" data-assignment-id="${assignment.id}" ${busy ? "disabled" : ""}>${busy ? "취소 중…" : "배정 취소"}</button>` : ""}
       </article>`;
@@ -368,6 +491,7 @@ export function initLearning({
     if (childSection) childSection.hidden = member?.role !== "child";
     renderRoadmap();
     renderProfile();
+    renderToday();
     renderAssignments(false);
     renderAttempt();
     const parentPanel = document.querySelector("#parentPanelLearning");
@@ -572,9 +696,11 @@ export function initLearning({
     catalog = [];
     roadmap = null;
     assignments = [];
+    planning = [];
     profile = null;
     profileReady = false;
     error = "";
+    planError = "";
     if (!member) {
       loading = false;
       render();
@@ -591,6 +717,7 @@ export function initLearning({
       catalog = cached.catalog;
       roadmap = cached.roadmap;
       assignments = cached.assignments;
+      planning = cached.planning || [];
       profile = cached.profile;
       profileReady = true;
       loading = false;
@@ -607,25 +734,28 @@ export function initLearning({
             requestJson(`/api/learning/roadmap${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/catalog${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/assignments${query}`, { headers: authHeaders(), cache: "no-store" }),
+            requestJson(`/api/learning/plans?assignedMemberId=${encodeURIComponent(assignedMemberId)}`, { headers: authHeaders(), cache: "no-store" }),
           ]
         : [Promise.resolve({ profile: null }), Promise.resolve({ roadmap: null }), Promise.resolve({ catalog: [] }), requestJson("/api/learning/assignments", {
             headers: authHeaders(),
             cache: "no-store",
-          })];
-      const [profileData, roadmapData, catalogData, assignmentData] = await Promise.all(requests);
+          }), Promise.resolve({ planning: [] })];
+      const [profileData, roadmapData, catalogData, assignmentData, planningData] = await Promise.all(requests);
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       catalog = catalogData.catalog || [];
       roadmap = roadmapData.roadmap || null;
       assignments = assignmentData.assignments || [];
+      planning = planningData.planning || [];
       profile = profileData.profile || null;
       profileReady = true;
-      cache.set(requestIdentity, { catalog, roadmap, assignments, profile });
+      cache.set(requestIdentity, { catalog, roadmap, assignments, planning, profile });
       error = "";
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       catalog = [];
       roadmap = null;
       assignments = [];
+      planning = [];
       error = cause.message || "문제풀이 학습 정보를 불러오지 못했습니다.";
     } finally {
       if (requestGeneration === generation && requestIdentity === identity()) {
@@ -635,10 +765,44 @@ export function initLearning({
     }
   }
 
-  async function assign(button) {
+  function planFailureMessage(cause) {
+    const messages = {
+      PLAN_REVISION_CONFLICT: "다른 화면에서 계획이 변경됐어요. 새로 불러온 뒤 다시 시도해 주세요.",
+      INVALID_PLAN_DATE_RANGE: "시작일과 완료 목표일의 순서를 확인해 주세요.",
+      INVALID_STAGE_TARGET_DATE: "단계 목표일은 계획 기간 안으로 설정해 주세요.",
+      INVALID_STAGE_TARGETS: "모든 단계의 목표일을 순서대로 입력해 주세요.",
+      ASSIGNMENT_NOT_FOUND: "선택한 학습 배정을 찾을 수 없습니다. 목록을 새로 불러와 주세요.",
+      AUTH_REQUIRED: "로그인이 만료되었습니다. 다시 로그인해 주세요.",
+      AUTH_SESSION_INVALID: "로그인 상태가 변경되었습니다. 다시 로그인해 주세요.",
+      AUTH_ROLE_REQUIRED: "학습 계획을 변경할 권한이 없습니다.",
+    };
+    if (messages[cause?.code]) return messages[cause.code];
+    return cause?.status ? "학습 계획을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." : "네트워크 연결을 확인한 뒤 다시 시도해 주세요.";
+  }
+
+  function planPayload(form) {
+    const plannedStartDate = form.elements.plannedStartDate?.value || "";
+    const unitTargetCompletionDate = form.elements.unitTargetCompletionDate?.value || "";
+    const stageTargets = [...form.querySelectorAll("[data-plan-stage-id]")].map((input) => ({
+      stageId: input.dataset.planStageId,
+      displayOrder: Number(input.dataset.planStageOrder),
+      targetDate: input.value,
+    }));
+    if (!plannedStartDate || !unitTargetCompletionDate || stageTargets.some((target) => !target.targetDate)) {
+      showToast("계획 날짜를 모두 입력해 주세요.");
+      return null;
+    }
+    return { plannedStartDate, unitTargetCompletionDate, timezone: "Asia/Seoul", stageTargets };
+  }
+
+  async function assign(source) {
+    const form = source.closest?.("[data-learning-plan-form]") || source;
+    const payload = planPayload(form);
+    if (!payload) return;
     const assignedMemberId = requireSelectedAssignee();
     const requestIdentity = identity();
-    const key = `assign:${button.dataset.versionId}`;
+    const requestGeneration = generation;
+    const key = `assign:${form.dataset.versionId}`;
     if (pending.has(key)) return;
     pending.add(key);
     render();
@@ -648,23 +812,105 @@ export function initLearning({
         headers: { ...authHeaders(), "X-Study-CSRF": "1" },
         body: JSON.stringify({
           assignedMemberId,
-          unitId: button.dataset.unitId,
-          contentVersionId: button.dataset.versionId,
+          unitId: form.dataset.unitId,
+          contentVersionId: form.dataset.versionId,
+          plan: {
+            plannedStartDate: payload.plannedStartDate,
+            unitTargetCompletionDate: payload.unitTargetCompletionDate,
+            timezone: payload.timezone,
+            stageTargets: payload.stageTargets,
+            requestId: crypto.randomUUID(),
+          },
         }),
       });
       cache.delete(requestIdentity);
-      if (requestIdentity === identity()) {
-        showToast("문제풀이 단원을 배정했어요.");
+      if (requestGeneration === generation && requestIdentity === identity()) {
+        planError = "";
+        showToast("학습 계획과 문제풀이 단원을 함께 배정했어요.");
         await refresh({ force: true });
       }
     } catch (cause) {
-      if (requestIdentity === identity()) {
-        error = cause.message;
+      if (requestGeneration === generation && requestIdentity === identity()) {
+        planError = planFailureMessage(cause);
         render();
       }
     } finally {
       pending.delete(key);
-      if (requestIdentity === identity()) render();
+      if (requestGeneration === generation && requestIdentity === identity()) render();
+    }
+  }
+
+  async function savePlan(form) {
+    const payload = planPayload(form);
+    if (!payload) return;
+    const assignedMemberId = requireSelectedAssignee();
+    const requestIdentity = identity();
+    const requestGeneration = generation;
+    const planId = form.dataset.planId;
+    const creating = form.dataset.planMode === "create";
+    const key = creating ? `plan-create:${form.dataset.assignmentId}` : `plan-update:${planId}`;
+    if (pending.has(key)) return;
+    pending.add(key);
+    planError = "";
+    render();
+    try {
+      await requestJson(creating
+        ? "/api/learning/plans"
+        : `/api/learning/plans/${encodeURIComponent(planId)}`, {
+        method: creating ? "POST" : "PUT",
+        headers: { ...authHeaders(), "X-Study-CSRF": "1" },
+        body: JSON.stringify({
+          assignedMemberId,
+          ...(creating ? { assignmentId: form.dataset.assignmentId } : { expectedRevision: Number(form.dataset.planRevision) }),
+          ...payload,
+          requestId: crypto.randomUUID(),
+        }),
+      });
+      cache.delete(requestIdentity);
+      if (requestGeneration === generation && requestIdentity === identity()) {
+        showToast(creating ? "학습 계획을 만들었어요." : "학습 계획을 수정했어요.");
+        await refresh({ force: true });
+      }
+    } catch (cause) {
+      if (requestGeneration === generation && requestIdentity === identity()) planError = planFailureMessage(cause);
+    } finally {
+      pending.delete(key);
+      if (requestGeneration === generation && requestIdentity === identity()) render();
+    }
+  }
+
+  async function changePlanState(button, action) {
+    const form = button.closest("[data-learning-plan-form]");
+    const planId = form?.dataset.planId || "";
+    const assignedMemberId = requireSelectedAssignee();
+    const requestIdentity = identity();
+    const requestGeneration = generation;
+    const key = `plan-state:${planId}`;
+    if (!planId || pending.has(key)) return;
+    pending.add(key);
+    planError = "";
+    render();
+    try {
+      const statePath = action === "pause" ? "/pause" : "/resume";
+      await requestJson(`/api/learning/plans/${encodeURIComponent(planId)}${statePath}`, {
+        method: "POST",
+        headers: { ...authHeaders(), "X-Study-CSRF": "1" },
+        body: JSON.stringify({
+          assignedMemberId,
+          expectedRevision: Number(form.dataset.planRevision),
+          requestId: crypto.randomUUID(),
+        }),
+      });
+      cache.delete(requestIdentity);
+      if (requestGeneration === generation && requestIdentity === identity()) {
+        showToast(action === "pause" ? "학습 계획을 일시 중지했어요." : "학습 계획을 다시 시작했어요.");
+        await refresh({ force: true });
+      }
+    } catch (cause) {
+      if (requestGeneration === generation && requestIdentity === identity()) planError = planFailureMessage(cause);
+    } finally {
+      pending.delete(key);
+      if (requestGeneration === generation && requestIdentity === identity()) render();
     }
   }
 
@@ -735,6 +981,13 @@ export function initLearning({
   }
 
   document.addEventListener("click", (event) => {
+    const reviewButton = event.target.closest("[data-learning-today-review-index]");
+    if (reviewButton && !reviewButton.disabled) {
+      const reviewSnapshot = reviewTodaySnapshot();
+      const queueItem = reviewSnapshot.queue[Number(reviewButton.dataset.learningTodayReviewIndex)];
+      if (queueItem) openReviewToday(queueItem);
+      return;
+    }
     const button = event.target.closest("[data-learning-action]");
     if (!button || button.disabled) return;
     if (button.dataset.learningAction === "select-roadmap-unit") {
@@ -742,7 +995,9 @@ export function initLearning({
       roadmapSelectionIdentity = identity();
       renderRoadmap();
     }
-    if (button.dataset.learningAction === "assign") assign(button);
+    if (button.dataset.learningAction === "assign" && !button.form) assign(button);
+    if (button.dataset.learningAction === "pause-plan") changePlanState(button, "pause");
+    if (button.dataset.learningAction === "resume-plan") changePlanState(button, "resume");
     if (button.dataset.learningAction === "cancel") cancel(button);
     if (button.dataset.learningAction === "start-attempt" || button.dataset.learningAction === "retry-attempt") startAttempt(button);
     if (button.dataset.learningAction === "resume-attempt") loadAttempt(button.dataset.attemptId, {
@@ -773,9 +1028,17 @@ export function initLearning({
   });
 
   document.addEventListener("submit", (event) => {
-    if (event.target?.id !== "learningProfileForm") return;
-    event.preventDefault();
-    saveProfile();
+    const planFormElement = event.target?.closest?.("[data-learning-plan-form]");
+    if (planFormElement) {
+      event.preventDefault();
+      if (planFormElement.dataset.planMode === "assignment") assign(planFormElement);
+      else savePlan(planFormElement);
+      return;
+    }
+    if (event.target?.id === "learningProfileForm") {
+      event.preventDefault();
+      saveProfile();
+    }
   });
 
   return {
@@ -788,10 +1051,12 @@ export function initLearning({
       selectedRoadmapUnitCode = "";
       roadmapSelectionIdentity = "";
       assignments = [];
+      planning = [];
       profile = null;
       profileReady = false;
       loading = false;
       error = "";
+      planError = "";
       pending.clear();
       attempt = null;
       attemptContext = null;

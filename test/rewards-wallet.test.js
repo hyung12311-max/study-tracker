@@ -32,7 +32,7 @@ test("GET rewards returns only the authenticated member sticker wallet", async (
     authenticateActiveMember: async () => ({ familyId: "family-id", memberId: "hagyeom-id", memberKey: "hagyeom", role: "child", member: { id: "hagyeom-id", member_key: "hagyeom", display_name: "하겸", role: "child", is_active: true } }),
     supabaseFetch: async (path) => {
       calls.push(path);
-      if (path.startsWith("sticker_transactions?select=amount")) return [{ amount: 5 }, { amount: 3 }];
+      if (path.startsWith("sticker_transactions?select=amount")) return [{ amount: 5, source_type: "learning_stage_first_pass" }, { amount: 3, source_type: "study_complete" }];
       if (path.startsWith("sticker_history?")) return stickerHistory;
       return [];
     },
@@ -44,11 +44,12 @@ test("GET rewards returns only the authenticated member sticker wallet", async (
 
     assert.equal(response.statusCode, 200);
     assert.equal(response.body.balance, 8);
+    assert.equal(response.body.learningRewardEarned, 5);
     assert.equal(response.body.stickerHistoryCount, 2);
     assert.deepEqual(response.body.stickerHistory, stickerHistory);
     assert.equal(response.body.viewer.memberKey, "hagyeom");
     assert.equal(response.body.viewer.walletMemberKey, "hagyeom");
-    assert.ok(calls.some((path) => path.includes("sticker_transactions?select=amount&family_id=eq.family-id&member_id=eq.hagyeom-id")));
+    assert.ok(calls.some((path) => path.includes("sticker_transactions?select=amount,source_type&family_id=eq.family-id&member_id=eq.hagyeom-id")));
     assert.ok(calls.some((path) => path.includes("sticker_history?") && path.includes("family_id=eq.family-id") && path.includes("member_id=eq.hagyeom-id")));
     assert.ok(calls.every((path) => !path.includes("member_id=eq.other-member")));
   } finally {

@@ -1,3 +1,5 @@
+import { deriveCanonicalProgress } from "./learning-progress.js";
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -34,6 +36,10 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
   let recommendationState = "insufficient_history";
   let recommendations = [];
   let recommendationError = false;
+  let assignments = [];
+  let reviewSummary = {};
+  let learningRewardEarned = null;
+  let progressError = false;
 
   function identity() {
     const member = currentMember();
@@ -131,13 +137,53 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
     </li>`).join("")}</ol>`;
   }
 
+  function percentLabel(value) {
+    return value === null || value === undefined ? "N/A" : `${value}%`;
+  }
+
+  function renderProgress(container) {
+    if (loading) {
+      container.innerHTML = stateMessage("현재 학습 진행을 불러오는 중입니다.", "learning-analysis-loading");
+      return;
+    }
+    if (progressError) {
+      container.innerHTML = stateMessage("현재 학습 진행을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.", "learning-analysis-error");
+      return;
+    }
+    const progress = deriveCanonicalProgress({ assignments, attemptHistory, reviewSummary, learningRewardEarned });
+    if (!progress.current.length) {
+      container.innerHTML = stateMessage("현재 진행 중인 문제풀이 단원이 없습니다.");
+      return;
+    }
+    const overview = `<dl class="learning-progress-overall">
+      <div><dt>진행 중인 단원</dt><dd>${progress.current.length}개</dd></div>
+      <div><dt>지금 복습할 개념</dt><dd>${progress.overall.reviewDue}개</dd></div>
+      <div><dt>학습으로 받은 스티커</dt><dd>${progress.overall.learningRewardEarned === null ? "N/A" : `${progress.overall.learningRewardEarned}개`}</dd></div>
+    </dl>`;
+    const cards = progress.current.map((item) => `<article class="learning-progress-card">
+      <header><div><strong>${escapeHtml(item.unitTitle)}</strong><small>${escapeHtml(item.currentStage?.title || "현재 단계 없음")}</small></div><span>진행률 ${escapeHtml(percentLabel(item.completionPercent))}</span></header>
+      <dl>
+        <div><dt>단계 완료</dt><dd>${item.passedStages}/${item.totalStages}</dd></div>
+        <div><dt>최근 정답률</dt><dd>${escapeHtml(percentLabel(item.correctnessPercent))}<small>${item.scoredCount ? `${item.correctCount}/${item.scoredCount} 정답` : "완료 응시 없음"}</small></dd></div>
+        <div><dt>최근 응시</dt><dd>${item.latestAttemptStatus === "passed" ? "통과" : item.latestAttemptStatus === "failed" ? "재도전 필요" : "기록 없음"}</dd></div>
+        <div><dt>완료 응시</dt><dd>${item.attemptCount}회</dd></div>
+        <div><dt>기록된 오답</dt><dd>${item.historicalMistakes}개</dd></div>
+        <div><dt>해결 전 오답</dt><dd>${item.unresolvedMistakes}개</dd></div>
+        <div><dt>복습 대기 개념</dt><dd>${item.reviewDue}개</dd></div>
+        <div><dt>완료한 복습</dt><dd>${item.reviewCompleted}회</dd></div>
+      </dl>
+    </article>`).join("");
+    container.innerHTML = `${overview}<div class="learning-progress-list">${cards}</div>`;
+  }
+
   function render() {
     const section = document.querySelector("#learningAnalysisSection");
     const scoreContainer = document.querySelector("#learningScoreSummary");
     const historyContainer = document.querySelector("#learningAttemptHistory");
     const skillContainer = document.querySelector("#learningSkillSummary");
     const recommendationContainer = document.querySelector("#learningRecommendationSummary");
-    if (!section || !scoreContainer || !historyContainer || !skillContainer || !recommendationContainer) return;
+    const progressContainer = document.querySelector("#learningProgressSummary");
+    if (!section || !scoreContainer || !historyContainer || !skillContainer || !recommendationContainer || !progressContainer) return;
     const parent = currentMember()?.role === "parent";
     section.hidden = !parent;
     if (!parent) return;
@@ -147,6 +193,7 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
       historyContainer.innerHTML = stateMessage(prompt);
       skillContainer.innerHTML = stateMessage(prompt);
       recommendationContainer.innerHTML = stateMessage(prompt);
+      progressContainer.innerHTML = stateMessage(prompt);
       section.setAttribute("aria-busy", "false");
       return;
     }
@@ -155,6 +202,7 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
     renderHistory(historyContainer);
     renderSkills(skillContainer);
     renderRecommendations(recommendationContainer);
+    renderProgress(progressContainer);
   }
 
   async function refresh() {
@@ -168,6 +216,10 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
     recommendationState = "insufficient_history";
     recommendations = [];
     recommendationError = false;
+    assignments = [];
+    reviewSummary = {};
+    learningRewardEarned = null;
+    progressError = false;
     error = false;
     if (!member || member.role !== "parent" || !assignedMemberId) {
       loading = false;
@@ -179,13 +231,16 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
     const query = `?assignedMemberId=${encodeURIComponent(assignedMemberId)}`;
     try {
       const options = { headers: authHeaders(), cache: "no-store" };
-      const [analysisResult, recommendationResult] = await Promise.allSettled([
+      const [analysisResult, recommendationResult, assignmentResult, queueResult, rewardResult] = await Promise.allSettled([
         Promise.all([
           requestJson(`/api/learning/scores${query}`, options),
           requestJson(`/api/learning/attempt-history${query}`, options),
           requestJson(`/api/learning/skills${query}`, options),
         ]),
         requestJson(`/api/learning/recommendations${query}`, options),
+        requestJson(`/api/learning/assignments${query}`, options),
+        requestJson(`/api/learning/review-queue${query}`, options),
+        requestJson(`/api/rewards?memberId=${encodeURIComponent(assignedMemberId)}`, options),
       ]);
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       if (analysisResult.status === "fulfilled") {
@@ -204,10 +259,20 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
       } else {
         recommendationError = true;
       }
+      if (assignmentResult.status === "fulfilled") {
+        assignments = Array.isArray(assignmentResult.value.assignments) ? assignmentResult.value.assignments : [];
+      } else {
+        progressError = true;
+      }
+      if (queueResult.status === "fulfilled") reviewSummary = queueResult.value.summary || {};
+      if (rewardResult.status === "fulfilled") {
+        learningRewardEarned = Number(rewardResult.value.learningRewardEarned || 0);
+      }
     } catch {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
       error = true;
       recommendationError = true;
+      progressError = true;
     } finally {
       if (requestGeneration === generation && requestIdentity === identity()) {
         loading = false;
@@ -229,6 +294,10 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
       recommendationState = "insufficient_history";
       recommendations = [];
       recommendationError = false;
+      assignments = [];
+      reviewSummary = {};
+      learningRewardEarned = null;
+      progressError = false;
       render();
     },
   };

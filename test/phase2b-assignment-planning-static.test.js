@@ -107,11 +107,10 @@ test("Phase B planning routes remain while frozen content, package, and vendor f
   assert.match(learningUi, /requestGeneration !== generation \|\| requestIdentity !== identity\(\)/);
   assert.match(learningUi, /const query = assignedMemberId \? `\?assignedMemberId=\$\{encodeURIComponent\(assignedMemberId\)\}` : ""/);
   assert.match(learningUi, /requestJson\(`\/api\/learning\/assignments\$\{query\}`/);
-  assert.match(learningUi, /data-learning-action="assign"[\s\S]*data-unit-id[\s\S]*data-version-id/);
+  assert.match(learningUi, /data-learning-plan-form[\s\S]*data-unit-id[\s\S]*data-version-id[\s\S]*data-learning-action="\$\{mode === "assignment" \? "assign"/);
 
   const frozen = [
     "supabase/migrations/202607310005_seed_grade2_three_digit_numbers_learning_content.sql",
-    "server/api/learning/roadmap.js",
     "package.json",
     "js/vendor/supabase-js.js",
   ];

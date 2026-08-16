@@ -2889,6 +2889,8 @@ async function initApp() {
     requireSelectedAssignee: requireSelectedPlanAssignee,
     showToast,
     refreshStickerWallet: () => rewardStoreController?.refresh({ silent: true }),
+    reviewTodaySnapshot: () => learningReviewQueueController?.snapshot() || { queue: [], loading: false, failed: false },
+    openReviewToday: (item) => learningMistakesController?.openQueueItem(item),
   });
   learningAnalysisController ||= initLearningAnalysis({
     requestJson,
@@ -2908,6 +2910,7 @@ async function initApp() {
     currentMember: () => familyChatController?.currentMember(),
     selectedAssignee: selectedPlanAssignee,
     openReview: (item) => learningMistakesController?.openQueueItem(item),
+    onChange: () => learningController?.render(),
   });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();

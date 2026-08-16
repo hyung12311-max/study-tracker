@@ -116,10 +116,10 @@ test("roadmap uses one selection-driven detail and never auto-opens a recommenda
   assert.match(detail, /item\.userStatus === "preparing"/);
   assert.match(detail, /아직 문제를 준비하고 있어요\. 콘텐츠가 공개되면 배정할 수 있습니다\./);
   assert.match(detail, /item\.userStatus === "available" && catalogItem/);
-  assert.match(detail, /data-learning-action="assign"/);
+  assert.match(detail, /planForm\(catalogItem, null, stages\)/);
   assert.match(detail, /item\.userStatus === "assigned"/);
   assert.match(detail, /이미 배정된 단원입니다\./);
-  assert.match(detail, /완료한 단원입니다\./);
+  assert.match(learning, /완료한 단원입니다\./);
   assert.doesNotMatch(learning, /selectedRoadmapUnitCode\s*=\s*[^;]*recommended/);
 });
 

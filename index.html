@@ -74,10 +74,17 @@
             <div class="section-head">
               <div><p class="eyebrow">Learning Quest</p><h3>내 문제풀이 단원</h3></div>
             </div>
-            <section id="childLearningReviewQueueSection" class="learning-review-queue-section" aria-labelledby="childLearningReviewQueueTitle" aria-busy="false">
-              <header class="learning-analysis-heading"><div><p class="eyebrow">Review Queue</p><h4 id="childLearningReviewQueueTitle">내 반복 복습</h4></div><p>오늘 복습과 예정된 개념을 확인해요.</p></header>
-              <div id="childLearningReviewQueue" aria-live="polite"><p class="learning-analysis-loading">복습 일정을 불러오는 중입니다.</p></div>
+            <section id="childLearningTodaySection" class="learning-today-section" aria-labelledby="childLearningTodayTitle" aria-busy="true">
+              <header class="learning-today-heading"><div><p class="eyebrow">Today</p><h4 id="childLearningTodayTitle">오늘 할 일</h4></div><p>새 학습과 복습 중 가장 먼저 할 일을 보여줘요.</p></header>
+              <div id="childLearningToday" class="learning-today-list" aria-live="polite"><p class="learning-today-state">오늘 학습을 불러오는 중이에요.</p></div>
             </section>
+            <details id="childLearningReviewQueueDetails" class="learning-review-queue-details">
+              <summary>전체 복습 일정 보기</summary>
+              <section id="childLearningReviewQueueSection" class="learning-review-queue-section" aria-labelledby="childLearningReviewQueueTitle" aria-busy="false">
+                <header class="learning-analysis-heading"><div><p class="eyebrow">Review Queue</p><h4 id="childLearningReviewQueueTitle">내 반복 복습</h4></div><p>오늘 복습과 예정된 개념을 확인해요.</p></header>
+                <div id="childLearningReviewQueue" aria-live="polite"><p class="learning-analysis-loading">복습 일정을 불러오는 중입니다.</p></div>
+              </section>
+            </details>
             <div id="childLearningAssignmentList" class="learning-grid" aria-live="polite"></div>
             <div id="childLearningAttemptPanel" class="learning-attempt-panel" aria-live="polite" hidden></div>
           </section>
@@ -328,8 +335,12 @@
             <section id="learningAnalysisSection" class="learning-analysis-section" aria-labelledby="learningAnalysisTitle" aria-busy="false">
               <header class="learning-analysis-heading">
                 <div><p class="eyebrow">Achievement</p><h4 id="learningAnalysisTitle">성취 분석</h4></div>
-                <p>선택한 자녀의 완료된 문제풀이 기록을 보여줍니다.</p>
+                <p>현재 진도와 완료된 문제풀이 기록을 같은 기준으로 보여줍니다.</p>
               </header>
+              <article class="learning-analysis-panel learning-progress-summary-panel">
+                <h5>현재 학습 한눈에 보기</h5>
+                <div id="learningProgressSummary" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div>
+              </article>
               <div class="learning-analysis-grid">
                 <article class="learning-analysis-panel"><h5>점수 요약</h5><div id="learningScoreSummary" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div></article>
                 <article class="learning-analysis-panel"><h5>최근 응시 이력</h5><div id="learningAttemptHistory" aria-live="polite"><p class="learning-analysis-empty">담당 자녀를 선택해 주세요.</p></div></article>

@@ -7,6 +7,7 @@ module.exports = async function learningReviewQueue(request, response) {
     const data = await reviewQueue.load(request);
     const generatedAt = new Date().toISOString();
     const queue = reviewQueue.buildReviewQueue(data, generatedAt);
+    const summary = reviewQueue.buildReviewSummary(data, queue);
     return learning.send(response, 200, {
       ok: true,
       assignedMemberId: data.scope.assignedMemberId,
@@ -14,6 +15,7 @@ module.exports = async function learningReviewQueue(request, response) {
       generatedAt,
       policy: reviewQueue.REVIEW_QUEUE_POLICY,
       state: queue.length ? "ready" : "empty",
+      summary,
       queue,
     });
   } catch (error) {

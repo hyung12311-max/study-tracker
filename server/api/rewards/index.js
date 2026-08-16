@@ -33,7 +33,7 @@ module.exports = async function handler(request, response) {
     const [products, transactions, balanceRows, requests, history, wishlist, stickerHistory] = await Promise.all([
       u.supabaseFetch(`reward_products?select=*&family_id=eq.${familyId}${context.role === "parent" ? "" : "&is_active=eq.true"}&order=sort_order.asc,name.asc`),
       u.supabaseFetch(`sticker_transactions?select=id,amount,transaction_type,source_type,source_id,description,created_at&family_id=eq.${familyId}&member_id=eq.${scopedMemberId}&order=created_at.desc&limit=50`),
-      u.supabaseFetch(`sticker_transactions?select=amount&family_id=eq.${familyId}&member_id=eq.${scopedMemberId}`),
+      u.supabaseFetch(`sticker_transactions?select=amount,source_type&family_id=eq.${familyId}&member_id=eq.${scopedMemberId}`),
       u.supabaseFetch(`reward_exchange_requests?select=*,family_members!reward_exchange_requests_member_id_fkey(display_name,avatar_emoji)&family_id=eq.${familyId}${context.role === "parent" ? "" : `&member_id=eq.${scopedMemberId}`}&order=requested_at.desc&limit=100`),
       u.supabaseFetch(`reward_exchange_history?select=*&family_id=eq.${familyId}${context.role === "parent" ? "" : `&member_id=eq.${scopedMemberId}`}&order=completed_at.desc&limit=100`).catch((error) => {
         if (error.supabaseCode === "PGRST205") return [];
@@ -43,11 +43,15 @@ module.exports = async function handler(request, response) {
       u.supabaseFetch(`sticker_history?select=id,study_plan_id,sticker_count,reward_type,reward_reason,created_at&family_id=eq.${familyId}&member_id=eq.${scopedMemberId}&order=created_at.desc`),
     ]);
     const balance = (balanceRows || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const learningRewardEarned = (balanceRows || [])
+      .filter((row) => row.source_type === "learning_stage_first_pass")
+      .reduce((sum, row) => sum + Math.max(Number(row.amount || 0), 0), 0);
     const reserved = (requests || [])
       .filter((row) => row.member_id === memberId && row.status === "pending")
       .reduce((sum, row) => sum + Number(row.sticker_cost || 0), 0);
     return u.json(response, 200, {
       balance,
+      learningRewardEarned,
       availableBalance: Math.max(balance - reserved, 0),
       products: (products || []).map(u.productSafe),
       transactions: transactions || [],
