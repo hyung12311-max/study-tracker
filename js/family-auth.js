@@ -1,6 +1,7 @@
 export const MEMBER_KEY="study-tracker-family-member-v1",TOKEN_KEY="study-tracker-family-token-v1",REALTIME_TOKEN_KEY="study-tracker-family-realtime-token-v1",AUTH_KEY="study-tracker-family-auth-v1",DEVICE_SESSION_KEY="familyDeviceSessionToken",LAST_MEMBER_KEY="lastFamilyMemberKey";
 
 function tokenClaims(token){try{const parts=String(token||"").split("."),part=parts.length===3?parts[1]:parts[0],value=part.replace(/-/g,"+").replace(/_/g,"/");return JSON.parse(atob(value+"=".repeat((4-value.length%4)%4)))}catch{return null}}
+export function hydrateAuthenticatedMember(member,token){const claims=tokenClaims(token);if(!member||!claims||claims.role!==member.role||claims.sub!==member.id)return null;return{id:member.id,family_id:claims.family||claims.family_id,member_key:claims.key||claims.member_key,display_name:member.displayName||member.display_name||"",role:member.role,avatar_emoji:member.avatarEmoji||member.avatar_emoji||"👤"}}
 function notify(authenticated){window.dispatchEvent(new CustomEvent("family-auth-changed",{detail:{authenticated}}))}
 
 export function mergePublicMemberIdentity(existing,incoming){if(!existing||!incoming||String(existing.id||"")!==String(incoming.id||""))return null;const merged={...existing};for(const key of ["display_name","role","avatar_emoji","is_active","notifications_enabled","device_count"])if(Object.prototype.hasOwnProperty.call(incoming,key))merged[key]=incoming[key];return merged}

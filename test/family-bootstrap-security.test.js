@@ -30,35 +30,13 @@ function replaceUtils(overrides) {
   return () => Object.assign(utils, originals);
 }
 
-test("unauthenticated member bootstrap resolves only the fixed default family", async () => {
-  const previousSecret = process.env.FAMILY_AUTH_SECRET;
-  const previousUrl = process.env.SUPABASE_URL;
-  const previousServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const previousFetch = global.fetch;
-  process.env.FAMILY_AUTH_SECRET = "phase-0a-test-secret-at-least-32-characters";
-  process.env.SUPABASE_URL = "https://phase0a.test";
-  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
-  const calls = [];
-  global.fetch = async (url) => {
-    calls.push(url);
-    return { ok: true, status: 200, text: async () => JSON.stringify([{ id: FAMILY_A }]) };
-  };
-  try {
-    const response = responseCapture();
-    const scope = await utils.trustedFamilyScope({ headers: {} }, response, { allowLegacyDefault: true });
-    assert.equal(scope.familyId, FAMILY_A);
-    assert.equal(calls.length, 1);
-    assert.match(calls[0], /families\?select=id&family_key=eq\.default&limit=1$/);
-    assert.match(String(response.headers["Set-Cookie"]), /study_tracker_family_bootstrap=/);
-    assert.match(String(response.headers["Set-Cookie"]), /HttpOnly/);
-    assert.match(String(response.headers["Set-Cookie"]), /SameSite=Strict/);
-  } finally {
-    global.fetch = previousFetch;
-    if (previousSecret === undefined) delete process.env.FAMILY_AUTH_SECRET;
-    else process.env.FAMILY_AUTH_SECRET = previousSecret;
-    if (previousUrl === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = previousUrl;
-    if (previousServiceKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = previousServiceKey;
-  }
+test("unauthenticated member listing requires an explicit family context", async () => {
+  const response = responseCapture();
+  await assert.rejects(
+    utils.trustedFamilyScope({ headers: {} }, response),
+    (error) => error.statusCode === 401 && error.code === "FAMILY_CONTEXT_REQUIRED"
+  );
+  assert.equal(response.headers["Set-Cookie"], undefined);
 });
 
 test("a tampered bootstrap cookie is rejected without default-family fallback", async () => {
@@ -68,7 +46,7 @@ test("a tampered bootstrap cookie is rejected without default-family fallback", 
   const restore = replaceUtils({ supabaseFetch: async () => { queried = true; return [{ id: FAMILY_A }]; } });
   try {
     await assert.rejects(
-      utils.trustedFamilyScope({ headers: { cookie: `${utils.BOOTSTRAP_COOKIE}=tampered.value` } }, responseCapture(), { allowLegacyDefault: true }),
+      utils.trustedFamilyScope({ headers: { cookie: `${utils.BOOTSTRAP_COOKIE}=tampered.value` } }, responseCapture()),
       (error) => error.statusCode === 401 && error.code === "FAMILY_CONTEXT_INVALID"
     );
     assert.equal(queried, false);

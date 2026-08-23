@@ -770,6 +770,39 @@ h2 {
   word-break: keep-all;
 }
 
+.onboarding-view { min-height: 100vh; padding: 24px 16px; display: grid; place-items: center; background: linear-gradient(145deg, #fff7e8, #fff 52%, #fff0e8); }
+.onboarding-view[hidden] { display: none; }
+.onboarding-card { width: min(100%, 520px); padding: 32px; border-radius: 28px; background: #fff; box-shadow: 0 18px 50px #70451f1f; }
+.onboarding-card h1, .onboarding-card h2 { margin: 6px 0 12px; overflow-wrap: anywhere; }
+.onboarding-card > p { color: #725f55; line-height: 1.6; }
+.onboarding-actions, .onboarding-card form { display: grid; gap: 12px; margin-top: 24px; }
+.onboarding-card button, .onboarding-card input { min-height: 48px; }
+.onboarding-card input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 2px solid #ded4cd; border-radius: 12px; font: inherit; }
+.onboarding-card input[aria-invalid="true"] { border-color: #b93434; }
+.onboarding-card label { font-weight: 700; }
+.onboarding-card small { color: #77675f; }
+.onboarding-card .primary { border: 0; border-radius: 14px; background: #e86f43; color: #fff; font-weight: 700; }
+.onboarding-card button:disabled { opacity: .58; cursor: not-allowed; }
+.onboarding-remember { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.onboarding-remember input { width: 22px; min-height: 22px; }
+.onboarding-avatar-list { display:flex; flex-wrap:wrap; gap:8px; border:0; margin:8px 0; padding:0; }
+.onboarding-avatar-list legend { width:100%; font-weight:700; margin-bottom:8px; }
+.onboarding-avatar-option { display:grid!important; place-items:center; min-width:52px; min-height:52px; border:2px solid var(--border,#ddd); border-radius:14px; cursor:pointer; font-size:1.5rem; }
+.onboarding-avatar-option input { position:absolute; opacity:0; pointer-events:none; }
+.onboarding-avatar-option:has(input:checked) { border-color:var(--primary,#ff8a00); background:#fff4e5; }
+.onboarding-avatar-option:focus-within { outline:3px solid #2367d1; outline-offset:2px; }
+.onboarding-learning-actions { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+.onboarding-learning-actions button,.onboarding-card select { min-height:44px; width:100%; }
+.onboarding-error { min-height: 24px; margin: 0; color: #a42121; }
+.onboarding-status { min-height: 24px; }
+.onboarding-back { min-height: 44px; border: 0; background: transparent; cursor: pointer; }
+
+@media (max-width: 480px) {
+  .onboarding-view { align-items: start; padding: 12px; }
+  .onboarding-card { padding: 22px 18px; border-radius: 22px; }
+  .onboarding-card button, .onboarding-card input { min-height: 44px; }
+}
+
 .learning-analysis-section{margin:20px 0;padding:20px;border:1px solid #dfe5f2;border-radius:18px;background:#f8faff}
 .learning-analysis-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
 .learning-analysis-heading h4,.learning-analysis-heading p{margin:0}

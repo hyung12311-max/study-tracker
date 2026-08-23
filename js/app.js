@@ -2,6 +2,8 @@ import { createClient } from "./vendor/supabase-js.js";
 import { SUPABASE_CONFIG } from "./config.js";
 import { AUTH_KEY as FAMILY_AUTH_KEY, TOKEN_KEY as FAMILY_TOKEN_KEY } from "./family-auth.js";
 import { initFamilyChat } from "./family-chat.js";
+import { initExistingFamilyInvite, initOnboarding } from "./onboarding.js";
+import { learningSetupDismissal, projectOnboardingState } from "./onboarding-learning.js";
 import { initParentDashboard } from "./parent-dashboard.js";
 import { initRewardStore } from "./reward-store.js";
 import { initLearning } from "./learning.js";
@@ -792,6 +794,8 @@ let parentPushState = { status: "idle", message: "", registered: false };
 let parentNotificationPreferences = [];
 const DEFAULT_STICKER_REWARDS={early_complete_count:3,on_time_complete_count:2,delayed_complete_count:1,no_date_complete_count:1,academy_complete_count:1};
 let familyChatController = null;
+let onboardingController = null;
+const learningSetupPreference = learningSetupDismissal();
 let rewardStoreController = null;
 let appReady = false;
 let authenticationTransition = null;
@@ -2880,7 +2884,24 @@ async function initApp() {
   setConnectionStatus("로그인 정보를 확인하고 있어요...");
   const authStartedAt = performance.now();
   familyChatController = await initFamilyChat();
-  if (!familyChatController.isAuthenticated()) await familyChatController.requireAuthentication();
+  onboardingController = initOnboarding({ onAuthenticated: async (data) => {
+    await familyChatController.acceptRegistration(data);
+    await initializeAuthenticatedFeatures();
+  }, onChildCreated: async (data) => {
+    await familyChatController.refreshMembers();
+    await loadPlanAssignees();
+    return learningOnboardingModel(data.child?.id);
+  }, onOpenLearning: openFirstLearningSetup, onSkipLearning: () => learningSetupPreference.dismiss(), onHandoffChild: (memberId) => familyChatController.handoffToChild(memberId) });
+  initExistingFamilyInvite({ onInviteAccepted: async () => familyChatController.openMemberSelection() });
+  if (!familyChatController.isAuthenticated()) {
+    if (familyChatController.hasFamilyContext()) await familyChatController.requireAuthentication();
+    else { onboardingController.showWelcome(); return; }
+  }
+  await initializeAuthenticatedFeatures(authStartedAt);
+}
+
+async function initializeAuthenticatedFeatures(authStartedAt = performance.now()) {
+  onboardingController?.hide();
   learningController ||= initLearning({
     requestJson,
     authHeaders: familyAuthHeaders,
@@ -2914,8 +2935,32 @@ async function initApp() {
   });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
   await enterAuthenticatedApp();
+  const currentMember = familyChatController.currentMember();
+  if (currentMember?.role === "parent") await evaluateLearningOnboarding();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
   if (["today", "progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);
+}
+
+async function learningOnboardingModel(preferredChildId = "") {
+  const currentMember=familyChatController?.currentMember(),children=familyChatController?.activeChildren()||[];
+  if(currentMember?.role!=="parent"||!children.length)return{state:projectOnboardingState({role:currentMember?.role,children,selectedChildId:"",planning:[]}),children,selectedChildId:""};
+  const selectedChildId=children.some(child=>child.id===preferredChildId)?preferredChildId:children.some(child=>child.id===selectedPlanAssignee())?selectedPlanAssignee():children[0].id;
+  const data=await requestJson(`/api/learning/plans?assignedMemberId=${encodeURIComponent(selectedChildId)}`,{headers:familyAuthHeaders()});
+  return{state:projectOnboardingState({role:"parent",children,selectedChildId,planning:data.planning||[]}),children,selectedChildId};
+}
+
+async function evaluateLearningOnboarding(preferredChildId = "") {
+  if(familyChatController?.currentMember()?.role==="parent"&&familyChatController.childCount()===0){learningSetupPreference.clear();onboardingController?.showChildRequired();return{state:"CHILD_REQUIRED",children:[],selectedChildId:""}}
+  try{const model=await learningOnboardingModel(preferredChildId);if(model.state==="CHILD_REQUIRED"){learningSetupPreference.clear();onboardingController?.showChildRequired()}else if(model.state==="LEARNING_READY"){learningSetupPreference.clear();onboardingController?.showLearningReady()}else if(model.state==="LEARNING_SETUP_OPTIONAL"&&!learningSetupPreference.isDismissed())onboardingController?.showLearningSetupOptional(model);else onboardingController?.hide();return model}catch{onboardingController?.hide();showToast("학습 준비 상태를 확인하지 못했어요. 부모관리에서 다시 확인해 주세요.");return null}
+}
+
+async function openFirstLearningSetup(memberId) {
+  if(!setPlanAssignee(memberId))throw new Error("Active family child is required.");
+  learningSetupPreference.dismiss();
+  enterParentMode();
+  document.querySelector("#parentTabLearning")?.click();
+  await handlePlanAssigneeChange();
+  await learningController?.refresh({force:true});
 }
 
 async function enterAuthenticatedApp() {

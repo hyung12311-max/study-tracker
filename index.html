@@ -13,6 +13,94 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
+    <main id="onboardingView" class="onboarding-view" hidden>
+      <section id="onboardingWelcome" class="onboarding-card" aria-labelledby="onboardingWelcomeTitle">
+        <p class="eyebrow">Study Tracker</p>
+        <h1 id="onboardingWelcomeTitle" tabindex="-1">우리 가족의 학습을 시작해요</h1>
+        <p>가족을 만들고 아이의 학습 계획을 함께 관리할 수 있어요.</p>
+        <div class="onboarding-actions">
+          <button type="button" class="primary" id="createFamilyButton">가족 만들기</button>
+          <button type="button" id="existingFamilyButton">기존 가족 로그인</button>
+        </div>
+        <p id="existingFamilyStatus" class="onboarding-status" aria-live="polite"></p>
+      </section>
+
+      <section id="onboardingInvite" class="onboarding-card" aria-labelledby="onboardingInviteTitle" hidden>
+        <button type="button" class="onboarding-back" id="onboardingInviteBack">← 처음으로</button>
+        <p class="eyebrow">기존 가족 로그인</p>
+        <h2 id="onboardingInviteTitle" tabindex="-1">가족 초대 코드를 입력해 주세요</h2>
+        <p>부모가 만든 10분 유효 초대 코드를 입력하면 가족 구성원을 선택할 수 있어요.</p>
+        <form id="onboardingInviteForm" novalidate>
+          <label for="onboardingInviteCode">초대 코드</label>
+          <input id="onboardingInviteCode" name="inviteCode" maxlength="32" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" aria-describedby="onboardingInviteError" required />
+          <p id="onboardingInviteError" class="onboarding-error" role="alert" tabindex="-1"></p>
+          <button type="submit" class="primary" id="onboardingInviteSubmit">가족 찾기</button>
+        </form>
+      </section>
+
+      <section id="onboardingRegistration" class="onboarding-card" aria-labelledby="onboardingRegistrationTitle" hidden>
+        <button type="button" class="onboarding-back" id="onboardingBack">← 처음으로</button>
+        <p class="eyebrow">새 가족 만들기</p>
+        <h2 id="onboardingRegistrationTitle" tabindex="-1">가족과 부모 정보를 입력해 주세요</h2>
+        <form id="onboardingForm" novalidate>
+          <label for="onboardingFamilyName">가족 이름</label>
+          <input id="onboardingFamilyName" name="familyDisplayName" maxlength="60" autocomplete="organization" aria-describedby="onboardingError" required />
+          <label for="onboardingParentName">부모 이름</label>
+          <input id="onboardingParentName" name="parentDisplayName" maxlength="60" autocomplete="name" aria-describedby="onboardingError" required />
+          <label for="onboardingParentPin">Parent PIN</label>
+          <input id="onboardingParentPin" name="parentPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" aria-describedby="onboardingPinHelp onboardingError" required />
+          <small id="onboardingPinHelp">추측하기 어려운 숫자 4자리를 입력해 주세요.</small>
+          <label for="onboardingParentPinConfirm">Parent PIN 확인</label>
+          <input id="onboardingParentPinConfirm" name="parentPinConfirm" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" aria-describedby="onboardingError" required />
+          <label class="onboarding-remember"><input id="onboardingRememberDevice" type="checkbox" checked /> 이 기기에서 로그인 유지</label>
+          <p id="onboardingError" class="onboarding-error" role="alert" tabindex="-1"></p>
+          <button type="submit" class="primary" id="onboardingSubmit">가족 만들기</button>
+        </form>
+      </section>
+
+      <section id="onboardingChildRequired" class="onboarding-card" aria-labelledby="onboardingChildTitle" hidden>
+        <p class="eyebrow">가족 생성 완료</p>
+        <h2 id="onboardingChildTitle" tabindex="-1">가족이 만들어졌어요</h2>
+        <p>이제 함께 학습할 자녀를 추가해 주세요.</p>
+        <button type="button" class="primary" id="onboardingOpenChildForm">자녀 추가하기</button>
+        <button type="button" id="onboardingContinueParent">부모 화면 계속하기</button>
+      </section>
+
+      <section id="onboardingChildRegistration" class="onboarding-card" aria-labelledby="onboardingChildRegistrationTitle" hidden>
+        <button type="button" class="onboarding-back" id="onboardingChildBack">← 이전으로</button>
+        <p class="eyebrow">자녀 추가</p>
+        <h2 id="onboardingChildRegistrationTitle" tabindex="-1">함께 학습할 자녀를 알려 주세요</h2>
+        <form id="onboardingChildForm" novalidate>
+          <label for="onboardingChildName">자녀 이름</label>
+          <input id="onboardingChildName" name="displayName" maxlength="60" autocomplete="name" aria-describedby="onboardingChildError" required />
+          <fieldset class="onboarding-avatar-list">
+            <legend>프로필 그림</legend>
+            <label class="onboarding-avatar-option"><input type="radio" name="avatarEmoji" value="👦" /> <span aria-hidden="true">👦</span><span class="sr-only">남자아이</span></label>
+            <label class="onboarding-avatar-option"><input type="radio" name="avatarEmoji" value="👧" /> <span aria-hidden="true">👧</span><span class="sr-only">여자아이</span></label>
+            <label class="onboarding-avatar-option"><input type="radio" name="avatarEmoji" value="🧒" checked /> <span aria-hidden="true">🧒</span><span class="sr-only">아이</span></label>
+            <label class="onboarding-avatar-option"><input type="radio" name="avatarEmoji" value="🐰" /> <span aria-hidden="true">🐰</span><span class="sr-only">토끼</span></label>
+            <label class="onboarding-avatar-option"><input type="radio" name="avatarEmoji" value="🐻" /> <span aria-hidden="true">🐻</span><span class="sr-only">곰</span></label>
+          </fieldset>
+          <p id="onboardingChildError" class="onboarding-error" role="alert" tabindex="-1"></p>
+          <button type="submit" class="primary" id="onboardingChildSubmit">자녀 추가</button>
+        </form>
+      </section>
+
+      <section id="onboardingLearningSetup" class="onboarding-card" aria-labelledby="onboardingLearningTitle" hidden>
+        <p class="eyebrow">첫 학습 준비</p>
+        <h2 id="onboardingLearningTitle" tabindex="-1">첫 학습을 준비해 볼까요?</h2>
+        <p>학습할 자녀를 선택하고 기존 문제풀이 학습 지도에서 첫 계획을 만들 수 있어요.</p>
+        <label for="onboardingLearningChild">학습할 자녀</label>
+        <select id="onboardingLearningChild"></select>
+        <div class="onboarding-learning-actions">
+          <button type="button" class="primary" id="onboardingCreateLearningPlan">첫 학습 계획 만들기</button>
+          <button type="button" id="onboardingSkipLearning">나중에 설정</button>
+          <button type="button" id="onboardingStartChild">아이 화면으로 시작하기</button>
+        </div>
+        <p id="onboardingLearningStatus" class="onboarding-error" role="alert" aria-live="polite" tabindex="-1"></p>
+      </section>
+    </main>
+
     <div class="app-shell" id="appShell">
       <header class="topbar">
         <div>
@@ -460,6 +548,15 @@
             <button type="button" class="primary parent-pin-change-button" id="parentChangePinButton">부모 PIN 변경</button>
             <label><input id="familyChatNotificationsEnabled" type="checkbox" /> 가족방 전체 알림</label>
             <label><input id="familySystemNotificationsEnabled" type="checkbox" /> 학습 시스템 메시지 알림</label>
+            <section class="family-invite-panel" aria-labelledby="familyInviteTitle">
+              <h4 id="familyInviteTitle">새 기기 초대</h4>
+              <p>초대 코드는 한 번만 사용할 수 있고 10분 뒤 만료됩니다.</p>
+              <button type="button" class="primary" id="familyInviteCreate">초대 코드 만들기</button>
+              <output id="familyInviteCode" aria-live="polite"></output>
+              <button type="button" id="familyInviteCopy" disabled>코드 복사</button>
+              <p id="familyInviteStatus" aria-live="polite"></p>
+              <div id="familyInviteList" class="family-invite-list"></div>
+            </section>
             <div id="familyAdminList" class="family-admin-list"></div>
           </section>
           <section class="reward-form device-session-panel" id="deviceSessionPanel">

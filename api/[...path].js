@@ -1,4 +1,7 @@
 const familyMembers = require("../server/api/family/members");
+const familyContext = require("../server/api/family/context");
+const familyChildren = require("../server/api/family/children");
+const familyInvites = require("../server/api/family/invites");
 const familyMessages = require("../server/api/family/messages");
 const familyChangePin = require("../server/api/family/change-pin");
 const familyPin = require("../server/api/family/pin");
@@ -11,6 +14,8 @@ const familyLogout = require("../server/api/family/logout");
 const familyLogoutAll = require("../server/api/family/logout-all");
 const adminUatProvisionFamily = require("../server/api/admin/uat/provision-family");
 const adminUatProvisionFamilyV2 = require("../server/api/admin/uat/provision-family-v2");
+const productOnboardingFamily = require("../server/api/onboarding/family");
+const productOnboardingInvite = require("../server/api/onboarding/invite");
 const notificationsPublicKey = require("../server/api/notifications/public-key");
 const notificationsPreferences = require("../server/api/notifications/preferences");
 const notificationsStudyComplete = require("../server/api/notifications/study-complete");
@@ -61,6 +66,9 @@ const learningAttemptFinalize = require("../server/api/learning/attempts/[attemp
 const learningAttemptAbandon = require("../server/api/learning/attempts/[attemptId]/abandon");
 
 const routes = Object.freeze({
+  "family/context": familyContext,
+  "family/children": familyChildren,
+  "family/invites": familyInvites,
   "family/members": familyMembers,
   "family/login": familyVerifyPin,
   "family/change-pin": familyChangePin,
@@ -75,6 +83,8 @@ const routes = Object.freeze({
   "family/logout-all": familyLogoutAll,
   "admin/uat/provision-family": adminUatProvisionFamily,
   "admin/uat/provision-family-v2": adminUatProvisionFamilyV2,
+  "onboarding/family": productOnboardingFamily,
+  "onboarding/invite": productOnboardingInvite,
   "notifications/public-key": notificationsPublicKey,
   "notifications/preferences": notificationsPreferences,
   "notifications/study-complete": notificationsStudyComplete,
@@ -143,6 +153,11 @@ module.exports = async function apiRouter(request, response) {
   const finalizeMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)\/finalize$/i);
   const abandonMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)\/abandon$/i);
   const attemptMatch = key.match(/^learning\/attempts\/([0-9a-f-]+)$/i);
+  const inviteRevokeMatch = key.match(/^family\/invites\/([0-9a-f-]{36})$/i);
+  if (!handler && inviteRevokeMatch) {
+    request.query = { ...(request.query || {}), inviteRef: inviteRevokeMatch[1] };
+    handler = familyInvites;
+  }
   if (!handler && revealMatch) {
     request.query = { ...(request.query || {}), assignmentId: revealMatch[1], questionId: revealMatch[2] };
     handler = learningMistakeReveal;

@@ -15,7 +15,7 @@ function classifyError(error){
 module.exports=async function(req,res){
  if(!["GET","PATCH"].includes(req.method))return u.allow(res,["GET","PATCH"]);
  try{
-  const scope=await u.trustedFamilyScope(req,res,{allowLegacyDefault:req.method==="GET"});
+  const scope=await u.trustedFamilyScope(req,res);
   let claims=scope.claims;
   if(req.method==="PATCH"){
    if(claims?.role!=="parent")throw u.err("Parent permission is required.",403);const body=await u.readJson(req);
