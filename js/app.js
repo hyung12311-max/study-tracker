@@ -846,7 +846,7 @@ function setPlanAssignee(memberId) {
   return true;
 }
 
-function renderPlanAssignees(preferredMemberId = "") {
+function renderPlanAssignees(preferredMemberId = "", refreshFailed = false) {
   const select = $("#planAssignedMember");
   if (!select) return;
   const storageKey = planAssigneeStorageKey();
@@ -858,7 +858,7 @@ function renderPlanAssignees(preferredMemberId = "") {
   if (!planAssignees.length) {
     const option = document.createElement("option");
     option.value = "";
-    option.textContent = "선택 가능한 활성 자녀가 없습니다";
+    option.textContent = refreshFailed ? "자녀 목록을 새로고침하지 못했습니다" : "선택 가능한 활성 자녀가 없습니다";
     select.append(option);
     select.disabled = true;
     updatePlanAssigneeSummary();
@@ -880,7 +880,7 @@ function renderPlanAssignees(preferredMemberId = "") {
   updatePlanAssigneeSummary();
 }
 
-async function loadPlanAssignees() {
+async function loadPlanAssignees({ throwOnError = false } = {}) {
   const currentMember = familyChatController?.currentMember();
   planAssignees = [];
   if (currentMember?.role !== "parent") {
@@ -901,8 +901,9 @@ async function loadPlanAssignees() {
       }));
     renderPlanAssignees();
   } catch (error) {
-    renderPlanAssignees();
+    renderPlanAssignees("", true);
     console.warn("[study plan assignees] load failed", { status: error.status || null, code: error.code || null });
+    if (throwOnError) throw error;
   }
 }
 
@@ -2883,14 +2884,16 @@ async function initApp() {
   resetAcademyForm();
   setConnectionStatus("로그인 정보를 확인하고 있어요...");
   const authStartedAt = performance.now();
-  familyChatController = await initFamilyChat();
+  familyChatController = await initFamilyChat({ onAddChild: () => onboardingController?.startChildAddition() });
   onboardingController = initOnboarding({ onAuthenticated: async (data) => {
     await familyChatController.acceptRegistration(data);
     await initializeAuthenticatedFeatures();
   }, onChildCreated: async (data) => {
-    await familyChatController.refreshMembers();
-    await loadPlanAssignees();
-    return learningOnboardingModel(data.child?.id);
+    await familyChatController.refreshMembers({ throwOnError: true });
+    await loadPlanAssignees({ throwOnError: true });
+    const model = await learningOnboardingModel(data.child.id);
+    if (!model.children.some(child => child.id === data.child.id) || model.selectedChildId !== data.child.id) throw new Error("Created child is not available in refreshed data.");
+    return model;
   }, onOpenLearning: openFirstLearningSetup, onSkipLearning: () => learningSetupPreference.dismiss(), onHandoffChild: (memberId) => familyChatController.handoffToChild(memberId) });
   initExistingFamilyInvite({ onInviteAccepted: async () => familyChatController.openMemberSelection() });
   if (!familyChatController.isAuthenticated()) {

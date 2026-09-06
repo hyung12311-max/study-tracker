@@ -7,15 +7,26 @@ const json = (response, status, body) => {
 };
 
 const readJson = (request) => new Promise((resolve, reject) => {
-  let body = "";
+  const chunks = [];
+  let totalBytes = 0;
+  let settled = false;
   request.on("data", (chunk) => {
-    body += chunk;
-    if (body.length > 1024 * 1024) {
+    if (settled) return;
+    totalBytes += Buffer.isBuffer(chunk) ? chunk.length : Buffer.byteLength(chunk);
+    if (totalBytes > 1024 * 1024) {
+      settled = true;
+      chunks.length = 0;
       reject(new Error("Request body is too large."));
       request.destroy();
+      return;
     }
+    if (chunk.length) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   });
   request.on("end", () => {
+    if (settled) return;
+    settled = true;
+    const body = Buffer.concat(chunks, totalBytes).toString("utf8");
+    chunks.length = 0;
     if (!body) return resolve({});
     try {
       resolve(JSON.parse(body));
@@ -23,7 +34,11 @@ const readJson = (request) => new Promise((resolve, reject) => {
       reject(new Error("Invalid JSON body."));
     }
   });
-  request.on("error", reject);
+  request.on("error", (error) => {
+    settled = true;
+    chunks.length = 0;
+    reject(error);
+  });
 });
 
 function env(name) {
