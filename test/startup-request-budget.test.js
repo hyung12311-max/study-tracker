@@ -423,12 +423,46 @@ for (const tab of ["", "family-chat", "analysis"]) {
     assert.equal(h.analysisConstructions(), 0);
   });
 }
-test("optional setup remains on default entry and does not override an explicit chat destination", async () => {
-  for (const tab of ["", "family-chat"]) {
+test("optional setup never intercepts default or explicit destinations", async () => {
+  for (const tab of ["", "family-chat", "analysis"]) {
     const h = harness(); h.enableLearning(); h.respond("/api/learning/plans", () => ({ planning: [] }));
     await h.fullStart(tab);
-    assert.equal(h.onboarding.includes("LEARNING_SETUP_OPTIONAL"), !tab);
+    assert.equal(h.onboarding.includes("LEARNING_SETUP_OPTIONAL"), false);
+    assert.equal(h.app.appReady, true);
   }
+});
+
+for (const saved of [false, true]) for (const hasPlan of [false, true]) {
+  test(`${saved ? "saved-device" : "in-tab"} parent with child and ${hasPlan ? "plan" : "no plan"} enters app within startup budget`, async () => {
+    const h = harness({ saved }); h.enableLearning();
+    h.respond("/api/learning/plans", () => ({ planning: hasPlan ? [{ plan: { id: "plan" } }] : [] }));
+    h.respond("/api/learning/assignments", () => ({ assignments: [] }));
+    await h.fullStart();
+    assert.equal(h.app.appReady, true);
+    assert.equal(h.onboarding.includes("LEARNING_SETUP_OPTIONAL"), false);
+    assert.equal(h.onboarding.includes("CHILD_REQUIRED"), false);
+    assert.ok(h.onboarding.includes(hasPlan ? "LEARNING_READY" : "hide"));
+    assert.match(h.node("#childLearningAssignmentList").innerHTML, /아직 배정된 문제풀이 단원이 없습니다/);
+    assert.doesNotMatch(h.node("#childLearningAssignmentList").innerHTML, /불러오는 중|learning-error/);
+    assert.equal(h.count("/api/family/members"), 1);
+    assert.equal(h.count("/api/study/book-plans"), 0);
+    for (const endpoint of ["assignments", "review-queue", "plans"]) assert.equal(h.count(`/api/learning/${endpoint}`), 1);
+    for (const endpoint of analysisOnly) assert.equal(h.count(`/api/learning/${endpoint}`), 0);
+    const count = h.calls.length; await flush(); assert.equal(h.calls.length, count);
+    h.app.openOptionalLearningSetup();
+    assert.equal(h.onboarding.at(-1), "LEARNING_SETUP_OPTIONAL");
+    assert.equal(h.calls.length, count, "explicit chooser uses already validated children without an extra fetch");
+  });
+}
+
+test("child-role no-plan startup stays in app and cannot open parent setup", async () => {
+  const h = harness({ member: CHILD }); h.enableLearning();
+  h.respond("/api/learning/assignments", () => ({ assignments: [] }));
+  await h.fullStart(); h.app.openOptionalLearningSetup();
+  assert.equal(h.app.appReady, true);
+  assert.equal(h.onboarding.includes("LEARNING_SETUP_OPTIONAL"), false);
+  assert.equal(h.count("/api/learning/plans"), 0);
+  assert.equal(h.count("/api/learning/scores"), 0);
 });
 test("hidden initialized analysis stays quiet across child changes and refreshes on next entry", async () => {
   const h = harness(); h.enableLearning(); await h.fullStart("analysis");

@@ -2664,6 +2664,7 @@ function exitParentMode() {
 }
 
 function bindEvents() {
+  $("#parentOpenLearningSetup")?.addEventListener("click", openOptionalLearningSetup);
   $(".parent-management-tabs")?.addEventListener("parent-tab-changed", () => {
     if (appReady) void ensureLearningAnalysis();
   });
@@ -2914,6 +2915,8 @@ async function initApp() {
     await loadPlanAssignees({ throwOnError: true });
     const model = await learningOnboardingModel(data.child.id);
     if (!model.children.some(child => child.id === data.child.id) || model.selectedChildId !== data.child.id) throw new Error("Created child is not available in refreshed data.");
+    if (!setPlanAssignee(data.child.id)) throw new Error("Created child cannot be selected.");
+    await handlePlanAssigneeChange();
     return model;
   }, onOpenLearning: openFirstLearningSetup, onSkipLearning: () => learningSetupPreference.dismiss(), onHandoffChild: (memberId) => familyChatController.handoffToChild(memberId) });
   initExistingFamilyInvite({ onInviteAccepted: async () => {
@@ -3037,7 +3040,8 @@ async function initializeAuthenticatedGeneration(authStartedAt) {
   try {
     if (!isCurrent()) return;
     const currentMember = familyChatController.currentMember();
-    if (currentMember?.role === "parent" && (!startupRequests || startupRequests.isCurrent())) await evaluateLearningOnboarding("", startupRequests, ["progress", "rewards", "family-chat", "analysis"].includes(requestedTab));
+    // Missing plans never block startup; only missing active children are mandatory.
+    if (currentMember?.role === "parent" && (!startupRequests || startupRequests.isCurrent())) await evaluateLearningOnboarding("", startupRequests, true);
   } finally {
     startupRequests?.close();
   }
@@ -3056,6 +3060,13 @@ async function learningOnboardingModel(preferredChildId = "", startupRequests = 
 async function evaluateLearningOnboarding(preferredChildId = "", startupRequests = null, suppressOptional = false) {
   if(familyChatController?.currentMember()?.role==="parent"&&familyChatController.childCount()===0){learningSetupPreference.clear();onboardingController?.showChildRequired();return{state:"CHILD_REQUIRED",children:[],selectedChildId:""}}
   try{const model=await learningOnboardingModel(preferredChildId, startupRequests);if(model.state==="CHILD_REQUIRED"){learningSetupPreference.clear();onboardingController?.showChildRequired()}else if(model.state==="LEARNING_READY"){learningSetupPreference.clear();onboardingController?.showLearningReady()}else if(model.state==="LEARNING_SETUP_OPTIONAL"&&!suppressOptional&&!learningSetupPreference.isDismissed())onboardingController?.showLearningSetupOptional(model);else onboardingController?.hide();return model}catch{if(startupRequests&&!startupRequests.isCurrent())return null;onboardingController?.hide();showToast("학습 준비 상태를 확인하지 못했어요. 부모관리에서 다시 확인해 주세요.");return null}
+}
+
+function openOptionalLearningSetup() {
+  if (familyChatController?.currentMember()?.role !== "parent") return;
+  const children = familyChatController.activeChildren();
+  if (!children.length) { onboardingController?.showChildRequired(); return; }
+  onboardingController?.showLearningSetupOptional({ children, selectedChildId: selectedPlanAssignee() });
 }
 
 async function openFirstLearningSetup(memberId) {

@@ -88,7 +88,7 @@ function storedSession(role = "parent", exp = Math.floor(Date.now() / 1000) + 36
   };
 }
 
-async function childHarness(t, onChildCreated = async () => ({})) {
+async function childHarness(t, onChildCreated = async () => ({}), options = {}) {
   const { initOnboarding } = await import("../js/onboarding.js");
   const { AUTH_KEY } = await import("../js/family-auth.js");
   const storage = {};
@@ -139,7 +139,7 @@ async function childHarness(t, onChildCreated = async () => ({})) {
     calls.push({ url, options, body: JSON.parse(options.body) });
     return attempt();
   });
-  const controller = initOnboarding({ onAuthenticated: async () => {}, onChildCreated });
+  const controller = initOnboarding({ onAuthenticated: async () => {}, onChildCreated, ...options });
   return {
     calls, node, session, setSession, storage, controller,
     setAttempt(value) { attempt = value; },
@@ -153,6 +153,57 @@ async function childHarness(t, onChildCreated = async () => ({})) {
 
 const childSuccessBody = created => ({ ok: true, created, child: { id: "20000000-0000-4000-8000-000000000002", displayName: "Alice", avatarEmoji: "🧒", role: "child", isActive: true }, onboardingState: "LEARNING_SETUP_OPTIONAL" });
 const childSuccess = created => ({ ok: true, status: created ? 201 : 200, json: async () => childSuccessBody(created) });
+
+test("explicit parent setup selects a child, opens existing planning and creates the first plan; skip only dismisses", async t => {
+  let app, dismissals = 0, tabs = 0, refreshed = 0;
+  const children = [
+    { id: childSuccessBody(true).child.id, display_name: "Alice" },
+    { id: "20000000-0000-4000-8000-000000000003", display_name: "Bob" },
+  ];
+  const h = await childHarness(t, async () => ({}), {
+    onOpenLearning: id => app.openFirstLearningSetup(id), onSkipLearning: () => { dismissals++; },
+  });
+  const select = { value: children[0].id }, requests = [];
+  app = vm.createContext({
+    familyChatController: { currentMember: () => ({ role: "parent" }), activeChildren: () => children },
+    onboardingController: h.controller, selectedPlanAssignee: () => select.value,
+    planAssignees: children, $: () => select, planAssigneeStorageKey: () => null, updatePlanAssigneeSummary() {},
+    learningSetupPreference: { dismiss() { dismissals++; } }, enterParentMode() {},
+    document: { querySelector: () => ({ click() { tabs++; } }) },
+    handlePlanAssigneeChange: async () => { refreshed++; }, learningController: { async refresh() {} },
+    requireSelectedAssignee: () => select.value, identity: () => select.value, generation: 1,
+    pending: new Set(), cache: new Map(), render() {}, showToast() {}, refresh: async () => {},
+    authHeaders: () => ({ Authorization: "synthetic-test-session" }), crypto: require("node:crypto").webcrypto,
+    requestJson: async (url, options) => { requests.push({ url, options, body: JSON.parse(options.body) }); return {}; },
+  });
+  const source = read("js/app.js"), learning = read("js/learning.js");
+  const part = (text, a, b) => text.slice(text.indexOf(a), text.indexOf(b, text.indexOf(a)));
+  vm.runInContext(part(source, "function setPlanAssignee(", "function renderPlanAssignees(") + "\n" +
+    part(source, "function openOptionalLearningSetup(", "// Only an authenticated startup"), app);
+  vm.runInContext(part(learning, "  function planPayload(", "  async function assign(") + "\n" +
+    part(learning, "  async function savePlan(", "  async function changePlanState("), app);
+  h.controller.hide();
+  app.openOptionalLearningSetup();
+  assert.equal(h.node("onboardingLearningSetup").hidden, false);
+  h.node("onboardingLearningChild").value = "1";
+  await h.node("onboardingCreateLearningPlan").listeners.click();
+  assert.equal(select.value, children[1].id);
+  assert.equal(tabs, 1); assert.equal(refreshed, 1);
+  assert.equal(h.node("onboardingView").hidden, true);
+  await app.savePlan({ dataset: { planMode: "create", assignmentId: "synthetic-assignment" },
+    elements: { plannedStartDate: { value: "2026-09-20" }, unitTargetCompletionDate: { value: "2026-09-27" } }, querySelectorAll: () => [] });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, "/api/learning/plans"); assert.equal(requests[0].options.method, "POST");
+  assert.equal(requests[0].body.assignedMemberId, children[1].id);
+  assert.equal(requests[0].options.headers["X-Study-CSRF"], "1");
+  app.openOptionalLearningSetup();
+  await h.node("onboardingSkipLearning").listeners.click();
+  assert.equal(h.node("appShell").hidden, false);
+  assert.equal(requests.length, 1, "skip never creates a fake plan");
+  assert.equal(dismissals, 2);
+  app.openOptionalLearningSetup();
+  assert.equal(h.node("onboardingView").hidden, false, "explicit entry still works after dismissal");
+});
 
 test("Product child POST reads current parent session and emits Bearer without harness injection", async t => {
   const h = await childHarness(t);
@@ -218,6 +269,8 @@ for (const created of [true, false]) {
     h.setAttempt(async () => childSuccess(created));
     await h.submit();
     assert.equal(h.node("onboardingView").dataset.onboardingState, "LEARNING_SETUP_OPTIONAL");
+    assert.equal(h.node("onboardingView").hidden, true);
+    assert.equal(h.node("appShell").hidden, false);
     assert.equal(h.node("onboardingChildName").value, "");
     await h.submit();
     assert.equal(h.calls[0].body.clientRequestId, h.calls[1].body.clientRequestId);
@@ -266,7 +319,7 @@ for (const failure of ["members", "assignees", "missing child"]) {
       $: () => selector, document: { createElement: () => ({}) },
       sessionStorage: { getItem: () => "", setItem() {} },
       restoreFamilyAuth: () => null, authGeneration: 0,
-      planAssigneeStorageKey: () => "", selectedPlanAssignee: () => "", familyAuthHeaders: () => ({}),
+      planAssigneeStorageKey: () => "", selectedPlanAssignee: () => selector.value, handlePlanAssigneeChange: async () => {}, familyAuthHeaders: () => ({}),
       request: async () => {
         if (failing && failure === "members") throw new Error("members unavailable");
         return { members: failing && failure === "missing child" ? [] : [refreshedChild] };
@@ -282,6 +335,7 @@ for (const failure of ["members", "assignees", "missing child"]) {
     vm.runInContext(
       extract(app, "function authenticatedStartupContext()", "function createStartupLearningRequests()") + "\n" +
       extract(family, "let membersLoadVersion=", "async function openLogin(") + "\n" +
+      extract(app, "function setPlanAssignee(", "function renderPlanAssignees(") + "\n" +
       extract(app, "function renderPlanAssignees(", "async function handlePlanAssigneeChange(") + "\n" +
       extract(app, "async function learningOnboardingModel(", "async function evaluateLearningOnboarding(") + "\n" +
       read("js/onboarding-learning.js").replace(/export /g, ""), context);
@@ -306,8 +360,11 @@ for (const failure of ["members", "assignees", "missing child"]) {
     await h.submit();
     assert.equal(h.calls.length, 1);
     assert.equal(h.node("onboardingView").dataset.onboardingState, "LEARNING_SETUP_OPTIONAL");
+    assert.equal(h.node("onboardingView").hidden, true);
+    assert.equal(h.node("appShell").hidden, false);
     assert.equal(context.state.members[0].id, refreshedChild.id);
     assert.equal(context.planAssignees[0].id, refreshedChild.id);
+    assert.equal(selector.value, refreshedChild.id);
     assert.equal(selector.disabled, false);
   });
 }
@@ -365,6 +422,8 @@ for (const [label, json] of [
     assert.equal(callbacks, 1);
     assert.equal(h.calls[0].body.clientRequestId, h.calls[1].body.clientRequestId);
     assert.equal(h.node("onboardingView").dataset.onboardingState, "LEARNING_SETUP_OPTIONAL");
+    assert.equal(h.node("onboardingView").hidden, true);
+    assert.equal(h.node("appShell").hidden, false);
     h.setAttempt(async () => childSuccess(true));
     await h.submit();
     assert.equal(callbacks, 2);
@@ -375,17 +434,19 @@ for (const [label, json] of [
 test("Child transition exception retains committed context and retries without POST", async t => {
   const h = await childHarness(t);
   h.setAttempt(async () => childSuccess(true));
-  const panel = h.node("onboardingLearningSetup");
-  panel.querySelector = () => { throw new Error("transition failed"); };
+  const form = h.node("onboardingChildForm"), reset = form.reset;
+  form.reset = () => { throw new Error("transition failed"); };
   await h.submit();
   assert.notEqual(h.node("onboardingChildError").textContent, "");
   assert.equal(h.node("onboardingChildSubmit").disabled, false);
   assert.equal(h.node("onboardingChildSubmit").attributes["aria-busy"], undefined);
-  panel.querySelector = () => null;
+  form.reset = reset;
   h.setAttempt(async () => childSuccess(false));
   await h.submit();
   assert.equal(h.calls.length, 1);
   assert.equal(h.node("onboardingView").dataset.onboardingState, "LEARNING_SETUP_OPTIONAL");
+    assert.equal(h.node("onboardingView").hidden, true);
+    assert.equal(h.node("appShell").hidden, false);
   await h.submit();
   assert.equal(h.calls.length, 2);
   assert.notEqual(h.calls[0].body.clientRequestId, h.calls[1].body.clientRequestId);
@@ -415,6 +476,8 @@ for (const failure of ["members", "assignees"]) {
     assert.equal(contexts.length, 3);
     assert.ok(contexts.every(data => data.child.id === childSuccessBody(true).child.id));
     assert.equal(h.node("onboardingView").dataset.onboardingState, "LEARNING_SETUP_OPTIONAL");
+    assert.equal(h.node("onboardingView").hidden, true);
+    assert.equal(h.node("appShell").hidden, false);
     assert.equal(h.node("onboardingChildSubmit").disabled, false);
     await h.submit();
     assert.equal(h.calls.length, 2);

@@ -130,7 +130,7 @@ function loginData(member, remember = true) {
 
 // Execute the Product modules and actual app startup functions in a browser-like VM.
 // Only the DOM, network and unrelated study/push presentation are substituted.
-function browserHarness({ restored = null } = {}) {
+function browserHarness({ restored = null, members = [PARENT, CHILD] } = {}) {
   const nodes = new Map(), calls = [], timers = new Map();
   let nextTimer = 0, familyReady = Boolean(restored), clipboardFails = false, postResult = null, list = [], now = Date.now(), initialized = 0, entered = 0;
   const node = key => { if (!nodes.has(key)) nodes.set(key, element()); return nodes.get(key); };
@@ -149,7 +149,7 @@ function browserHarness({ restored = null } = {}) {
     if (url === "/api/family/session/restore") { status = restored ? 200 : 401; data = restored || { code: "DEVICE_SESSION_MISSING" }; }
     else if (url === "/api/family/context") data = { hasFamilyContext: familyReady };
     else if (url === "/api/onboarding/invite") { familyReady = true; data = { ok: true, state: "FAMILY_CONTEXT_READY" }; }
-    else if (url === "/api/family/members") { assert.equal(familyReady, true); data = { members: [PARENT, CHILD] }; }
+    else if (url === "/api/family/members") { assert.equal(familyReady, true); data = { members }; }
     else if (url === "/api/family/verify-pin") { assert.equal(familyReady, true); status = body.pin === "7392" ? 200 : 401; data = status === 200 ? loginData(PARENT, body.rememberDevice) : { code: "PIN_INVALID" }; }
     else if (url === "/api/family/child-login") { assert.equal(familyReady, true); assert.equal(body.pin, undefined); data = loginData(CHILD, body.rememberDevice); }
     else if (url === "/api/family/invites" && options.method === "POST") data = postResult ? await postResult() : { invite: { code: CODE, safeRef: CHILD.id, expiresAt: new Date(now + 600000).toISOString() } };
@@ -171,8 +171,8 @@ function browserHarness({ restored = null } = {}) {
     authGeneration: 0, authenticationTransition: null, authenticatedFeaturesTransition: null, completedAuthGeneration: -1, authMembersRefreshRequired: false, remoteLoadGeneration: 0,
     render() {}, emptyLocalData: () => ({}),
     BUILD_VERSION: "test", startupMetrics: {}, startupStartedAt: 0, appReady: false, activeCacheKey: "local-test-cache", realtimeUnsubscribe: null,
-    renderStoredUserHint() {}, bindEvents() {}, initParentDashboard() {}, deferStartupTask() {}, registerServiceWorker() {}, updateInstallUI() {}, resetForm() {}, resetBookPlanForm() {}, resetReadingPlanForm() {}, resetAcademyForm() {}, setConnectionStatus() {}, openFirstLearningSetup() {}, learningSetupPreference: { dismiss() {} },
-    requestJson() {}, familyAuthHeaders() {}, selectedPlanAssignee() {}, requireSelectedPlanAssignee() {}, switchView() {},
+    renderStoredUserHint() {}, bindEvents() {}, initParentDashboard() {}, deferStartupTask() {}, registerServiceWorker() {}, updateInstallUI() {}, resetForm() {}, resetBookPlanForm() {}, resetReadingPlanForm() {}, resetAcademyForm() {}, setConnectionStatus() {}, openFirstLearningSetup() {}, learningSetupPreference: { dismiss() {}, clear() {}, isDismissed: () => false },
+    async requestJson(url) { assert.ok(url.startsWith("/api/learning/plans")); return { planning: [] }; }, familyAuthHeaders() {}, selectedPlanAssignee() {}, requireSelectedPlanAssignee() {}, switchView() {},
     initLearning() { initialized++; return { reset() {} }; }, initLearningAnalysis: () => ({ reset() {}, async refresh() { return true; } }), initLearningMistakes: () => ({ reset() {} }), initLearningReviewQueue: () => ({ reset() {} }),
     async enterAuthenticatedApp() { entered++; sandbox.appReady = true; }, async evaluateLearningOnboarding() {},
   };
@@ -180,9 +180,10 @@ function browserHarness({ restored = null } = {}) {
   const context = vm.createContext(sandbox);
   const moduleSource = file => read(file).replace(/^import .*;\r?\n/gm, "").replace(/\bexport /g, "");
   vm.runInContext(moduleSource("js/family-auth.js") + "\n" + moduleSource("js/family-chat.js") + "\n" + moduleSource("js/onboarding.js"), context);
-  vm.runInContext(moduleSource("js/parent-dashboard.js"), context);
+  vm.runInContext(moduleSource("js/parent-dashboard.js") + "\n" + moduleSource("js/onboarding-learning.js"), context);
   vm.runInContext("renderMessages=()=>{};renderPushButton=()=>{};syncExistingPushSubscription=async()=>{};", context);
   const app = read("js/app.js");
+  vm.runInContext(section(app, "async function learningOnboardingModel(", "function openOptionalLearningSetup("), context);
   vm.runInContext(section(app, "function authenticatedStartupContext()", "function createStartupLearningRequests()"), context);
   vm.runInContext(section(app, "async function initApp()", "async function learningOnboardingModel("), context);
   vm.runInContext(section(app, '\nwindow.addEventListener("family-auth-changed"', "let initializationPromise").replace("state = emptyLocalData();", "appState = emptyLocalData();"), context);
@@ -197,6 +198,21 @@ function browserHarness({ restored = null } = {}) {
     async selectParentTab(tab) { vm.runInContext(`new ParentTabs(document.querySelector(".parent-management-tabs")).select(${JSON.stringify(tab)})`, context); await flush(); },
     async parentPanel() { node("#parent").classList.add("active"); await this.selectParentTab("family"); },
   };
+}
+
+for (const hasChild of [false, true]) {
+  test(`new-device linked parent with ${hasChild ? "child/no plan enters app" : "zero children stays CHILD_REQUIRED"}`, async () => {
+    const h = browserHarness({ members: hasChild ? [PARENT, CHILD] : [PARENT] }); await h.start();
+    const linking = h.link(); await h.flush();
+    await h.node("#familyMemberChoices").children.find(n => n.dataset.memberId === PARENT.id).fire("click");
+    h.node("#familyPinInput").value = "7392";
+    await h.node("#familyLoginForm").fire("submit"); await linking;
+    assert.equal(h.entered(), 1);
+    assert.equal(h.node("#onboardingView").hidden, hasChild);
+    assert.equal(h.node("#appShell").hidden, !hasChild);
+    if (!hasChild) assert.equal(h.node("#onboardingView").dataset.onboardingState, "CHILD_REQUIRED");
+    assert.notEqual(h.node("#onboardingView").dataset.onboardingState, "LEARNING_SETUP_OPTIONAL");
+  });
 }
 
 for (const role of ["parent", "child"]) {

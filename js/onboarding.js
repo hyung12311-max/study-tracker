@@ -72,8 +72,9 @@ async function refreshCreatedChild(){
   try{
     const setup=await onChildCreated(committedChild);
     // Keep committed context until the transition and form reset both complete.
-    if(setup?.state==="LEARNING_READY")showLearningReady();else showLearningSetupOptional(setup||{});
-    if(setup?.state!=="LEARNING_READY")showPanel(learningSetup,true);childForm.reset();childForm.elements.avatarEmoji.value="🧒";
+    // A refreshed child is sufficient to enter the app; learning setup stays optional.
+    view.dataset.onboardingState=setup?.state||"LEARNING_SETUP_OPTIONAL";
+    hide();childForm.reset();childForm.elements.avatarEmoji.value="🧒";
     committedChild=null;childError.textContent="";
     for(const input of childForm.querySelectorAll("input"))input.disabled=false;
 
