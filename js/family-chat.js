@@ -114,18 +114,114 @@ function resetSelfPinForm(){for(const id of ["#familyCurrentPin","#familySelfNew
 function openSelfPinDialog(){if(state.member?.role!=="parent")return;$("#familySelfPinError").textContent="";$("#familySelfPinMember").textContent=`${state.member.avatar_emoji||"👤"} ${state.member.display_name}`;resetSelfPinForm();const dialog=$("#familySelfPinDialog");if(dialog.showModal&&!dialog.open)dialog.showModal();else dialog.setAttribute("open","");$("#familyCurrentPin").focus()}
 function togglePinVisibility(event){const button=event.currentTarget,input=document.getElementById(button.dataset.pinVisibility);if(!input)return;const visible=input.type==="text";input.type=visible?"password":"text";button.setAttribute("aria-pressed",String(!visible));button.setAttribute("aria-label",button.getAttribute("aria-label").replace(visible?"숨기기":"표시",visible?"표시":"숨기기"))}
 async function changeSelfPin(event){event.preventDefault();if(state.member?.role!=="parent")return;const current=pinValue("#familyCurrentPin"),next=pinValue("#familySelfNewPin"),confirm=pinValue("#familySelfConfirmPin"),error=$("#familySelfPinError"),button=$("#familySelfPinSubmitButton");error.textContent="";if(!current||!next||!confirm){error.textContent="현재 PIN, 새 PIN, 새 PIN 확인을 모두 입력해 주세요.";return}if(!/^\d{4}$/.test(current)||!/^\d{4}$/.test(next)||!/^\d{4}$/.test(confirm)){error.textContent="PIN은 숫자 4자리로 입력해 주세요.";return}if(next!==confirm){error.textContent="새 PIN과 새 PIN 확인이 일치하지 않습니다.";return}if(current===next){error.textContent="새 PIN은 현재 PIN과 다르게 입력해 주세요.";return}if(simplePin(next)){error.textContent="0000, 1111, 1234처럼 너무 단순한 PIN은 사용할 수 없습니다.";return}button.disabled=true;const original=button.textContent;button.textContent="변경 중…";try{await request("/api/family/change-pin",{method:"POST",body:JSON.stringify({member_key:state.member.member_key,current_pin:current,new_pin:next})});resetSelfPinForm();closeDialog($("#familySelfPinDialog"));showToast("부모 PIN 번호가 변경되었습니다. 다음 로그인부터 새 PIN을 사용해주세요.")}catch(e){error.textContent=e.status?e.message:"PIN 번호를 변경하지 못했습니다. 잠시 후 다시 시도해주세요."}finally{button.disabled=false;button.textContent=original}}
+let invitePanelActive=false,inviteCreating=false,inviteEpoch=0,inviteListRequest=0,inviteTimer=null,displayedInvite=null,inviteOwner="";
+function canManageInvites(){return Boolean(state.token&&state.realtimeToken&&state.member?.role==="parent"&&state.member.is_active!==false)}
+function clearDisplayedInvite(){
+  clearTimeout(inviteTimer);inviteTimer=null;displayedInvite=null;
+  $("#familyInviteCode").textContent="";$("#familyInviteExpiry").textContent="";
+  $("#familyInviteCopy").disabled=true;$("#familyInviteStatus").textContent="";
+}
+function resetInvitePanel(){
+  inviteEpoch++;inviteListRequest++;clearDisplayedInvite();$("#familyInviteList").replaceChildren();
+}
+function syncInviteOwner(event){
+  const owner=event?.detail?.authenticated===false?"":canManageInvites()?JSON.stringify([state.member.family_id,state.member.id]):"";
+  if(owner!==inviteOwner||!owner){resetInvitePanel();inviteOwner=owner;invitePanelActive=false}
+  $(".family-invite-panel").hidden=!owner;
+  $("#familyInviteCreate").disabled=!owner||inviteCreating;
+}
+function setInvitePanelActive(active){
+  syncInviteOwner();
+  const next=Boolean(active&&canManageInvites());
+  if(!next){if(invitePanelActive)resetInvitePanel();invitePanelActive=false;return}
+  if(invitePanelActive)return;
+  invitePanelActive=true;void loadInvites();
+}
+function expireDisplayedInvite(){
+  if(!displayedInvite)return false;
+  if(new Date(displayedInvite.expiresAt).getTime()>Date.now())return false;
+  clearDisplayedInvite();$("#familyInviteStatus").textContent="연결 코드가 만료됐어요. 새 코드를 만들어 주세요.";
+  void loadInvites();
+  return true;
+}
+function scheduleInviteExpiry(){
+  if(!displayedInvite)return;
+  inviteTimer=setTimeout(()=>{if(!expireDisplayedInvite())scheduleInviteExpiry()},Math.max(1,new Date(displayedInvite.expiresAt).getTime()-Date.now()));
+}
 function inviteStatus(item){if(item.revokedAt)return"취소됨";if(item.usedAt)return"사용됨";if(new Date(item.expiresAt)<=new Date())return"만료됨";return"사용 가능"}
-async function loadInvites(){const root=$("#familyInviteList");if(!root||state.member?.role!=="parent")return;try{const data=await request("/api/family/invites");root.replaceChildren();for(const item of data.invites||[]){const row=document.createElement("div"),label=document.createElement("span"),revoke=document.createElement("button");row.className="family-invite-item";label.textContent=`${new Date(item.createdAt).toLocaleString("ko-KR")} · ${inviteStatus(item)}`;revoke.type="button";revoke.textContent="취소";revoke.disabled=Boolean(item.revokedAt||item.usedAt||new Date(item.expiresAt)<=new Date());revoke.addEventListener("click",async()=>{await request(`/api/family/invites/${encodeURIComponent(item.safeRef)}`,{method:"DELETE"});await loadInvites()});row.append(label,revoke);root.append(row)}}catch{$("#familyInviteStatus").textContent="초대 목록을 불러오지 못했어요."}}
-async function createInvite(){const status=$("#familyInviteStatus"),output=$("#familyInviteCode"),copy=$("#familyInviteCopy");status.textContent="";try{const data=await request("/api/family/invites",{method:"POST",body:"{}"});output.textContent=data.invite.code;copy.disabled=false;status.textContent="이 코드는 지금 한 번만 표시됩니다.";await loadInvites()}catch(error){status.textContent=error.status===429?"초대를 너무 자주 만들었어요. 잠시 후 다시 시도해 주세요.":"초대 코드를 만들지 못했어요."}}
-async function copyInvite(){const value=$("#familyInviteCode").textContent;if(!value)return;await navigator.clipboard.writeText(value);$("#familyInviteStatus").textContent="초대 코드를 복사했어요."}
-async function openMemberSelection(){familyContextAvailable=true;await loadMembers();await openLogin()}
+async function loadInvites(){
+  const root=$("#familyInviteList");if(!root||!canManageInvites()||!invitePanelActive)return;
+  const epoch=inviteEpoch,requestId=++inviteListRequest;
+  try{
+    const data=await request("/api/family/invites");
+    if(epoch!==inviteEpoch||requestId!==inviteListRequest)return;
+    root.replaceChildren();
+    for(const item of data.invites||[]){
+      if(displayedInvite?.safeRef===item.safeRef&&inviteStatus(item)!=="사용 가능"){
+        clearDisplayedInvite();$("#familyInviteStatus").textContent="이 연결 코드는 더 이상 사용할 수 없어요.";
+      }
+      const row=document.createElement("div"),label=document.createElement("span"),revoke=document.createElement("button");
+      row.className="family-invite-item";
+      label.textContent=new Date(item.createdAt).toLocaleString("ko-KR")+" · "+inviteStatus(item)+" · 만료: "+new Date(item.expiresAt).toLocaleString("ko-KR");
+      revoke.type="button";revoke.textContent="취소";revoke.disabled=inviteStatus(item)!=="사용 가능";
+      revoke.addEventListener("click",async()=>{
+        if(epoch!==inviteEpoch||!canManageInvites()||revoke.disabled)return;
+        revoke.disabled=true;
+        try{
+          await request('/api/family/invites/'+encodeURIComponent(item.safeRef),{method:"DELETE"});
+          if(epoch!==inviteEpoch)return;
+          if(displayedInvite?.safeRef===item.safeRef)clearDisplayedInvite();
+          await loadInvites();
+        }catch{
+          if(epoch===inviteEpoch){revoke.disabled=false;$("#familyInviteStatus").textContent="연결 코드를 취소하지 못했어요. 다시 시도해 주세요."}
+        }
+      });
+      row.append(label,revoke);root.append(row);
+    }
+  }catch{if(epoch===inviteEpoch&&requestId===inviteListRequest)$("#familyInviteStatus").textContent="연결 코드 목록을 불러오지 못했어요."}
+}
+async function createInvite(){
+  if(inviteCreating||!canManageInvites()||!invitePanelActive)return;
+  const epoch=inviteEpoch,button=$("#familyInviteCreate"),status=$("#familyInviteStatus");
+  inviteCreating=true;button.disabled=true;button.setAttribute("aria-busy","true");clearDisplayedInvite();
+  try{
+    const data=await request("/api/family/invites",{method:"POST",body:"{}"});
+    if(epoch!==inviteEpoch)return;
+    if(!data.invite?.code||!Number.isFinite(new Date(data.invite.expiresAt).getTime()))throw new Error("Invalid invite response");
+    displayedInvite=data.invite;
+    $("#familyInviteCode").textContent=data.invite.code;
+    $("#familyInviteExpiry").textContent="만료 시각: "+new Date(data.invite.expiresAt).toLocaleString("ko-KR");
+    $("#familyInviteCopy").disabled=false;status.textContent="코드는 이 화면에서만 확인할 수 있어요. 새 기기에 입력해 주세요.";
+    if(!expireDisplayedInvite())scheduleInviteExpiry();
+    await loadInvites();
+  }catch(error){if(epoch===inviteEpoch)status.textContent=error.status===429?"연결 코드를 너무 자주 만들었어요. 잠시 후 다시 시도해 주세요.":"연결 코드를 만들지 못했어요."}
+  finally{inviteCreating=false;button.disabled=!canManageInvites();button.removeAttribute("aria-busy")}
+}
+async function copyInvite(){
+  if(!canManageInvites()||!invitePanelActive||expireDisplayedInvite()||!displayedInvite)return;
+  const epoch=inviteEpoch,current=displayedInvite;
+  try{
+    await navigator.clipboard.writeText(current.code);
+    if(epoch===inviteEpoch&&current===displayedInvite&&!expireDisplayedInvite())$("#familyInviteStatus").textContent="연결 코드를 복사했어요.";
+  }catch{
+    if(epoch===inviteEpoch&&current===displayedInvite&&!expireDisplayedInvite())$("#familyInviteStatus").textContent="복사하지 못했어요. 화면에 표시된 연결 코드를 직접 선택해 복사해 주세요.";
+  }
+}
+async function openMemberSelection(){familyContextAvailable=true;return requireAuthentication()}
+function bindInvitePanel(){
+  syncInviteOwner();
+  window.addEventListener("family-auth-changed",syncInviteOwner);
+  $(".parent-management-tabs").addEventListener("parent-tab-changed",event=>setInvitePanelActive(event.detail.tab==="family"&&$("#parent").classList.contains("active")));
+  window.addEventListener("focus",()=>{expireDisplayedInvite();if(invitePanelActive)void loadInvites()});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)expireDisplayedInvite()});
+}
 function bind(){
- if(eventsBound)return;eventsBound=true;updateFamilyViewport();window.visualViewport?.addEventListener("resize",updateFamilyViewport);window.addEventListener("resize",updateFamilyViewport);$("#familySendButton")?.addEventListener("pointerdown",event=>{if(document.activeElement===$("#familyMessageInput"))event.preventDefault()});$("#familyMessageInput")?.addEventListener("keydown",event=>{if(event.isComposing||event.keyCode===229)event.stopImmediatePropagation()},{capture:true});
+ if(eventsBound)return;eventsBound=true;bindInvitePanel();updateFamilyViewport();window.visualViewport?.addEventListener("resize",updateFamilyViewport);window.addEventListener("resize",updateFamilyViewport);$("#familySendButton")?.addEventListener("pointerdown",event=>{if(document.activeElement===$("#familyMessageInput"))event.preventDefault()});$("#familyMessageInput")?.addEventListener("keydown",event=>{if(event.isComposing||event.keyCode===229)event.stopImmediatePropagation()},{capture:true});
  $("#familyMessageList")?.addEventListener("click",event=>{const retry=event.target.closest("[data-retry-client-message-id]");if(retry)retryOptimisticMessage(retry.dataset.retryClientMessageId)});
  $("#logoutCurrentDeviceButton")?.addEventListener("click",()=>logoutCurrentDevice(false));$("#logoutAllDevicesButton")?.addEventListener("click",logoutAllDevices);$("#familyInviteCreate")?.addEventListener("click",createInvite);$("#familyInviteCopy")?.addEventListener("click",copyInvite);
  $("#parentChangePinButton")?.addEventListener("click",openSelfPinDialog);document.querySelectorAll("[data-pin-visibility]").forEach(button=>button.addEventListener("click",togglePinVisibility));$("#closeFamilySelfPinButton")?.addEventListener("click",resetSelfPinForm);$("#cancelFamilySelfPinButton")?.addEventListener("click",resetSelfPinForm);
  const view=$("#family-chat"),messageInput=$("#familyMessageInput"),messageForm=$("#familyMessageForm");const updateFamilyMode=()=>document.body.classList.toggle("family-chat-mode",view?.classList.contains("active"));if(view){new MutationObserver(updateFamilyMode).observe(view,{attributes:true,attributeFilter:["class"]});updateFamilyMode()}messageInput?.addEventListener("input",resizeMessageInput);messageForm?.addEventListener("submit",()=>[0,250,750,1500,3000].forEach(delay=>window.setTimeout(resizeMessageInput,delay)));
  $("#familyLoginForm").addEventListener("submit",login);$("#closeFamilyLoginButton").addEventListener("click",()=>closeDialog($("#familyLoginDialog")));$("#familyChangeMemberButton").addEventListener("click",()=>logoutCurrentDevice(true));$("#familySelfPinButton")?.addEventListener("click",openSelfPinDialog);$("#familySelfPinForm")?.addEventListener("submit",changeSelfPin);$("#closeFamilySelfPinButton")?.addEventListener("click",()=>closeDialog($("#familySelfPinDialog")));$("#cancelFamilySelfPinButton")?.addEventListener("click",()=>closeDialog($("#familySelfPinDialog")));["#familyCurrentPin","#familySelfNewPin","#familySelfConfirmPin"].forEach(selector=>$(selector)?.addEventListener("input",cleanPinInput));$("#familyMessageForm").addEventListener("submit",send);$("#familyMessageInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#familyMessageForm").requestSubmit()}});$("#familyPushButton").addEventListener("click",enablePush);$("#familyPinForm").addEventListener("submit",changePin);$("#closeFamilyPinButton").addEventListener("click",()=>closeDialog($("#familyPinDialog")));$("#familyChatNotificationsEnabled").addEventListener("change",updateFamilySettings);$("#familySystemNotificationsEnabled").addEventListener("change",updateFamilySettings);$("#familyMessageList").addEventListener("scroll",async e=>{if(e.currentTarget.scrollTop<50&&state.oldest)await loadMessages({older:true})});window.addEventListener("online",()=>{if(state.active){startRealtime();loadMessages({silent:true})}});window.addEventListener("offline",()=>{clearRealtimeNoticeTimers();state.realtimeNoticeVisible=true;showNotice("인터넷 연결이 없습니다.",true)});
 }
-export async function initFamilyChat({onAddChild:handleAddChild=()=>{}}={}){onAddChild=handleAddChild;bind();renderMemberHeader();renderDeviceSession();refreshPushStatus();await restoreDeviceSession();if(state.token&&state.realtimeToken){await loadMembers();try{const chosen=state.members.find(m=>m.id===state.selectedId),merged=mergePublicMemberIdentity(state.member,chosen);if(merged)state.member=merged;else throw new Error();familyContextAvailable=true;saveAuth();renderMemberHeader();renderDeviceSession();refreshPushStatus()}catch{logout(false)}}else{if(state.token)logout(false);if(await checkFamilyContext())await loadMembers()}return{isAuthenticated(){return Boolean(state.token&&state.realtimeToken&&state.member)},hasFamilyContext(){return familyContextAvailable},currentMember(){return state.member},childCount(){return state.members.filter(member=>member.role==="child"&&member.is_active!==false).length},activeChildren(){return state.members.filter(member=>member.role==="child"&&member.is_active!==false).map(member=>({...member}))},refreshMembers:loadMembers,openMemberSelection,async handoffToChild(memberId){if(state.member?.role!=="parent")throw new Error("Parent authentication is required.");const child=state.members.find(member=>member.id===memberId&&member.role==="child"&&member.is_active!==false);if(!child)throw new Error("Active family child is required.");await loginChild(child)},async acceptRegistration(data){const member=hydrateAuthenticatedMember(data.member,data.token);if(!member)throw new Error("Invalid registration authentication response.");completeFamilyLogin({...data,member,expires_at:data.deviceSessionExpiresAt||null},{source:"registration"});familyContextAvailable=true;await loadMembers()},changeUser(){logoutCurrentDevice(true)},requireAuthentication,setActive(active){state.active=active;if(active){if(!state.token)openLogin();else{startRealtime();loadMessages({silent:true})}}else stopRealtime()},refreshAdmin:renderAdmin}}
+export async function initFamilyChat({onAddChild:handleAddChild=()=>{}}={}){onAddChild=handleAddChild;bind();renderMemberHeader();renderDeviceSession();refreshPushStatus();await restoreDeviceSession();if(state.token&&state.realtimeToken){await loadMembers();try{const chosen=state.members.find(m=>m.id===state.selectedId),merged=mergePublicMemberIdentity(state.member,chosen);if(merged)state.member=merged;else throw new Error();familyContextAvailable=true;saveAuth();renderMemberHeader();renderDeviceSession();refreshPushStatus()}catch{logout(false)}}else{if(state.token)logout(false);if(await checkFamilyContext())await loadMembers()}return{isAuthenticated(){return Boolean(state.token&&state.realtimeToken&&state.member)},hasFamilyContext(){return familyContextAvailable},currentMember(){return state.member},childCount(){return state.members.filter(member=>member.role==="child"&&member.is_active!==false).length},activeChildren(){return state.members.filter(member=>member.role==="child"&&member.is_active!==false).map(member=>({...member}))},refreshMembers:loadMembers,openMemberSelection,setInvitePanelActive,async handoffToChild(memberId){if(state.member?.role!=="parent")throw new Error("Parent authentication is required.");const child=state.members.find(member=>member.id===memberId&&member.role==="child"&&member.is_active!==false);if(!child)throw new Error("Active family child is required.");await loginChild(child)},async acceptRegistration(data){const member=hydrateAuthenticatedMember(data.member,data.token);if(!member)throw new Error("Invalid registration authentication response.");completeFamilyLogin({...data,member,expires_at:data.deviceSessionExpiresAt||null},{source:"registration"});familyContextAvailable=true;await loadMembers()},changeUser(){logoutCurrentDevice(true)},requireAuthentication,setActive(active){state.active=active;if(active){if(!state.token)openLogin();else{startRealtime();loadMessages({silent:true})}}else stopRealtime()},refreshAdmin:renderAdmin}}
 

@@ -33,7 +33,13 @@ module.exports = async function familyInvites(request, response) {
     const rows = await u.supabaseFetch(`family_invites?select=safe_ref,created_at,expires_at,used_at,revoked_at&family_id=eq.${encodeURIComponent(context.familyId)}&creator_parent_id=eq.${encodeURIComponent(context.memberId)}&order=created_at.desc&limit=20`);
     return u.json(response, 200, { ok: true, invites: (rows || []).map(row => ({ safeRef: row.safe_ref, createdAt: row.created_at, expiresAt: row.expires_at, usedAt: row.used_at, revokedAt: row.revoked_at })) });
   } catch (error) {
-    if (["AUTH_SESSION_INVALID", "AUTH_ROLE_REQUIRED"].includes(error.code)) { const safe = require("../_authorization").publicAuthorizationError(error); return u.json(response, safe.status, safe.body); }
+    if (error.statusCode === 401 && error.code === "AUTH_REQUIRED") {
+      return u.json(response, 401, { ok: false, error: "Authentication is required.", code: "AUTH_REQUIRED" });
+    }
+    // Normalize only the token verifier's explicit failures to the Product session contract.
+    const authCode = error.statusCode === 401 && ["AUTH_INVALID", "AUTH_CLAIMS_INVALID", "AUTH_EXPIRED"].includes(error.code)
+      ? "AUTH_SESSION_INVALID" : error.code;
+    if (["AUTH_SESSION_INVALID", "AUTH_ROLE_REQUIRED"].includes(authCode)) { const safe = require("../_authorization").publicAuthorizationError({ code: authCode }); return u.json(response, safe.status, safe.body); }
     const known = new Set(["INVITE_INVALID_REQUEST", "INVITE_CREATE_RATE_LIMITED", "INVITE_FAILED"]);
     return u.json(response, known.has(error.code) ? error.statusCode : 500, { ok: false, error: known.has(error.code) ? error.message : "Invite request failed.", code: known.has(error.code) ? error.code : "INVITE_FAILED" });
   }

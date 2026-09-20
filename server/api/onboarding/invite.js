@@ -14,7 +14,7 @@ module.exports = async function exchangeInvite(request, response) {
     if (!code || !authSecret || authSecret.length < 32) return reject(response);
     const address = String(request.headers["x-forwarded-for"] || request.socket?.remoteAddress || "unknown").split(",", 1)[0].trim();
     const codeHash = invite.inviteHash(code);
-    const rpc = await u.supabaseFetch("rpc/exchange_product_family_invite", { method: "POST", body: JSON.stringify({ p_invite_hash: codeHash, p_rate_scope_hash: digest(authSecret, `family-invite-exchange:v1:${address}:${codeHash}`) }) });
+    const rpc = await u.supabaseFetch("rpc/exchange_product_family_invite", { method: "POST", body: JSON.stringify({ p_invite_hash: codeHash, p_rate_scope_digest: digest(authSecret, `family-invite-exchange:v1:${address}:${codeHash}`) }) });
     const result = Array.isArray(rpc) ? rpc[0] : rpc;
     if (result?.result_code === "INVITE_RATE_LIMITED") return reject(response, 429, "INVITE_RATE_LIMITED");
     const family = result?.["family" + "_id"];

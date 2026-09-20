@@ -20,22 +20,28 @@
         <p>가족을 만들고 아이의 학습 계획을 함께 관리할 수 있어요.</p>
         <div class="onboarding-actions">
           <button type="button" class="primary" id="createFamilyButton">가족 만들기</button>
-          <button type="button" id="existingFamilyButton">기존 가족 로그인</button>
+          <button type="button" id="existingFamilyButton">기존 가족에 연결</button>
         </div>
         <p id="existingFamilyStatus" class="onboarding-status" aria-live="polite"></p>
       </section>
 
       <section id="onboardingInvite" class="onboarding-card" aria-labelledby="onboardingInviteTitle" hidden>
         <button type="button" class="onboarding-back" id="onboardingInviteBack">← 처음으로</button>
-        <p class="eyebrow">기존 가족 로그인</p>
-        <h2 id="onboardingInviteTitle" tabindex="-1">가족 초대 코드를 입력해 주세요</h2>
-        <p>부모가 만든 10분 유효 초대 코드를 입력하면 가족 구성원을 선택할 수 있어요.</p>
+        <p class="eyebrow">기존 가족에 연결</p>
+        <h2 id="onboardingInviteTitle" tabindex="-1">기기 연결 코드를 입력해 주세요</h2>
+        <p>로그인되어 있는 기존 기기에서 부모 사용자로 들어간 뒤, 부모관리 → 가족 관리 → 새 기기 연결에서 연결 코드를 만들어 주세요.</p>
+        <p>코드는 생성 후 10분 동안 한 번만 사용할 수 있어요. 연결 후 가족 구성원을 선택해 주세요. 부모로 로그인하려면 부모 PIN이 필요해요.</p>
         <form id="onboardingInviteForm" novalidate>
-          <label for="onboardingInviteCode">초대 코드</label>
+          <label for="onboardingInviteCode">기기 연결 코드</label>
           <input id="onboardingInviteCode" name="inviteCode" maxlength="32" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" aria-describedby="onboardingInviteError" required />
           <p id="onboardingInviteError" class="onboarding-error" role="alert" tabindex="-1"></p>
-          <button type="submit" class="primary" id="onboardingInviteSubmit">가족 찾기</button>
+          <button type="submit" class="primary" id="onboardingInviteSubmit">연결하기</button>
         </form>
+        <details>
+          <summary>로그인된 기존 기기를 사용할 수 없나요?</summary>
+          <p>다른 가족 구성원의 기기에 로그인 정보가 남아 있다면, 그 기기에서 부모로 로그인한 뒤 연결 코드를 만들어 주세요.</p>
+          <p>로그인된 기기와 유효한 미사용 연결 코드가 모두 없다면 현재 버전에서는 기존 가족 연결을 직접 복구할 수 없어요.</p>
+        </details>
       </section>
 
       <section id="onboardingRegistration" class="onboarding-card" aria-labelledby="onboardingRegistrationTitle" hidden>
@@ -549,10 +555,13 @@
             <label><input id="familyChatNotificationsEnabled" type="checkbox" /> 가족방 전체 알림</label>
             <label><input id="familySystemNotificationsEnabled" type="checkbox" /> 학습 시스템 메시지 알림</label>
             <section class="family-invite-panel" aria-labelledby="familyInviteTitle">
-              <h4 id="familyInviteTitle">새 기기 초대</h4>
-              <p>초대 코드는 한 번만 사용할 수 있고 10분 뒤 만료됩니다.</p>
-              <button type="button" class="primary" id="familyInviteCreate">초대 코드 만들기</button>
+              <h4 id="familyInviteTitle">새 기기 연결</h4>
+              <p>연결 코드는 생성 후 10분 동안 한 번만 사용할 수 있어요.</p>
+              <p>새 기기에서 ‘기존 가족에 연결’을 선택하고 연결 코드를 입력해 주세요.</p>
+              <p>부모로 로그인하려면 연결 후 부모 PIN이 필요해요.</p>
+              <button type="button" class="primary" id="familyInviteCreate">연결 코드 생성</button>
               <output id="familyInviteCode" aria-live="polite"></output>
+              <p id="familyInviteExpiry" aria-live="polite"></p>
               <button type="button" id="familyInviteCopy" disabled>코드 복사</button>
               <p id="familyInviteStatus" aria-live="polite"></p>
               <div id="familyInviteList" class="family-invite-list"></div>

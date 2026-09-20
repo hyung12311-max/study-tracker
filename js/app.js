@@ -2615,6 +2615,7 @@ function switchView(viewName) {
     item.classList.toggle("active", item.id === viewName);
   });
   familyChatController?.setActive(viewName === "family-chat");
+  familyChatController?.setInvitePanelActive(viewName === "parent" && !$("#parentPanelFamily").hidden);
   rewardStoreController?.setActive(["progress", "rewards", "parent"].includes(viewName));
   const url = new URL(window.location.href);
   if (viewName === "today") url.searchParams.delete("tab");
@@ -2885,7 +2886,9 @@ async function initApp() {
   setConnectionStatus("로그인 정보를 확인하고 있어요...");
   const authStartedAt = performance.now();
   familyChatController = await initFamilyChat({ onAddChild: () => onboardingController?.startChildAddition() });
-  onboardingController = initOnboarding({ onAuthenticated: async (data) => {
+  onboardingController = initOnboarding({ onChildAdditionStart: () => familyChatController.setInvitePanelActive(false), onHide: () => {
+    familyChatController.setInvitePanelActive($("#parent").classList.contains("active") && !$("#parentPanelFamily").hidden);
+  }, onAuthenticated: async (data) => {
     await familyChatController.acceptRegistration(data);
     await initializeAuthenticatedFeatures();
   }, onChildCreated: async (data) => {
@@ -2895,7 +2898,10 @@ async function initApp() {
     if (!model.children.some(child => child.id === data.child.id) || model.selectedChildId !== data.child.id) throw new Error("Created child is not available in refreshed data.");
     return model;
   }, onOpenLearning: openFirstLearningSetup, onSkipLearning: () => learningSetupPreference.dismiss(), onHandoffChild: (memberId) => familyChatController.handoffToChild(memberId) });
-  initExistingFamilyInvite({ onInviteAccepted: async () => familyChatController.openMemberSelection() });
+  initExistingFamilyInvite({ onInviteAccepted: async () => {
+    await familyChatController.openMemberSelection();
+    await initializeAuthenticatedFeatures();
+  } });
   if (!familyChatController.isAuthenticated()) {
     if (familyChatController.hasFamilyContext()) await familyChatController.requireAuthentication();
     else { onboardingController.showWelcome(); return; }
