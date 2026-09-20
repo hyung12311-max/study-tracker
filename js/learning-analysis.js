@@ -205,7 +205,8 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
     renderProgress(progressContainer);
   }
 
-  async function refresh() {
+  async function refresh({ startupRequests = null } = {}) {
+    const sharedRequest = startupRequests?.request || requestJson;
     const member = currentMember();
     const assignedMemberId = member?.role === "parent" ? selectedAssignee() : "";
     const requestGeneration = ++generation;
@@ -238,11 +239,12 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
           requestJson(`/api/learning/skills${query}`, options),
         ]),
         requestJson(`/api/learning/recommendations${query}`, options),
-        requestJson(`/api/learning/assignments${query}`, options),
-        requestJson(`/api/learning/review-queue${query}`, options),
+        sharedRequest(`/api/learning/assignments${query}`, options),
+        sharedRequest(`/api/learning/review-queue${query}`, options),
         requestJson(`/api/rewards?memberId=${encodeURIComponent(assignedMemberId)}`, options),
       ]);
-      if (requestGeneration !== generation || requestIdentity !== identity()) return;
+      if (requestGeneration !== generation || requestIdentity !== identity()) return false;
+      if (startupRequests && !startupRequests.isCurrent()) return false;
       if (analysisResult.status === "fulfilled") {
         const [scoreData, historyData, skillData] = analysisResult.value;
         scores = Array.isArray(scoreData.scores) ? scoreData.scores : [];
@@ -269,7 +271,8 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
         learningRewardEarned = Number(rewardResult.value.learningRewardEarned || 0);
       }
     } catch {
-      if (requestGeneration !== generation || requestIdentity !== identity()) return;
+      if (requestGeneration !== generation || requestIdentity !== identity()) return false;
+      if (startupRequests && !startupRequests.isCurrent()) return false;
       error = true;
       recommendationError = true;
       progressError = true;
@@ -279,12 +282,13 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
         render();
       }
     }
+    return true;
   }
 
   return {
     refresh,
     render,
-    reset() {
+    reset({ render: shouldRender = true } = {}) {
       generation += 1;
       loading = false;
       error = false;
@@ -298,7 +302,7 @@ export function initLearningAnalysis({ requestJson, authHeaders, currentMember, 
       reviewSummary = {};
       learningRewardEarned = null;
       progressError = false;
-      render();
+      if (shouldRender) render();
     },
   };
 }

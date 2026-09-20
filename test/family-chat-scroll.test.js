@@ -168,9 +168,12 @@ for (const existing of [true, false]) for (const userScroll of [false, true]) te
   await completion;
   h.context.window.location = { href: target, search: new URL(target).search };
   Object.assign(h.context, { familyChatController: h.controller, onboardingController: { hide() {} },
+    authGeneration: 0, authenticatedFeaturesTransition: null, completedAuthGeneration: -1, authMembersRefreshRequired: false,
+    familyAuthHeaders: () => ({ Authorization: 'test-session' }),
     learningController: {}, learningAnalysisController: {}, learningMistakesController: {}, learningReviewQueueController: {}, rewardStoreController: null,
-    startupMetrics: {}, enterAuthenticatedApp: async () => {}, $$: () => [], isParentMode: false });
+    startupMetrics: {}, enterAuthenticatedApp: async () => {}, ensureLearningAnalysis: async () => {}, appReady: false, $$: () => [], isParentMode: false });
   const app = read('js/app.js');
+  vm.runInContext(app.slice(app.indexOf('function authenticatedStartupContext('), app.indexOf('function createStartupLearningRequests(')), h.context);
   vm.runInContext(app.slice(app.indexOf('function switchView('), app.indexOf('function enterParentMode(')), h.context);
   vm.runInContext(app.slice(app.indexOf('async function initializeAuthenticatedFeatures('), app.indexOf('async function learningOnboardingModel(')), h.context);
   let finish; h.setResponse(() => new Promise(resolve => { finish = resolve; }));

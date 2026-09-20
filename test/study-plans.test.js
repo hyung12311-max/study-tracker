@@ -525,7 +525,7 @@ test("general plan client CRUD and reads use the authenticated API with isolated
   assert.match(source, /const generation = \+\+remoteLoadGeneration/);
   assert.match(source, /generation !== remoteLoadGeneration \|\| requestCacheKey !== localDataKey\(\)/);
   assert.match(source, /async function loadRepositoryForCurrentContext[\s\S]*requestCacheKey === localDataKey\(\) \? loadedState : null/);
-  assert.match(source, /realtimeUnsubscribe = repository\.subscribe\(\(\) => \{\s*reloadFromRemote\(\)/);
+  assert.match(source, /realtimeUnsubscribe = repository\.subscribe\(\(\) => \{\s*if \(!isCurrent\(\)\) return;\s*reloadFromRemote\(\)/);
   assert.match(source, /return `\$\{CACHE_PREFIX\}_\$\{familyId\}_\$\{memberId\}_\$\{assignedMemberId\}`/);
   assert.match(source, /await saveAndRender\(message,\s*\(\) => repository\.upsertPlan\(formPlan\)\)/);
   assert.match(source, /async function saveAndRender[\s\S]*handleRepositoryError\(error\)/);

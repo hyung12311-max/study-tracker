@@ -376,7 +376,7 @@ function createSupabaseRepository(config) {
       : requestJson(planUrl, { headers: familyAuthHeaders() })
           .then((result) => ({ data: result.plans, error: null }))
           .catch((error) => ({ data: null, error }));
-    const bookPlansQuery = currentMember?.role === "parent" && assignedMemberId
+    const bookPlansQuery = !essentialOnly && currentMember?.role === "parent" && assignedMemberId
       ? requestJson(`/api/study/book-plans?assignedMemberId=${encodeURIComponent(assignedMemberId)}`, {
           headers: familyAuthHeaders(),
         })
@@ -799,11 +799,16 @@ const learningSetupPreference = learningSetupDismissal();
 let rewardStoreController = null;
 let appReady = false;
 let authenticationTransition = null;
+let authGeneration = 0;
+let authenticatedFeaturesTransition = null;
+let completedAuthGeneration = -1;
+let authMembersRefreshRequired = false;
 let realtimeUnsubscribe = null;
 let stickerWalletSnapshot = null;
 let planAssignees = [];
 let learningController = null;
 let learningAnalysisController = null;
+let analysisEntryScope = "", analysisEntryPromise = null;
 let learningMistakesController = null;
 let learningReviewQueueController = null;
 
@@ -880,15 +885,20 @@ function renderPlanAssignees(preferredMemberId = "", refreshFailed = false) {
   updatePlanAssigneeSummary();
 }
 
-async function loadPlanAssignees({ throwOnError = false } = {}) {
+async function loadPlanAssignees({ throwOnError = false, reuseStartupMembers = false } = {}) {
   const currentMember = familyChatController?.currentMember();
+  const isCurrent = authenticatedStartupContext();
   planAssignees = [];
   if (currentMember?.role !== "parent") {
     renderPlanAssignees();
     return;
   }
   try {
-    const data = await requestJson("/api/family/members", { headers: familyAuthHeaders() });
+    const members = reuseStartupMembers ? familyChatController?.takeStartupMembers?.(currentMember) : null;
+    const data = members !== null && members !== undefined
+      ? { members }
+      : await requestJson("/api/family/members", { headers: familyAuthHeaders() });
+    if (!isCurrent()) return;
     planAssignees = (data.members || [])
       .filter((member) => (
         member.role === "child"
@@ -901,6 +911,7 @@ async function loadPlanAssignees({ throwOnError = false } = {}) {
       }));
     renderPlanAssignees();
   } catch (error) {
+    if (!isCurrent()) return;
     renderPlanAssignees("", true);
     console.warn("[study plan assignees] load failed", { status: error.status || null, code: error.code || null });
     if (throwOnError) throw error;
@@ -927,7 +938,8 @@ async function handlePlanAssigneeChange() {
     resetReadingPlanForm();
     resetAcademyForm();
     learningController?.reset();
-    learningAnalysisController?.reset();
+    analysisEntryScope = "";
+    learningAnalysisController?.reset({ render: analysisViewVisible() });
     learningMistakesController?.reset();
     learningReviewQueueController?.reset();
     render();
@@ -952,7 +964,7 @@ async function handlePlanAssigneeChange() {
   await Promise.all([
     reloadFromRemote({ essentialOnly: false }),
     learningController?.refresh({ force: true }),
-    learningAnalysisController?.refresh(),
+    ensureLearningAnalysis({ force: true }),
     learningReviewQueueController?.refresh(),
   ]);
 }
@@ -2617,9 +2629,10 @@ function switchView(viewName) {
   familyChatController?.setActive(viewName === "family-chat");
   familyChatController?.setInvitePanelActive(viewName === "parent" && !$("#parentPanelFamily").hidden);
   rewardStoreController?.setActive(["progress", "rewards", "parent"].includes(viewName));
+  if (appReady) void ensureLearningAnalysis();
   const url = new URL(window.location.href);
   if (viewName === "today") url.searchParams.delete("tab");
-  else url.searchParams.set("tab", viewName);
+  else url.searchParams.set("tab", viewName === "parent" && !$("#parentPanelLearning").hidden ? "analysis" : viewName);
   history.replaceState(null, "", url);
 }
 
@@ -2629,13 +2642,15 @@ function enterParentMode() {
     return;
   }
   isParentMode = true;
+  // Re-entering parent management retains its existing fresh-data behavior.
+  if (!$("#parent").classList.contains("active")) analysisEntryScope = "";
   resetForm();
   render();
   switchView("parent");
   loadNotificationPreferences();
   loadStickerRewardSettings();
   learningController?.refresh();
-  learningAnalysisController?.refresh();
+  void ensureLearningAnalysis();
   learningReviewQueueController?.refresh();
   showToast("부모 모드로 전환했어요.");
 }
@@ -2649,6 +2664,9 @@ function exitParentMode() {
 }
 
 function bindEvents() {
+  $(".parent-management-tabs")?.addEventListener("parent-tab-changed", () => {
+    if (appReady) void ensureLearningAnalysis();
+  });
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     installPrompt = event;
@@ -2909,8 +2927,86 @@ async function initApp() {
   await initializeAuthenticatedFeatures(authStartedAt);
 }
 
+function analysisViewVisible() {
+  return $("#parent").classList.contains("active") && !$("#parentPanelLearning").hidden;
+}
+
+function ensureLearningAnalysis({ force = false, startupRequests = null, requested = false } = {}) {
+  if (force) {
+    analysisEntryScope = "";
+    learningAnalysisController?.reset({ render: analysisViewVisible() });
+  }
+  if (!requested && !analysisViewVisible()) return Promise.resolve();
+  if (familyChatController?.currentMember()?.role !== "parent") return Promise.resolve();
+  const member = familyChatController.currentMember();
+  const scope = JSON.stringify([familyAuthHeaders(), member.family_id, member.id, selectedPlanAssignee()]);
+  if (analysisEntryScope === scope) return analysisEntryPromise || Promise.resolve();
+  learningAnalysisController ||= initLearningAnalysis({
+    requestJson,
+    authHeaders: familyAuthHeaders,
+    currentMember: () => familyChatController?.currentMember(),
+    selectedAssignee: selectedPlanAssignee,
+  });
+  analysisEntryScope = scope;
+  const pending = learningAnalysisController.refresh({ startupRequests }).then((current) => {
+    if (current === false && analysisEntryPromise === pending) analysisEntryScope = "";
+  }, (error) => {
+    if (analysisEntryPromise === pending) analysisEntryScope = "";
+    throw error;
+  });
+  analysisEntryPromise = pending;
+  return pending.finally(() => {
+    if (analysisEntryPromise === pending) analysisEntryPromise = null;
+  });
+}
+
 async function initializeAuthenticatedFeatures(authStartedAt = performance.now()) {
-  onboardingController?.hide();
+  if (authenticatedFeaturesTransition) return authenticatedFeaturesTransition;
+  if (!familyChatController?.isAuthenticated() || (appReady && completedAuthGeneration === authGeneration)) return;
+  authenticatedFeaturesTransition = (async () => {
+    // Serialize transitions and coalesce intermediate changes to the latest auth.
+    while (familyChatController?.isAuthenticated()) {
+      const generation = authGeneration;
+      try {
+        if (authMembersRefreshRequired) {
+          authMembersRefreshRequired = false;
+          try {
+            await familyChatController.refreshMembers({ throwOnError: true });
+          } catch (error) {
+            authMembersRefreshRequired = true;
+            throw error;
+          }
+          if (generation !== authGeneration) continue;
+        }
+        await initializeAuthenticatedGeneration(authStartedAt);
+      } catch (error) {
+        if (generation === authGeneration) throw error;
+      }
+      if (generation === authGeneration) {
+        if (appReady) completedAuthGeneration = generation;
+        return;
+      }
+    }
+  })().finally(() => { authenticatedFeaturesTransition = null; });
+  return authenticatedFeaturesTransition;
+}
+
+async function initializeAuthenticatedGeneration(authStartedAt) {
+  const isCurrent = authenticatedStartupContext();
+  const requestedTab = new URLSearchParams(window.location.search).get("tab");
+  const childRequired = familyChatController?.currentMember()?.role === "parent" && familyChatController.childCount() === 0;
+  if (childRequired) onboardingController?.showChildRequired();
+  else {
+    // Auth and the validated member list are sufficient to enter these destinations.
+    // Essential study/reward initialization continues without delaying chat entry.
+    if (["progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);
+    if (requestedTab === "analysis" && familyChatController?.currentMember()?.role === "parent") {
+      isParentMode = true;
+      $("#parentTabLearning")?.click();
+      switchView("parent");
+    }
+    onboardingController?.hide();
+  }
   learningController ||= initLearning({
     requestJson,
     authHeaders: familyAuthHeaders,
@@ -2921,12 +3017,6 @@ async function initializeAuthenticatedFeatures(authStartedAt = performance.now()
     refreshStickerWallet: () => rewardStoreController?.refresh({ silent: true }),
     reviewTodaySnapshot: () => learningReviewQueueController?.snapshot() || { queue: [], loading: false, failed: false },
     openReviewToday: (item) => learningMistakesController?.openQueueItem(item),
-  });
-  learningAnalysisController ||= initLearningAnalysis({
-    requestJson,
-    authHeaders: familyAuthHeaders,
-    currentMember: () => familyChatController?.currentMember(),
-    selectedAssignee: selectedPlanAssignee,
   });
   learningMistakesController ||= initLearningMistakes({
     requestJson,
@@ -2943,24 +3033,29 @@ async function initializeAuthenticatedFeatures(authStartedAt = performance.now()
     onChange: () => learningController?.render(),
   });
   startupMetrics.authMs = Math.round(performance.now() - authStartedAt);
-  await enterAuthenticatedApp();
-  const currentMember = familyChatController.currentMember();
-  if (currentMember?.role === "parent") await evaluateLearningOnboarding();
-  const requestedTab = new URLSearchParams(window.location.search).get("tab");
-  if (["today", "progress", "rewards", "family-chat"].includes(requestedTab)) switchView(requestedTab);
+  const startupRequests = await enterAuthenticatedApp({ shareOnboarding: true, analysisRequested: !childRequired && requestedTab === "analysis" });
+  try {
+    if (!isCurrent()) return;
+    const currentMember = familyChatController.currentMember();
+    if (currentMember?.role === "parent" && (!startupRequests || startupRequests.isCurrent())) await evaluateLearningOnboarding("", startupRequests, ["progress", "rewards", "family-chat", "analysis"].includes(requestedTab));
+  } finally {
+    startupRequests?.close();
+  }
+  if (isCurrent() && !childRequired) await ensureLearningAnalysis();
 }
 
-async function learningOnboardingModel(preferredChildId = "") {
+async function learningOnboardingModel(preferredChildId = "", startupRequests = null) {
   const currentMember=familyChatController?.currentMember(),children=familyChatController?.activeChildren()||[];
   if(currentMember?.role!=="parent"||!children.length)return{state:projectOnboardingState({role:currentMember?.role,children,selectedChildId:"",planning:[]}),children,selectedChildId:""};
   const selectedChildId=children.some(child=>child.id===preferredChildId)?preferredChildId:children.some(child=>child.id===selectedPlanAssignee())?selectedPlanAssignee():children[0].id;
-  const data=await requestJson(`/api/learning/plans?assignedMemberId=${encodeURIComponent(selectedChildId)}`,{headers:familyAuthHeaders()});
+  const data=await (startupRequests?.request || requestJson)(`/api/learning/plans?assignedMemberId=${encodeURIComponent(selectedChildId)}`,{headers:familyAuthHeaders(),cache:"no-store"});
+  if(startupRequests&&!startupRequests.isCurrent())throw new Error("Startup scope changed.");
   return{state:projectOnboardingState({role:"parent",children,selectedChildId,planning:data.planning||[]}),children,selectedChildId};
 }
 
-async function evaluateLearningOnboarding(preferredChildId = "") {
+async function evaluateLearningOnboarding(preferredChildId = "", startupRequests = null, suppressOptional = false) {
   if(familyChatController?.currentMember()?.role==="parent"&&familyChatController.childCount()===0){learningSetupPreference.clear();onboardingController?.showChildRequired();return{state:"CHILD_REQUIRED",children:[],selectedChildId:""}}
-  try{const model=await learningOnboardingModel(preferredChildId);if(model.state==="CHILD_REQUIRED"){learningSetupPreference.clear();onboardingController?.showChildRequired()}else if(model.state==="LEARNING_READY"){learningSetupPreference.clear();onboardingController?.showLearningReady()}else if(model.state==="LEARNING_SETUP_OPTIONAL"&&!learningSetupPreference.isDismissed())onboardingController?.showLearningSetupOptional(model);else onboardingController?.hide();return model}catch{onboardingController?.hide();showToast("학습 준비 상태를 확인하지 못했어요. 부모관리에서 다시 확인해 주세요.");return null}
+  try{const model=await learningOnboardingModel(preferredChildId, startupRequests);if(model.state==="CHILD_REQUIRED"){learningSetupPreference.clear();onboardingController?.showChildRequired()}else if(model.state==="LEARNING_READY"){learningSetupPreference.clear();onboardingController?.showLearningReady()}else if(model.state==="LEARNING_SETUP_OPTIONAL"&&!suppressOptional&&!learningSetupPreference.isDismissed())onboardingController?.showLearningSetupOptional(model);else onboardingController?.hide();return model}catch{if(startupRequests&&!startupRequests.isCurrent())return null;onboardingController?.hide();showToast("학습 준비 상태를 확인하지 못했어요. 부모관리에서 다시 확인해 주세요.");return null}
 }
 
 async function openFirstLearningSetup(memberId) {
@@ -2972,23 +3067,74 @@ async function openFirstLearningSetup(memberId) {
   await learningController?.refresh({force:true});
 }
 
-async function enterAuthenticatedApp() {
+// Only an authenticated startup owns these promises; later refreshes use requestJson.
+function authenticatedStartupContext() {
+  const generation = authGeneration;
+  const identity = () => JSON.stringify([familyAuthHeaders(), familyChatController?.currentMember()]);
+  const owner = identity();
+  return () => generation === authGeneration && owner === identity();
+}
+
+function createStartupLearningRequests() {
+  const scope = () => {
+    const member = familyChatController?.currentMember();
+    return JSON.stringify([familyAuthHeaders(), member?.family_id, member?.id, member?.role, selectedPlanAssignee()]);
+  };
+  const owner = scope(), requests = new Map();
+  let active = true;
+  const close = () => {
+    active = false;
+    requests.clear();
+    window.removeEventListener("family-auth-changed", close);
+  };
+  const isCurrent = () => {
+    if (active && scope() !== owner) close();
+    return active;
+  };
+  window.addEventListener("family-auth-changed", close);
+  const request = async (url, options = {}) => {
+    if (!isCurrent()) throw new Error("Startup scope changed.");
+    const shareable = /^\/api\/learning\/(assignments|review-queue|plans)(\?|$)/.test(url)
+      && (options.method || "GET") === "GET" && !options.body && !options.signal;
+    const key = JSON.stringify([url, options.headers || {}, options.cache || "no-store"]);
+    let pending = shareable ? requests.get(key) : null;
+    if (!pending) {
+      pending = requestJson(url, options);
+      if (shareable) {
+        requests.set(key, pending);
+        // Do not retain failed results: onboarding and later retries may recover.
+        pending.catch(() => { if (requests.get(key) === pending) requests.delete(key); });
+      }
+    }
+    const data = await pending;
+    if (!isCurrent()) throw new Error("Startup scope changed.");
+    return structuredClone(data);
+  };
+  return { request, isCurrent, close };
+}
+
+async function enterAuthenticatedApp({ shareOnboarding = false, analysisRequested = false } = {}) {
   if (authenticationTransition) return authenticationTransition;
+  let startupRequests = null;
+  const isCurrent = authenticatedStartupContext();
   authenticationTransition = (async () => {
     const currentMember = familyChatController?.currentMember();
     remoteLoadGeneration += 1;
     stickerWalletSnapshot = null;
     state = emptyLocalData();
     learningController?.reset();
-    learningAnalysisController?.reset();
+    analysisEntryScope = "";
+    learningAnalysisController?.reset({ render: analysisViewVisible() });
     learningMistakesController?.reset();
     learningReviewQueueController?.reset();
     state.formMode = "create";
     if (appReady) render();
-    await loadPlanAssignees();
-    const learningTask = learningController?.refresh({ force: true });
-    const learningAnalysisTask = learningAnalysisController?.refresh();
-    const learningReviewQueueTask = learningReviewQueueController?.refresh();
+    await loadPlanAssignees({ reuseStartupMembers: true });
+    if (!isCurrent()) return;
+    startupRequests = createStartupLearningRequests();
+    const learningTask = learningController?.refresh({ force: true, startupRequests });
+    const learningAnalysisTask = analysisRequested ? ensureLearningAnalysis({ startupRequests, requested: true }) : null;
+    const learningReviewQueueTask = learningReviewQueueController?.refresh({ startupRequests });
     activeCacheKey = localDataKey();
     console.info("[startup auth]", {
       member_key: currentMember?.member_key || null,
@@ -3006,13 +3152,15 @@ async function enterAuthenticatedApp() {
       startupMetrics.firstContentMs ??= Math.round(performance.now() - startupStartedAt);
     }
     setConnectionStatus(hasCachedData ? "최신 사용자 정보를 확인하고 있어요..." : "사용자 정보를 불러오고 있어요...");
+    let slowTimer, retryTimer, rewardTask;
     try {
-      const slowTimer = window.setTimeout(() => setConnectionStatus("데이터를 불러오는 중입니다..."), 5000);
-      const retryTimer = window.setTimeout(() => {
+      slowTimer = window.setTimeout(() => { if (isCurrent()) setConnectionStatus("데이터를 불러오는 중입니다..."); }, 5000);
+      retryTimer = window.setTimeout(() => {
+        if (!isCurrent()) return;
         setConnectionStatus("데이터 연결이 지연되고 있습니다. 저장된 화면을 계속 사용할 수 있어요.");
         $("#startupRetryButton").hidden = false;
       }, 10000);
-      const rewardTask = rewardStoreController
+      rewardTask = rewardStoreController
         ? rewardStoreController.refresh({ silent: true })
         : initRewardStore({
             openFamily: () => switchView("family-chat"),
@@ -3022,9 +3170,11 @@ async function enterAuthenticatedApp() {
             .then((controller) => { rewardStoreController = controller; });
       await reloadFromRemote({ essentialOnly: true });
       await Promise.all([learningTask, learningAnalysisTask, learningReviewQueueTask]);
+      if (!isCurrent()) return;
       render();
       startupMetrics.firstContentMs ??= Math.round(performance.now() - startupStartedAt);
       await Promise.allSettled([rewardTask]);
+      if (!isCurrent()) return;
       window.clearTimeout(slowTimer);
       window.clearTimeout(retryTimer);
       $("#startupRetryButton").hidden = true;
@@ -3033,37 +3183,74 @@ async function enterAuthenticatedApp() {
       appReady = true;
       realtimeUnsubscribe?.();
       realtimeUnsubscribe = repository.subscribe(() => {
+        if (!isCurrent()) return;
         reloadFromRemote();
         rewardStoreController?.scheduleRefresh();
       }, handleRepositoryError);
       deferStartupTask(async () => {
+        if (!isCurrent()) return;
         await reloadFromRemote({ essentialOnly: false });
+        if (!isCurrent()) return;
         startupMetrics.deferredDataMs = Math.round(performance.now() - startupStartedAt);
         reportStartupPerformance();
       });
     } catch (error) {
+      if (!isCurrent()) return;
       console.warn("[startup] authenticated data load failed", error);
       render();
       appReady = true;
       setConnectionStatus(hasCachedData ? "저장된 정보를 표시하고 있습니다. 연결되면 자동으로 최신화됩니다." : "인터넷 연결을 확인해 주세요.");
+    } finally {
+      window.clearTimeout(slowTimer);
+      window.clearTimeout(retryTimer);
+      if (!isCurrent()) startupRequests.close();
+      // Finish singleton construction before a queued auth generation can enter.
+      await Promise.allSettled([rewardTask]);
     }
-  })().finally(() => { authenticationTransition = null; });
+    if (!shareOnboarding) startupRequests.close();
+    return startupRequests;
+  })().catch((error) => {
+    startupRequests?.close();
+    throw error;
+  }).finally(() => { authenticationTransition = null; });
   return authenticationTransition;
 }
 
 window.addEventListener("online", () => { if (appReady) reloadFromRemote(); });
 window.addEventListener("offline", () => setConnectionStatus("오프라인입니다. 저장된 정보를 표시합니다."));
 window.addEventListener("family-auth-changed", async (event) => {
-  if (!appReady) return;
+  // Initial restore/PIN is completed by initApp or its onboarding callback.
+  const running = appReady || authenticationTransition || authenticatedFeaturesTransition;
+  authGeneration += 1;
+  remoteLoadGeneration += 1;
+  analysisEntryScope = "";
+  learningController?.reset();
+  learningAnalysisController?.reset({ render: analysisViewVisible() });
+  learningMistakesController?.reset();
+  learningReviewQueueController?.reset();
+  if (!running) return;
+  authMembersRefreshRequired = true;
+  appReady = false;
+  realtimeUnsubscribe?.();
+  realtimeUnsubscribe = null;
+  planAssignees = [];
+  stickerWalletSnapshot = null;
+  state = emptyLocalData();
+  render();
   if (event.detail?.authenticated === false) {
     localStorage.removeItem(activeCacheKey);
-    appReady = false;
-    realtimeUnsubscribe?.();
-    realtimeUnsubscribe = null;
     $("#todayList").setAttribute("aria-busy", "true");
+    // Let the chat auth listener clear its session before opening the login gate.
+    await Promise.resolve();
+    render();
     await familyChatController?.requireAuthentication();
   }
-  if (familyChatController?.isAuthenticated()) await enterAuthenticatedApp();
+  const generation = authGeneration;
+  try {
+    if (familyChatController?.isAuthenticated()) await initializeAuthenticatedFeatures();
+  } catch (error) {
+    if (generation === authGeneration) setConnectionStatus("로그인 정보를 불러오지 못했습니다. 다시 시도해 주세요.");
+  }
 });
 
 let initializationPromise = null;

@@ -22,15 +22,15 @@ test("child switching resets assignment, analysis, mistakes, and review before s
   const change = section(app, "async function handlePlanAssigneeChange()", "function applyStickerWalletData");
   assert.match(change, /state = \{[\s\S]*plans: \[\],[\s\S]*bookPlans: \[\],[\s\S]*academySchedules: \[\]/);
   assert.match(change, /learningController\?\.reset\(\)/);
-  assert.match(change, /learningAnalysisController\?\.reset\(\)/);
+  assert.match(change, /learningAnalysisController\?\.reset\(\{ render: analysisViewVisible\(\) \}\)/);
   assert.match(change, /learningMistakesController\?\.reset\(\)/);
   assert.match(change, /learningController\?\.refresh\(\{ force: true \}\)/);
-  assert.match(change, /learningAnalysisController\?\.refresh\(\)/);
+  assert.match(change, /ensureLearningAnalysis\(\{ force: true \}\)/);
 });
 
 test("every learning controller clears its own result loading and error state", () => {
   const learningReset = section(learning, "reset() {", "render();\n    },");
-  const analysisReset = section(analysis, "reset() {", "render();\n    },");
+  const analysisReset = section(analysis, "reset({ render: shouldRender = true } = {}) {", "render();\n    },");
   const mistakeReset = section(mistakes, "reset() {", "render();\n    },");
   assert.match(learningReset, /assignments = \[\]/);
   assert.match(learningReset, /attempt = null/);

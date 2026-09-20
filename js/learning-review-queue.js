@@ -116,7 +116,8 @@ export function initLearningReviewQueue({
     container.innerHTML = `${group("오늘 복습", today)}${group("예정 복습", upcoming)}`;
   }
 
-  async function refresh() {
+  async function refresh({ startupRequests = null } = {}) {
+    const sharedRequest = startupRequests?.request || requestJson;
     const member = currentMember();
     const assignedMemberId = member?.role === "parent" ? selectedAssignee() : "";
     const requestGeneration = ++generation;
@@ -132,14 +133,16 @@ export function initLearningReviewQueue({
     render();
     try {
       const query = assignedMemberId ? `?assignedMemberId=${encodeURIComponent(assignedMemberId)}` : "";
-      const data = await requestJson(`/api/learning/review-queue${query}`, {
+      const data = await sharedRequest(`/api/learning/review-queue${query}`, {
         headers: authHeaders(),
         cache: "no-store",
       });
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
+      if (startupRequests && !startupRequests.isCurrent()) return;
       queue = Array.isArray(data.queue) ? data.queue : [];
     } catch {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
+      if (startupRequests && !startupRequests.isCurrent()) return;
       failed = true;
     } finally {
       if (requestGeneration === generation && requestIdentity === identity()) {

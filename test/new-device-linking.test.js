@@ -168,10 +168,12 @@ function browserHarness({ restored = null } = {}) {
     MutationObserver: class { observe() {} }, requestAnimationFrame() {}, console: { log() {}, info() {}, warn() {}, error() {} },
     SUPABASE_CONFIG: {}, createClient: () => null,
     familyChatController: null, onboardingController: null, learningController: null, learningAnalysisController: null, learningMistakesController: null, learningReviewQueueController: null, rewardStoreController: null,
+    authGeneration: 0, authenticationTransition: null, authenticatedFeaturesTransition: null, completedAuthGeneration: -1, authMembersRefreshRequired: false, remoteLoadGeneration: 0,
+    render() {}, emptyLocalData: () => ({}),
     BUILD_VERSION: "test", startupMetrics: {}, startupStartedAt: 0, appReady: false, activeCacheKey: "local-test-cache", realtimeUnsubscribe: null,
     renderStoredUserHint() {}, bindEvents() {}, initParentDashboard() {}, deferStartupTask() {}, registerServiceWorker() {}, updateInstallUI() {}, resetForm() {}, resetBookPlanForm() {}, resetReadingPlanForm() {}, resetAcademyForm() {}, setConnectionStatus() {}, openFirstLearningSetup() {}, learningSetupPreference: { dismiss() {} },
     requestJson() {}, familyAuthHeaders() {}, selectedPlanAssignee() {}, requireSelectedPlanAssignee() {}, switchView() {},
-    initLearning() { initialized++; return {}; }, initLearningAnalysis: () => ({}), initLearningMistakes: () => ({}), initLearningReviewQueue: () => ({}),
+    initLearning() { initialized++; return { reset() {} }; }, initLearningAnalysis: () => ({ reset() {}, async refresh() { return true; } }), initLearningMistakes: () => ({ reset() {} }), initLearningReviewQueue: () => ({ reset() {} }),
     async enterAuthenticatedApp() { entered++; sandbox.appReady = true; }, async evaluateLearningOnboarding() {},
   };
   window.setTimeout = sandbox.setTimeout; window.clearTimeout = sandbox.clearTimeout;
@@ -181,8 +183,9 @@ function browserHarness({ restored = null } = {}) {
   vm.runInContext(moduleSource("js/parent-dashboard.js"), context);
   vm.runInContext("renderMessages=()=>{};renderPushButton=()=>{};syncExistingPushSubscription=async()=>{};", context);
   const app = read("js/app.js");
+  vm.runInContext(section(app, "function authenticatedStartupContext()", "function createStartupLearningRequests()"), context);
   vm.runInContext(section(app, "async function initApp()", "async function learningOnboardingModel("), context);
-  vm.runInContext(section(app, 'window.addEventListener("family-auth-changed"', "let initializationPromise"), context);
+  vm.runInContext(section(app, '\nwindow.addEventListener("family-auth-changed"', "let initializationPromise").replace("state = emptyLocalData();", "appState = emptyLocalData();"), context);
   const flush = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
   return { node, calls, context, sessionStorage, localStorage, flush,
     timerIds: () => [...timers.keys()],

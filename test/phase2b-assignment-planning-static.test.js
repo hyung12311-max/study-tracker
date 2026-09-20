@@ -106,7 +106,7 @@ test("Phase B planning routes remain while frozen content, package, and vendor f
   assert.match(learningUi, /const requestGeneration = \+\+generation/);
   assert.match(learningUi, /requestGeneration !== generation \|\| requestIdentity !== identity\(\)/);
   assert.match(learningUi, /const query = assignedMemberId \? `\?assignedMemberId=\$\{encodeURIComponent\(assignedMemberId\)\}` : ""/);
-  assert.match(learningUi, /requestJson\(`\/api\/learning\/assignments\$\{query\}`/);
+  assert.match(learningUi, /sharedRequest\(`\/api\/learning\/assignments\$\{query\}`/);
   assert.match(learningUi, /data-learning-plan-form[\s\S]*data-unit-id[\s\S]*data-version-id[\s\S]*data-learning-action="\$\{mode === "assignment" \? "assign"/);
 
   const frozen = [

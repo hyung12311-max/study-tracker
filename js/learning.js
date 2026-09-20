@@ -675,7 +675,8 @@ export function initLearning({
     }
   }
 
-  async function refresh({ force = false } = {}) {
+  async function refresh({ force = false, startupRequests = null } = {}) {
+    const sharedRequest = startupRequests?.request || requestJson;
     const member = currentMember();
     const requestIdentity = identity();
     const requestGeneration = ++generation;
@@ -733,15 +734,16 @@ export function initLearning({
             requestJson(`/api/learning/profile${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/roadmap${query}`, { headers: authHeaders(), cache: "no-store" }),
             requestJson(`/api/learning/catalog${query}`, { headers: authHeaders(), cache: "no-store" }),
-            requestJson(`/api/learning/assignments${query}`, { headers: authHeaders(), cache: "no-store" }),
-            requestJson(`/api/learning/plans?assignedMemberId=${encodeURIComponent(assignedMemberId)}`, { headers: authHeaders(), cache: "no-store" }),
+            sharedRequest(`/api/learning/assignments${query}`, { headers: authHeaders(), cache: "no-store" }),
+            sharedRequest(`/api/learning/plans?assignedMemberId=${encodeURIComponent(assignedMemberId)}`, { headers: authHeaders(), cache: "no-store" }),
           ]
-        : [Promise.resolve({ profile: null }), Promise.resolve({ roadmap: null }), Promise.resolve({ catalog: [] }), requestJson("/api/learning/assignments", {
+        : [Promise.resolve({ profile: null }), Promise.resolve({ roadmap: null }), Promise.resolve({ catalog: [] }), sharedRequest("/api/learning/assignments", {
             headers: authHeaders(),
             cache: "no-store",
           }), Promise.resolve({ planning: [] })];
       const [profileData, roadmapData, catalogData, assignmentData, planningData] = await Promise.all(requests);
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
+      if (startupRequests && !startupRequests.isCurrent()) return;
       catalog = catalogData.catalog || [];
       roadmap = roadmapData.roadmap || null;
       assignments = assignmentData.assignments || [];
@@ -752,6 +754,7 @@ export function initLearning({
       error = "";
     } catch (cause) {
       if (requestGeneration !== generation || requestIdentity !== identity()) return;
+      if (startupRequests && !startupRequests.isCurrent()) return;
       catalog = [];
       roadmap = null;
       assignments = [];

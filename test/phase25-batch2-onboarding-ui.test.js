@@ -265,6 +265,7 @@ for (const failure of ["members", "assignees", "missing child"]) {
       renderChoices() {}, renderAdmin() {}, updatePlanAssigneeSummary() {},
       $: () => selector, document: { createElement: () => ({}) },
       sessionStorage: { getItem: () => "", setItem() {} },
+      restoreFamilyAuth: () => null, authGeneration: 0,
       planAssigneeStorageKey: () => "", selectedPlanAssignee: () => "", familyAuthHeaders: () => ({}),
       request: async () => {
         if (failing && failure === "members") throw new Error("members unavailable");
@@ -279,7 +280,8 @@ for (const failure of ["members", "assignees", "missing child"]) {
       },
     });
     vm.runInContext(
-      family.match(/^async function loadMembers\(.*$/m)[0] + "\n" +
+      extract(app, "function authenticatedStartupContext()", "function createStartupLearningRequests()") + "\n" +
+      extract(family, "let membersLoadVersion=", "async function openLogin(") + "\n" +
       extract(app, "function renderPlanAssignees(", "async function handlePlanAssigneeChange(") + "\n" +
       extract(app, "async function learningOnboardingModel(", "async function evaluateLearningOnboarding(") + "\n" +
       read("js/onboarding-learning.js").replace(/export /g, ""), context);

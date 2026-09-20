@@ -41,8 +41,8 @@ test("child scope changes reset recommendations and discard stale responses", ()
   assert.match(ui, /\/api\/learning\/recommendations\$\{query\}/);
   assert.match(ui, /recommendations = \[\]/);
   assert.match(ui, /requestGeneration !== generation \|\| requestIdentity !== identity\(\)/);
-  assert.match(app, /learningAnalysisController\?\.reset\(\)/);
-  assert.match(app, /learningAnalysisController\?\.refresh\(\)/);
+  assert.match(app, /learningAnalysisController\?\.reset\(\{ render: analysisViewVisible\(\) \}\)/);
+  assert.match(app, /ensureLearningAnalysis\(\{ force: true \}\)/);
 });
 
 test("recommendation UI performs no mutations and exposes no raw or internal data", () => {

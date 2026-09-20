@@ -62,8 +62,8 @@ test("all three read-only endpoints use the selected child scope", () => {
 });
 
 test("child changes reset and refresh identity-scoped analysis", () => {
-  assert.match(app, /learningAnalysisController\?\.reset\(\)/);
-  assert.match(app, /learningAnalysisController\?\.refresh\(\)/);
+  assert.match(app, /learningAnalysisController\?\.reset\(\{ render: analysisViewVisible\(\) \}\)/);
+  assert.match(app, /ensureLearningAnalysis\(\{ force: true \}\)/);
   assert.match(analysis, /requestIdentity !== identity\(\)/);
   assert.match(analysis, /requestGeneration !== generation/);
 });
