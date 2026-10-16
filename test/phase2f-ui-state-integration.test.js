@@ -11,6 +11,7 @@ const mistakes = fs.readFileSync(path.join(root, "js/learning-mistakes.js"), "ut
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 function section(source, start, end) {
+  source = source.replace(/\r\n?/g, "\n");
   const from = source.indexOf(start);
   const to = source.indexOf(end, from + start.length);
   assert.notEqual(from, -1, `missing section start: ${start}`);
